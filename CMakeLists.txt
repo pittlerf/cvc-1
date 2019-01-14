@@ -359,6 +359,7 @@ add_library(cvc
   make_x_orbits.cpp
   rng/ParallelMT19937_64.cpp
   contract/contract_twopoint_gamma5_gamma_snk_only_snk_momentum.cpp
+  contract_loop.cpp
 )
 add_executable(cpff_invert_contract
   cpff_invert_contract.cpp)
@@ -366,11 +367,19 @@ target_link_libraries(cpff_invert_contract
   cvc
   ${cvc_libraries})
 
-add_executable(cpff_tbc_invert_contract
-  cpff_tbc_invert_contract.cpp)
+add_executable(loop_analyse
+  loop_analyse.cpp)
+target_link_libraries(loop_analyse
+  cvc
+  ${cvc_libraries})
+
+#add_executable(cpff_tbc_invert_contract
+#  cpff_tbc_invert_contract.cpp)
 
 add_executable(cpff_invert_contract_no_spin_dilution
   cpff_invert_contract_no_spin_dilution.cpp)
+#add_executable(loop_analyse,
+#  loop_analyse.cpp) 
 target_link_libraries(cpff_invert_contract_no_spin_dilution
   cvc
   ${cvc_libraries})

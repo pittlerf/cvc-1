@@ -23,6 +23,20 @@
 #include "lhpc-aff.h"
 #endif
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#  ifdef HAVE_TMLQCD_LIBWRAPPER
+#    include "tmLQCD.h"
+#  endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #define MAIN_PROGRAM
 
 #include "cvc_complex.h"
@@ -48,6 +62,8 @@
 #include "clover.h"
 #include "contract_loop.h"
 #include "ranlxd.h"
+
+#include "Stopwatch.hpp"
 
 #define _OP_ID_UP 0
 #define _OP_ID_DN 1
@@ -84,8 +100,12 @@ int main(int argc, char **argv) {
 
   char data_tag[400];
 
+#ifdef HAVE_TMLQCD_LIBWRAPPER
+  tmLQCD_init_parallel_and_read_input(argc, argv, 1, "invert.input");
+#else
 #ifdef HAVE_MPI
   MPI_Init(&argc, &argv);
+#endif
 #endif
 
   while ((c = getopt(argc, argv, "h?f:Q:")) != -1) {

@@ -97,7 +97,7 @@ int contract_local_loop_stochastic ( double *** const loop, double * const sourc
 
   gettimeofday ( &tb, (struct timezone *)NULL );
   
-  show_time ( &ta, &tb, "contract_local_loop_stochastic", "local contract", g_cart_id == 0 );
+  show_time ( &ta, &tb, (const char *)"contract_local_loop_stochastic", (const char *)"local contract", g_cart_id == 0 );
 
 
   if ( momentum_number > 0 && momentum_list != NULL ) {
@@ -588,14 +588,13 @@ int loop_read_from_h5_file (double *** const loop, void * file, char*tag, int co
      * io_proc == 2 must be id 0 in g_tr_comm / g_cart_grid
      ***************************************************************************/
     int mitems = T * momentum_number * nc * 2;
-    MPI_Status = mstatus;
-
+    int mstatus;
 #if ( defined PARALLELTX ) || ( defined PARALLELTXY ) || ( defined PARALLELTXYZ ) 
-    mstatus = MPI_Scatter ( zbuffer, mitems, MPI_DOUBLE, loop[0][0], mitems, MPI_DOUBLE, 0, g_tr_comm   );
+    mstatus=MPI_Scatter ( zbuffer, mitems, MPI_DOUBLE, loop[0][0], mitems, MPI_DOUBLE, 0, g_tr_comm );
 #else
-    mstatus = MPI_Scatter ( zbuffer, mitems, MPI_DOUBLE, loop[0][0], mitems, MPI_DOUBLE, 0, g_cart_grid );
+    MPI_Scatter ( zbuffer, mitems, MPI_DOUBLE, loop[0][0], mitems, MPI_DOUBLE, 0, g_cart_grid );
 #endif
-    if ( mstatus != MPI_SUCCESS ) {
+    if ( mstatus != (int)MPI_SUCCESS ) {
       fprintf(stderr, "[loop_read_from_h5_file] Error from MPI_Scatter, status was %d %s %d\n", status, __FILE__, __LINE__);
       return(7);
     }
@@ -745,14 +744,14 @@ int loop_get_momentum_list_from_h5_file ( int (*momentum_list)[3], void * file, 
      * io_proc == 2 must be id 0 in g_tr_comm / g_cart_grid
      ***************************************************************************/
     int mitems = momentum_number * 3;
-    MPI_Status = mstatus;
+    int mstatus;
 
 #if ( defined PARALLELTX ) || ( defined PARALLELTXY ) || ( defined PARALLELTXYZ ) 
-    mstatus = MPI_Bcast( ibuffer, mitems, MPI_INT, 0, g_tr_comm   );
+    mstatus= MPI_Bcast( ibuffer, mitems, MPI_INT, 0, g_tr_comm );
 #else
-    mstatus = MPI_Bcast( ibuffer, mitems, MPI_INT, 0, g_cart_grid );
+    mstatus= MPI_Bcast( ibuffer, mitems, MPI_INT, 0, g_cart_grid, &mstatus );
 #endif
-    if ( mstatus != MPI_SUCCESS ) {
+    if ( mstatus != (int) MPI_SUCCESS ) {
       fprintf(stderr, "[loop_get_momentum_list_from_h5_file] Error from MPI_Bcast, status was %d %s %d\n", status, __FILE__, __LINE__);
       return(7);
     }
