@@ -264,6 +264,9 @@ EXTERN int g_check_inversion;
 
 EXTERN int g_src_snk_time_separation, g_sequential_source_gamma_id, g_sequential_source_gamma_id_list[16], g_sequential_source_gamma_id_number;
 EXTERN int g_source_gamma_id, g_source_gamma_id_list[16], g_source_gamma_id_number;
+EXTERN int g_currentgammas;
+EXTERN int g_loop_number;
+EXTERN int g_loop_type[6];
 
 EXTERN double g_csw, *g_clover_term;
 

@@ -1672,6 +1672,45 @@ gamma_sign[15][21] = +1;
 gamma_sign[15][22] = -1;
 gamma_sign[15][23] = +1;
 
+/*
+gamma_matrix_permutation[0][ 0]=16
+gamma_matrix_permutation[0][ 1]=17
+gamma_matrix_permutation[0][ 2]=18
+gamma_matrix_permutation[0][ 3]=19
+gamma_matrix_permutation[0][ 4]=20
+gamma_matrix_permutation[0][ 5]=21
+gamma_matrix_permutation[0][ 6]=22
+gamma_matrix_permutation[0][ 7]=23
+gamma_matrix_permutation[0][ 8]=
+gamma_matrix_permutation[0][1]=17
+gamma_matrix_permutation[0][2]=18
+gamma_matrix_permutation[0][3]=19
+gamma_matrix_permutation[0][4]=20
+gamma_matrix_permutation[0][5]=21
+gamma_matrix_permutation[0][6]=22
+gamma_matrix_permutation[0][7]=23
+gamma_matrix_permutation[0][0]=16
+gamma_matrix_permutation[0][1]=17
+gamma_matrix_permutation[0][2]=18
+gamma_matrix_permutation[0][3]=19
+gamma_matrix_permutation[0][4]=20
+gamma_matrix_permutation[0][5]=21
+gamma_matrix_permutation[0][6]=22
+gamma_matrix_permutation[0][7]=23
+gamma_matrix_permutation[0][0]=16
+gamma_matrix_permutation[0][1]=17
+gamma_matrix_permutation[0][2]=18
+gamma_matrix_permutation[0][3]=19
+gamma_matrix_permutation[0][4]=20
+gamma_matrix_permutation[0][5]=21
+gamma_matrix_permutation[0][6]=22
+gamma_matrix_permutation[0][7]=23
+
+
+
+gamma_matrix_sign[0][0]=-1;
+gamma_matrix_sign[0][1]=-1;*/
+
 }
 
 int printf_gauge_field(double *gauge, FILE *ofs) {

@@ -24,7 +24,7 @@
 #endif
 
 
-#ifdef __cplusplus
+/*#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -36,7 +36,7 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-
+*/
 #define MAIN_PROGRAM
 
 #include "cvc_complex.h"
@@ -99,14 +99,6 @@ int main(int argc, char **argv) {
   char output_filename[400];
 
   char data_tag[400];
-
-#ifdef HAVE_TMLQCD_LIBWRAPPER
-  tmLQCD_init_parallel_and_read_input(argc, argv, 1, "invert.input");
-#else
-#ifdef HAVE_MPI
-  MPI_Init(&argc, &argv);
-#endif
-#endif
 
   while ((c = getopt(argc, argv, "h?f:Q:")) != -1) {
     switch (c) {
@@ -268,6 +260,13 @@ int main(int argc, char **argv) {
             int const y0 = x0 + g_proc_coords[0] * T;
 
             for ( int imom = 0; imom < g_sink_momentum_number; imom++ ) {
+
+
+/*              if (select_currentgammastructures == TRUE){
+                 
+                  _fv_eq_gamma_ti_fv(sp, currentgamma_element, loop[isample][x0][imom]);
+              }
+*/
 
               for( int ic = 0; ic < 16; ic++ ) {
 

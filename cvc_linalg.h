@@ -1717,6 +1717,11 @@ namespace cvc {
 
 /********************/
 
+/* s (fermion matrix) = gamma * t (fermion matrix) */
+
+#define _fm_eq_gamma_ti_fm(s, gamma_index, t){\
+}
+
 /* s = gamma * t. */
 
 #define _fv_eq_gamma_ti_fv(s,gamma_index,t) {\

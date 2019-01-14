@@ -166,6 +166,8 @@ using namespace cvc;
 %x SEQSRCMOMX
 %x SEQSRCMOMY
 %x SEQSRCMOMZ
+%x LOOPNUMBER
+%x LOOPTYPE
 %x CPUPREC
 %x GPUPREC
 %x GPUPRECSLOPPY
@@ -272,6 +274,7 @@ using namespace cvc;
 ^source_indices{SPC}*={SPC}*               BEGIN(SRCINDEX);
 ^propagator_bc_type{SPC}*={SPC}*           BEGIN(PROPBCTYPE);
 ^propagator_gamma_basis{SPC}*={SPC}*       BEGIN(PROPGAMMA);
+
 ^propagator_precision{SPC}*={SPC}*         BEGIN(PROPPREC);
 ^write_source{SPC}*={SPC}*                 BEGIN(WRITESRC);
 ^read_source{SPC}*={SPC}*                  BEGIN(READSRC);
@@ -287,6 +290,9 @@ using namespace cvc;
 ^seq_source_momentum_x{SPC}*={SPC}*        BEGIN(SEQSRCMOMX);
 ^seq_source_momentum_y{SPC}*={SPC}*        BEGIN(SEQSRCMOMY);
 ^seq_source_momentum_z{SPC}*={SPC}*        BEGIN(SEQSRCMOMZ);
+^currentgammastructure{SPC}*={SPC}*        BEGIN(CURRENTGAMMAS);
+^loopnumber{SPC}*={SPC}*                   BEGIN(LOOPNUMBER);
+^looptype{SPC}*={SPC}*                     BEGIN(LOOPTYPE);
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
 ^gpu_precision{SPC}*={SPC}*                BEGIN(GPUPREC);
 ^gpu_precision_sloppy{SPC}*={SPC}*         BEGIN(GPUPRECSLOPPY);
@@ -470,6 +476,51 @@ using namespace cvc;
     g_source_type = -1;
   } 
   if(myverbose!=0) printf("# [read_input_parser] source type set to %s\n",yytext);
+}
+<LOOPNUMBERS>{DIGIT}+ {
+  g_loop_number = atoi(yytext);
+  if(myverbose!=0) printf("# [read_input_parser] Number of loops to be filtered %d\n", g_loop_number);
+}
+<LOOPTYPE>{FILENAME} {
+  char paramname[100];
+  char token[100];
+  char error_message[200];
+  int list_end = 0;
+  int index = 0;
+  strlist_tokenize(yytext, paramname, 100);
+  strlist_next_token(&list_end, token, 100);
+  while( list_end != 1 ){
+    if( index > 5 ){
+      snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of saving loops (6) parsing %s!\n");
+      yy_fatal_error(error_message);
+      }
+    if( strcmp(token, "Scalar") == 0 ){
+      g_loop_type[index]=0;
+    }
+    else if( strcmp(token, "dOp") == 0 ){
+      g_loop_type[index]=1;
+    }
+    else if( strcmp(token, "Loops") == 0){
+      g_loop_type[index]=2;
+    }
+    else if( strcmp(token, "LpsDw") == 0){
+      g_loop_type[index]=3;
+    }
+    else if( strcmp(token, "LoopsCV") == 0){
+      g_loop_type[index]=4;
+    }
+    else if( strcmp(token, "LpsDwCv") == 0){
+      g_loop_type[index]=5;
+    }
+    else {
+      snprintf(error_message, 200, "# [read_input_parser] Unknown loop type %s passed in the parsing of %s!\n", yytext, paramname);
+      exit(1);
+    }
+    index++;
+    strlist_next_token(&list_end, token, 100);
+    
+    if(myverbose!=0) printf("# [read_input_parser] loop type saved to %s\n",token);
+  }
 }
 <SPREC>{FLT} {
   solver_precision = atof(yytext);
@@ -811,6 +862,10 @@ using namespace cvc;
   g_seq_source_momentum_set = 1;
   if(myverbose!=0) printf("# [read_input_parser] z-comp. of sequential source momentum set to %d\n", g_seq_source_momentum[2]);
 }
+<CURRENTGAMMAS>{DIGIT}+ {
+  g_currentgammas = atoi(yytext);
+  if(myverbose!=0) printf("# [read_input_parser] spin projection on loops with gamma id %d\n", g_currentgammas);
+
 <CPUPREC>{NAME} {
   if(strcmp(yytext, "half")==0 ) {
     g_cpu_prec = 0;
