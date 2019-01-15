@@ -582,19 +582,19 @@ int loop_read_from_h5_file (double *** const loop, void * file, char*tag, int co
       } 
 
     }  /* if io_proc == 2 */
-
 #ifdef HAVE_MPI
     /***************************************************************************
      * io_proc == 2 must be id 0 in g_tr_comm / g_cart_grid
      ***************************************************************************/
+
     int mitems = T * momentum_number * nc * 2;
-    int mstatus;
+    int status;
 #if ( defined PARALLELTX ) || ( defined PARALLELTXY ) || ( defined PARALLELTXYZ ) 
-    mstatus=MPI_Scatter ( zbuffer, mitems, MPI_DOUBLE, loop[0][0], mitems, MPI_DOUBLE, 0, g_tr_comm );
+    status=MPI_Scatter ( zbuffer, mitems, MPI_DOUBLE, loop[0][0], mitems, MPI_DOUBLE, 0, g_tr_comm );
 #else
-    MPI_Scatter ( zbuffer, mitems, MPI_DOUBLE, loop[0][0], mitems, MPI_DOUBLE, 0, g_cart_grid );
+    status=MPI_Scatter ( zbuffer, mitems, MPI_DOUBLE, loop[0][0], mitems, MPI_DOUBLE, 0, g_cart_grid );
 #endif
-    if ( mstatus != (int)MPI_SUCCESS ) {
+    if ( status != (int)MPI_SUCCESS ) {
       fprintf(stderr, "[loop_read_from_h5_file] Error from MPI_Scatter, status was %d %s %d\n", status, __FILE__, __LINE__);
       return(7);
     }
@@ -602,8 +602,8 @@ int loop_read_from_h5_file (double *** const loop, void * file, char*tag, int co
     /* T == T_global */
     memcpy ( loop[0][0], zbuffer, T * momentum_number * nc * 2 * sizeof(double) );
 #endif
-
-    fini_1level_dtable ( &zbuffer );
+    if (io_proc == 2)
+      fini_1level_dtable ( &zbuffer );
 
     /***************************************************************************
      * time measurement
@@ -744,14 +744,14 @@ int loop_get_momentum_list_from_h5_file ( int (*momentum_list)[3], void * file, 
      * io_proc == 2 must be id 0 in g_tr_comm / g_cart_grid
      ***************************************************************************/
     int mitems = momentum_number * 3;
-    int mstatus;
+    int  status;
 
 #if ( defined PARALLELTX ) || ( defined PARALLELTXY ) || ( defined PARALLELTXYZ ) 
-    mstatus= MPI_Bcast( ibuffer, mitems, MPI_INT, 0, g_tr_comm );
+    status= MPI_Bcast( ibuffer, mitems, MPI_INT, 0, g_tr_comm );
 #else
-    mstatus= MPI_Bcast( ibuffer, mitems, MPI_INT, 0, g_cart_grid, &mstatus );
+    status= MPI_Bcast( ibuffer, mitems, MPI_INT, 0, g_cart_grid);
 #endif
-    if ( mstatus != (int) MPI_SUCCESS ) {
+    if ( status != (int)MPI_SUCCESS ) {
       fprintf(stderr, "[loop_get_momentum_list_from_h5_file] Error from MPI_Bcast, status was %d %s %d\n", status, __FILE__, __LINE__);
       return(7);
     }
