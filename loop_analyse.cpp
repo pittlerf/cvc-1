@@ -23,8 +23,7 @@
 #include "lhpc-aff.h"
 #endif
 
-
-/*#ifdef __cplusplus
+#ifdef __cplusplus
 extern "C"
 {
 #endif
@@ -36,7 +35,9 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-*/
+
+
+
 #define MAIN_PROGRAM
 
 #include "cvc_complex.h"
@@ -63,8 +64,6 @@ extern "C"
 #include "contract_loop.h"
 #include "ranlxd.h"
 
-#include "Stopwatch.hpp"
-
 #define _OP_ID_UP 0
 #define _OP_ID_DN 1
 #define _OP_ID_ST 2
@@ -83,8 +82,9 @@ int main(int argc, char **argv) {
   const char outfile_prefix[] = "loop";
 
   /* const char fbwd_str[2][4] =  { "fwd", "bwd" }; */
+  printf("Starting loop analyse\n");
 
-  int const conf_traj = 4;  /* meaning of this ? from HMC run ? */
+  int const conf_traj = 0;  /* meaning of this ? from HMC run ? */
 
   int c;
   int filename_set = 0;
@@ -99,6 +99,14 @@ int main(int argc, char **argv) {
   char output_filename[400];
 
   char data_tag[400];
+
+#ifdef HAVE_TMLQCD_LIBWRAPPER
+  tmLQCD_init_parallel_and_read_input(argc, argv, 1, "invert.input");
+#else
+#ifdef HAVE_MPI
+  MPI_Init(&argc, &argv);
+#endif
+#endif
 
   while ((c = getopt(argc, argv, "h?f:Q:")) != -1) {
     switch (c) {
@@ -121,13 +129,37 @@ int main(int argc, char **argv) {
 
   /* set the default values */
   if(filename_set==0) sprintf ( filename, "%s.input", outfile_prefix );
-  /* fprintf(stdout, "# [loop_analyse] Reading input from file %s\n", filename); */
+  
   read_input_parser(filename);
+  
+  /***************************************************************************
+   * initialize MPI parameters for cvc
+   ***************************************************************************/
+
+#ifdef HAVE_TMLQCD_LIBWRAPPER
+
+  fprintf(stdout, "# [cpff_invert_contract] calling tmLQCD wrapper init functions\n");
 
   /***************************************************************************
    * initialize MPI parameters for cvc
    ***************************************************************************/
+  exitstatus = tmLQCD_invert_init(argc, argv, 1, 0);
+  if(exitstatus != 0) {
+    EXIT(1);
+  }
+  exitstatus = tmLQCD_get_mpi_params(&g_tmLQCD_mpi);
+  if(exitstatus != 0) {
+    EXIT(2);
+  }
+  exitstatus = tmLQCD_get_lat_params(&g_tmLQCD_lat);
+  if(exitstatus != 0) {
+    EXIT(3);
+  }
+#endif
+
+#ifdef HAVE_MPI
   mpi_init(argc, argv);
+#endif
 
   /***************************************************************************
    * report git version
@@ -167,6 +199,7 @@ int main(int argc, char **argv) {
   }
   fprintf(stdout, "# [loop_analyse] proc%.4d has io proc id %d\n", g_cart_id, io_proc );
 
+ 
   /***************************************************************************
    * loop data filename
    ***************************************************************************/
@@ -219,12 +252,13 @@ int main(int argc, char **argv) {
   }
 
 
+
   /***************************************************************************
    * loop on stochastic oet samples
    ***************************************************************************/
   for ( int isample = g_sourceid; isample <= g_sourceid2; isample += g_sourceid_step )
   {
-
+    printf("isample =%d g_sourceid2= %d \n",isample,g_sourceid2);
     int const Nstoch = isample * Nsave + 1;
     char loop_type[100];
     char loop_name[100];
@@ -233,13 +267,21 @@ int main(int argc, char **argv) {
     sprintf ( loop_name, "%s", "loop" );
 
     sprintf ( data_tag, "/conf_%.4d/Nstoch_%.4d/%s/%s", conf_traj, Nstoch, loop_type, loop_name );
+    g_verbose = 5; 
     if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
+
+    fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
+
 
     exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
     if ( exitstatus != 0 ) {
       fprintf ( stderr, "[loop_analyse] Error from loop_read_from_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
       EXIT(1);
     }
+    else{
+      fprintf (stdout,"# [loop_analyse] open was successful g_tr_id = %d, g_nproc_t = %d \n",g_tr_id, g_nproc_t );
+    }
+
 
     if ( io_proc > 0 && g_verbose > 4 ) {
       /*****************************************************************
@@ -249,6 +291,7 @@ int main(int argc, char **argv) {
         if ( g_tr_id == iproc ) {
           char output_filename[400];
           sprintf ( output_filename, "Nconf_%.4d.Nstoch_%.4d.%s.%s", Nconf, Nstoch, loop_type, loop_name );
+          printf("Outfilename %s\n",output_filename);
           FILE * ofs = fopen ( output_filename, "w" );
           if ( ofs == NULL ) {
             fprintf ( stderr, "[loop_analyse] Error from fopen %s %d\n", __FILE__, __LINE__ );
@@ -284,6 +327,7 @@ int main(int argc, char **argv) {
         MPI_Barrier ( g_tr_comm );
 #endif
       }  /* end of loop on procs in time direction */
+     
     }  /* end of if io_proc > 0 and verbosity high level enough */
 #if 0
 #endif  /* of if 0 */
@@ -313,18 +357,18 @@ int main(int argc, char **argv) {
 
   free_geometry();
 
-#ifdef HAVE_MPI
-  mpi_fini_xchange_contraction();
-  mpi_fini_xchange_eo_spinor ();
-  mpi_fini_datatypes();
-  MPI_Finalize();
-#endif
 
   if(g_cart_id==0) {
     g_the_time = time(NULL);
     fprintf(stdout, "# [loop_analyse] %s# [loop_analyse] end of run\n", ctime(&g_the_time));
     fprintf(stderr, "# [loop_analyse] %s# [loop_analyse] end of run\n", ctime(&g_the_time));
   }
+
+#ifdef HAVE_MPI
+  mpi_fini_xchange_contraction();
+  mpi_fini_datatypes();
+  MPI_Finalize();
+#endif
 
   return(0);
 
