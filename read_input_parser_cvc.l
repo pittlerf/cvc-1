@@ -33,7 +33,8 @@ STRLIST [0-9"."","" "a-zA-Z]*
 
 namespace cvc {
 
-/* tokenize the comma-delimited list 'str' and return the first token,
+/* Routines from tmLQCD
+   tokenize the comma-delimited list 'str' and return the first token,
    which is the name of the list 'list = token1, token2, token3, ..',
    via the 'paramname' parameter 
    the length of the array holding 'paramname' parameter must be passed as well */
