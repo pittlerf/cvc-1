@@ -225,6 +225,7 @@ int main(int argc, char **argv) {
     EXIT(1);
 
   }
+
   int filtered_sink_momentum_list[MAX_MOMENTUM_NUMBER][3];
   int filtered_sink_momentum_index[MAX_MOMENTUM_NUMBER];
   int index=0;
@@ -241,6 +242,17 @@ int main(int argc, char **argv) {
   }
   int filtered_sink_momentum_number= index;
 
+  char *attribute_correlator;
+  get_attribute_from_h5_file (&attribute_correlator, filename, "Correlator-info", io_proc ) ;
+
+  char *attribute_ensemble_info;
+  get_attribute_from_h5_file (&attribute_ensemble_info, filename, "Ensemble-info", io_proc ) ;
+  char attribute_nmoms[100];
+  snprintf(attribute_nmoms,100, "%d",filtered_sink_momentum_number);
+  char attribute_qsq[100];
+  snprintf(attribute_qsq,100,"%1.0f",g_filtered_qsq);
+
+
   snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
 
@@ -250,6 +262,17 @@ int main(int argc, char **argv) {
     EXIT(1);
 
   }
+  set_attribute_in_h5_file (attribute_correlator, filename, "Correlator-info", io_proc ) ;
+  set_attribute_in_h5_file (attribute_ensemble_info, filename, "Ensemble-info", io_proc ) ;
+  set_attribute_in_h5_file (attribute_nmoms, filename, "Nmoms", io_proc ) ;
+  set_attribute_in_h5_file (attribute_qsq, filename, "Qsq", io_proc ) ;
+
+  free(attribute_correlator);
+  free(attribute_ensemble_info);
+
+
+
+
 
   if ( g_verbose > 2 && io_proc == 2 ) {
     for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
