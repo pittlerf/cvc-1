@@ -192,6 +192,8 @@ namespace cvc {
 #define _default_source_gamma_id -1
 #define _default_source_gamma_id_number 0
 
+#define _default_filtered_qsq 4.
+
 #define _default_csw 0
 
 #define _default_m_m_2pt_num 0

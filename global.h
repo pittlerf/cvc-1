@@ -117,7 +117,7 @@
 #define MAX_SEQUENTIAL_SOURCE_TIMESLICE_NUMBER 128
 
 #define MAX_PARAM_NUMBER 100
-
+#define MAX_LOOPTYPE_NUMBER 10
 namespace cvc {
 
 typedef struct momentum_info_struct {
@@ -177,6 +177,10 @@ EXTERN int g_ts_nb_z_up, g_ts_nb_z_dn;
 EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
+EXTERN int g_currentgammas;
+EXTERN int g_loop_number;
+EXTERN int g_loop_type[MAX_LOOPTYPE_NUMBER];
+EXTERN double g_filtered_qsq;
 EXTERN int g_gaugeid, g_gaugeid2, g_gauge_step;
 
 EXTERN char filename_prefix[200], filename_prefix2[200], filename_prefix3[200], gaugefilename_prefix[200], g_outfile_prefix[200], g_path_prefix[200];
@@ -259,7 +263,7 @@ EXTERN int g_cpu_prec, g_gpu_prec, g_gpu_prec_sloppy;
 EXTERN int g_inverter_type;
 EXTERN char g_inverter_type_name[200];
 EXTERN int g_space_dilution_depth;
-EXTERN int g_mms_id;
+EXTERN int g_mms_id; 
 EXTERN int g_check_inversion;
 
 EXTERN int g_src_snk_time_separation, g_sequential_source_gamma_id, g_sequential_source_gamma_id_list[16], g_sequential_source_gamma_id_number;

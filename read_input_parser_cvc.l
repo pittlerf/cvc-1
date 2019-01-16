@@ -18,6 +18,8 @@ NAME [a-zA-Z0-9_]+
 TYPE [0-9A-Z]+
 SDIGIT {SIGN}?[[:digit:]]
 STRING [a-zA-Z0-9"."_"-""/"","]+
+STRLIST [0-9"."","" "a-zA-Z]*
+
 
 %{
 #include <stdlib.h>
@@ -30,6 +32,59 @@ STRING [a-zA-Z0-9"."_"-""/"","]+
 #include "cvc_utils.h"
 
 namespace cvc {
+
+/* tokenize the comma-delimited list 'str' and return the first token,
+   which is the name of the list 'list = token1, token2, token3, ..',
+   via the 'paramname' parameter 
+   the length of the array holding 'paramname' parameter must be passed as well */
+static inline void strlist_tokenize(const char * const str, char * const paramname, const int paramname_length){
+  char error_message[200];
+  char * token = (char*)NULL;
+  // the first token is the parameter name, we will return it, 
+  // but first check if tokenization was successful
+  token = strtok((char *)str, (const char*)"\n\t =,\\");
+  if( (void*)token == NULL ){
+    snprintf(error_message, 200, "Unable to parse '%s' in strlist_tokenize!\n", paramname);
+    yy_fatal_error(error_message);
+  } else {
+    // return what we parsed
+    snprintf(paramname, paramname_length, "%s", token);
+  }
+}
+
+/* obtain the next token in the list of comma-separated strings
+   'list_end' is a parameter which is set to 1 if the end of the list is reached
+   'token' will hold the value of the token
+   'token_length' is the length of the array to which the token should be written */
+static inline void strlist_next_token(int * const list_end, char * const token_out, const int token_length){
+  char * token = (char*)NULL;
+  token = strtok(NULL," =,\t");
+  if( (void*)token == NULL ){
+    *list_end = 1;
+  } else {
+    *list_end = 0;
+    snprintf(token_out, token_length, "%s", token);
+  }
+}
+
+/* when the list of tokens is a list of doubles or integers, this function
+   can be used to obtain the next token in the list directly as a double
+   'list_end' is a parameter which is set to 1 if the end of the list 
+   has been reached */
+static inline double fltlist_next_token(int * const list_end){
+  double retval;
+  char * token = (char*)NULL;
+  token = strtok(NULL," =,\t");
+  if( (void*)token == NULL ){
+    *list_end = 1;
+    return(0.0);
+  } else {
+    *list_end = 0;
+    sscanf(token,"%lf",&retval);
+    return(retval);
+  }
+}
+
 
   /* Name of the parsing routine */
 #define YY_DECL         int parse_config()
@@ -184,6 +239,9 @@ namespace cvc {
 %x SEQSRCMOMX
 %x SEQSRCMOMY
 %x SEQSRCMOMZ
+%x CURRENTGAMMAS
+%x LOOPTYPE
+%x FILTERQSQ
 %x SEQ2SRCMOM
 %x SEQ2SRCMOMX
 %x SEQ2SRCMOMY
@@ -349,6 +407,10 @@ namespace cvc {
 ^seq2_source_momentum_y{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMY);
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
+^currentgammastructure{SPC}*={SPC}*        BEGIN(CURRENTGAMMAS);
+^filterQsq{SPC}*={SPC}*                    BEGIN(FILTERQSQ);
+^filterlooptype{SPC}*={SPC}*               BEGIN(LOOPTYPE);
+
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
 ^gpu_precision{SPC}*={SPC}*                BEGIN(GPUPREC);
 ^gpu_precision_sloppy{SPC}*={SPC}*         BEGIN(GPUPRECSLOPPY);
@@ -560,6 +622,55 @@ namespace cvc {
     cvc::g_source_type = -1;
   } 
   if(cvc::myverbose!=0) printf("# [read_input_parser] source type set to %s\n",yytext);
+}
+<FILTERQSQ>{FLT} {
+  cvc::g_filtered_qsq = atof(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_filtered_qsq);
+}
+<CURRENTGAMMAS>{DIGIT}+ {
+  cvc::g_currentgammas = atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] spin projection on loops with gamma id %d\n", cvc::g_currentgammas);
+}
+<LOOPTYPE>{STRLIST} {
+  char paramname[100];
+  char token[100];
+  char error_message[200];
+  int list_end = 0;
+  int index = 0;
+  cvc::strlist_tokenize(yytext, paramname, 100);
+  snprintf(token,100,"%s",yytext);
+  while( list_end != 1 ){
+    if( index > MAX_LOOPTYPE_NUMBER ){
+      snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of saving loops (%d) parsing !\n",MAX_LOOPTYPE_NUMBER);
+      yy_fatal_error(error_message);
+      }
+    if( strcmp(token, "Scalar") == 0 ){
+      cvc::g_loop_type[index]=0;
+    }
+    else if( strcmp(token, "dOp") == 0 ){
+      cvc::g_loop_type[index]=1;
+    }
+    else if( strcmp(token, "Loops") == 0){
+      cvc::g_loop_type[index]=2;
+    }
+    else if( strcmp(token, "LpsDw") == 0){
+      cvc::g_loop_type[index]=3;
+    }
+    else if( strcmp(token, "LoopsCV") == 0){
+      cvc::g_loop_type[index]=4;
+    }
+    else if( strcmp(token, "LpsDwCv") == 0){
+      cvc::g_loop_type[index]=5;
+    }
+    else {
+      snprintf(error_message, 200, "# [read_input_parser] Unknown loop type %s passed in the parsing of %s!\n", yytext, paramname);
+      exit(1);
+    }
+    index++;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] loop type saved to %s\n",token);
+    cvc::strlist_next_token(&list_end, token, 100);
+  }
+  cvc::g_loop_number=index;
 }
 <SPREC>{FLT} {
   cvc::solver_precision = atof(yytext);

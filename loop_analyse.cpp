@@ -154,6 +154,40 @@ int main(int argc, char **argv) {
     EXIT(14);
   }
   fprintf(stdout, "# [loop_analyse] proc%.4d has io proc id %d\n", g_cart_id, io_proc );
+  if (g_filtered_qsq > Qsq){
+    if (g_proc_id == 0){
+     fprintf(stderr, "# [loop_analyse] We do not have momenta till %f\n",g_filtered_qsq);
+     EXIT(1);
+    }
+  }
+  if (g_proc_id == 0){
+    fprintf(stdout, "# [loop_analyse] Filtering value of Qsq %f\n", g_filtered_qsq);
+  }
+  if (g_loop_number == 0){
+   if (g_proc_id == 0){
+    fprintf(stderr, "# [loop_analyse] Specify the type of loops you are interested in e.g.\n");
+    fprintf(stderr, "# [loop_analyse] filterlooptype = Scalar, Loops\n");
+    EXIT(1);
+   }
+  }
+  if (g_proc_id == 0)
+   fprintf(stdout, "# [loop_analyse] Following loops will be filtered\n");
+  for (int i=0; i<g_loop_number; ++i){
+    switch( g_loop_type[i] ){
+     case 0: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] Scalar\n");
+             break;
+     case 1: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] dOp\n");
+             break;
+     case 2: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] Loops\n");
+             break;
+     case 3: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LpsDw\n");
+             break;
+     case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LoopsCV\n");
+             break;
+     case 5: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LpsDwCv\n");
+             break;
+    }
+  }
 
   /***************************************************************************
    * loop data filename
@@ -296,7 +330,6 @@ int main(int argc, char **argv) {
 
 #ifdef HAVE_MPI
   mpi_fini_xchange_contraction();
-  mpi_fini_xchange_eo_spinor ();
   mpi_fini_datatypes();
   MPI_Finalize();
 #endif
