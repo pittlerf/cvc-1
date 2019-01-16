@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
   int filename_set = 0;
   int exitstatus;
   int io_proc = -1;
-  char filename[100];
+  char filename[400];
   int Qsq = -1;
 
   struct timeval ta, tb;
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
   g_the_time = time(NULL);
 
   /* set the default values */
-  if(filename_set==0) sprintf ( filename, "%s.input", outfile_prefix );
+  if(filename_set==0) snprintf ( filename, 400, "%s.input", outfile_prefix );
   /* fprintf(stdout, "# [loop_analyse] Reading input from file %s\n", filename); */
   read_input_parser(filename);
 
@@ -192,7 +192,7 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * loop data filename
    ***************************************************************************/
-  sprintf ( filename, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
+  snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
 
   /***************************************************************************
@@ -223,13 +223,39 @@ int main(int argc, char **argv) {
   if ( exitstatus != 0 ) {
     fprintf ( stderr, "[] Error from loop_get_momentum_list_from_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
     EXIT(1);
+
+  }
+  int filtered_sink_momentum_list[MAX_MOMENTUM_NUMBER][3];
+  int filtered_sink_momentum_index[MAX_MOMENTUM_NUMBER];
+  int index=0;
+  for (int i=0;i<g_sink_momentum_number; ++i)
+  {
+    int momentum = g_sink_momentum_list[i][0]*g_sink_momentum_list[i][0]+g_sink_momentum_list[i][1]*g_sink_momentum_list[i][1]+g_sink_momentum_list[i][2]*g_sink_momentum_list[i][2];
+    if (momentum< g_filtered_qsq){
+      filtered_sink_momentum_list[index][0]=g_sink_momentum_list[i][0];
+      filtered_sink_momentum_list[index][1]=g_sink_momentum_list[i][1];
+      filtered_sink_momentum_list[index][2]=g_sink_momentum_list[i][2];
+      filtered_sink_momentum_index[index]=i;
+      index++;
+    }
+  }
+  int filtered_sink_momentum_number= index;
+
+  snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
+  if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
+
+  exitstatus = loop_write_momentum_list_to_h5_file ( filtered_sink_momentum_list, filename, filtered_sink_momentum_number, io_proc );
+  if ( exitstatus != 0 ) {
+    fprintf ( stderr, "[] Error from loop_write_momentum_list_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
+    EXIT(1);
+
   }
 
   if ( g_verbose > 2 && io_proc == 2 ) {
-    for ( int imom = 0; imom < g_sink_momentum_number; imom++ ) {
-      fprintf ( stdout, " %3d  ( %3d, %3d, %3d)\n", imom, g_sink_momentum_list[imom][0], g_sink_momentum_list[imom][1], g_sink_momentum_list[imom][2] );
+    for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
+      fprintf ( stdout, " %3d  ( %3d, %3d, %3d)\n", imom, filtered_sink_momentum_list[imom][0], filtered_sink_momentum_list[imom][1], filtered_sink_momentum_list[imom][2] );
     }
-  }
+  } 
 
   /***************************************************************************
    * allocate memory for contractions
@@ -240,11 +266,21 @@ int main(int argc, char **argv) {
     EXIT(48);
   }
 
+  /***************************************************************************
+   * allocate memory for filtered_contractions
+   ***************************************************************************/
+  double **** loop_filtered = init_4level_dtable ( g_nsample, T, filtered_sink_momentum_number, 32 );
+  if ( loop == NULL ) {
+    fprintf(stderr, "[loop_analyse] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
+    EXIT(48);
+  }
+
+
 
   /***************************************************************************
    * loop on stochastic oet samples
    ***************************************************************************/
-  for ( int isample = g_sourceid; isample <= g_sourceid2; isample += g_sourceid_step )
+  for ( int isample = g_sourceid; isample < g_sourceid2; isample += g_sourceid_step )
   {
 
     int const Nstoch = isample * Nsave + 1;
@@ -256,6 +292,8 @@ int main(int argc, char **argv) {
 
     sprintf ( data_tag, "/conf_%.4d/Nstoch_%.4d/%s/%s", Nconf, Nstoch, loop_type, loop_name );
     if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
+
+    snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
 
     exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
     if ( exitstatus != 0 ) {
@@ -281,9 +319,12 @@ int main(int argc, char **argv) {
           for ( int x0 = 0; x0 < T; x0++ ) {
             int const y0 = x0 + g_proc_coords[0] * T;
 
-            for ( int imom = 0; imom < g_sink_momentum_number; imom++ ) {
+            for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
 
               for( int ic = 0; ic < 16; ic++ ) {
+
+                loop_filtered[isample][x0][imom][2*ic  ] = loop[isample][x0][filtered_sink_momentum_index[imom]][2*ic  ];
+                loop_filtered[isample][x0][imom][2*ic+1] = loop[isample][x0][filtered_sink_momentum_index[imom]][2*ic+1];
 
                 fprintf ( ofs, " %3d %4d   %3d% 3d% 3d   %d %d  %25.16e %25.16e\n", Nstoch, y0, 
                     g_sink_momentum_list[imom][0], g_sink_momentum_list[imom][1], g_sink_momentum_list[imom][2],
@@ -306,6 +347,19 @@ int main(int argc, char **argv) {
     /*****************************************************************/
     /*****************************************************************/
 
+    sprintf ( data_tag, "/conf_%.4d/Nstoch_%.4d/%s", Nconf, Nstoch, loop_type);
+    if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
+
+    snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
+    if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
+
+    exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 16, io_proc );
+    if ( exitstatus != 0 ) {
+      fprintf ( stderr, "[loop_analyse] Error from loop_write_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
+      EXIT(1);
+    }
+
+
     /*****************************************************************
      * set loop type
      *****************************************************************/
@@ -320,7 +374,7 @@ int main(int argc, char **argv) {
    * decallocate fields
    ***************************************************************************/
   fini_4level_dtable ( &loop );
-
+  fini_4level_dtable ( &loop_filtered ); 
 
   /***************************************************************************
    * free the allocated memory, finalize
