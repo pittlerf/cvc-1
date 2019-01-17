@@ -250,10 +250,10 @@ int main(int argc, char **argv) {
   char attribute_nmoms[100];
   snprintf(attribute_nmoms,100, "%d",filtered_sink_momentum_number);
   char attribute_qsq[100];
-  snprintf(attribute_qsq,100,"%1.0f",g_filtered_qsq);
+  snprintf(attribute_qsq,100,"%d",(int)g_filtered_qsq);
 
 
-  snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
+  snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
 
   exitstatus = loop_write_momentum_list_to_h5_file ( filtered_sink_momentum_list, filename, filtered_sink_momentum_number, io_proc );
@@ -298,100 +298,148 @@ int main(int argc, char **argv) {
     EXIT(48);
   }
 
+  /***************************************************************************
+   * loop on different loop types
+   ***************************************************************************/
 
+  for ( int iloop_type=0; iloop_type < g_loop_number ; ++iloop_type){
 
   /***************************************************************************
    * loop on stochastic oet samples
    ***************************************************************************/
-  for ( int isample = g_sourceid; isample < g_sourceid2; isample += g_sourceid_step )
-  {
+    for ( int isample = g_sourceid; isample < g_sourceid2; isample += g_sourceid_step )
+    {
 
-    int const Nstoch = isample * Nsave + 1;
-    char loop_type[100];
-    char loop_name[100];
+      int const Nstoch = isample * Nsave + 1;
+      char loop_type[100];
+      char loop_name[100];
 
-    sprintf ( loop_type, "%s", "Scalar" );
-    sprintf ( loop_name, "%s", "loop" );
+      int inner_loop_length;
 
-    sprintf ( data_tag, "/conf_%.4d/Nstoch_%.4d/%s/%s", Nconf, Nstoch, loop_type, loop_name );
-    if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
+      switch( g_loop_type[iloop_type] ){
+       case 0: snprintf ( loop_type, 100, "%s", "Scalar" );
+               inner_loop_length=1;
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] Processing Scalar\n");
+               break;
+       case 1: snprintf ( loop_type, 100, "%s", "dOp" );
+               inner_loop_length=1;
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] dOp\n");
+               break;
+       case 2: snprintf ( loop_type, 100, "%s", "Loops" );
+               inner_loop_length=4;
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] Loops\n");
+               break;
+       case 3: snprintf ( loop_type, 100, "%s", "LpsDw" );
+               inner_loop_length=4;
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LpsDw\n");
+               break;
+       case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LoopsCV\n");
+               EXIT(1); 
+               break;
+       case 5: snprintf ( loop_type, 100, "%s", "LpsDwCv" );
+               inner_loop_length=4;
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LpsDwCv\n");
+               break;
+      }
 
-    snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
+      snprintf ( loop_name, 100, "%s", "loop" );
 
-    exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
-    if ( exitstatus != 0 ) {
-      fprintf ( stderr, "[loop_analyse] Error from loop_read_from_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
-      EXIT(1);
-    }
+      for (int loop_direction=0; loop_direction < inner_loop_length ; ++loop_direction){
 
-    if ( io_proc > 0 && g_verbose > 4 ) {
-      /*****************************************************************
-       * write in ASCII format
-       *****************************************************************/
-      for ( int iproc = 0; iproc < g_nproc_t; iproc++ ) {
-        if ( g_tr_id == iproc ) {
-          char output_filename[400];
-          sprintf ( output_filename, "Nconf_%.4d.Nstoch_%.4d.%s.%s", Nconf, Nstoch, loop_type, loop_name );
-          FILE * ofs = fopen ( output_filename, "w" );
-          if ( ofs == NULL ) {
-            fprintf ( stderr, "[loop_analyse] Error from fopen %s %d\n", __FILE__, __LINE__ );
-            EXIT(1);
-          }
+        char direction_part[100];
+        snprintf(direction_part, 100, "dir_%02d", loop_direction);
+     
+        if (inner_loop_length > 1)
+          snprintf ( data_tag, 100, "/conf_%.4d/Nstoch_%.4d/%s/%s/%s", Nconf, Nstoch, loop_type, direction_part, loop_name );
+        else
+          snprintf ( data_tag, 100, "/conf_%.4d/Nstoch_%.4d/%s/%s", Nconf, Nstoch, loop_type, loop_name );
 
-          fprintf ( ofs, "# [loop_analyse] %s\n", data_tag );
-          for ( int x0 = 0; x0 < T; x0++ ) {
-            int const y0 = x0 + g_proc_coords[0] * T;
+        if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
 
-            for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
+        snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
 
-              for( int ic = 0; ic < 16; ic++ ) {
+        exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
+        if ( exitstatus != 0 ) {
+          fprintf ( stderr, "[loop_analyse] Error from loop_read_from_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
+          EXIT(1);
+        }
 
-                loop_filtered[isample][x0][imom][2*ic  ] = loop[isample][x0][filtered_sink_momentum_index[imom]][2*ic  ];
-                loop_filtered[isample][x0][imom][2*ic+1] = loop[isample][x0][filtered_sink_momentum_index[imom]][2*ic+1];
+        if ( io_proc > 0 && g_verbose > 4 ) {
+          /*****************************************************************
+           * write in ASCII format
+           *****************************************************************/
+          for ( int iproc = 0; iproc < g_nproc_t; iproc++ ) {
+            if ( g_tr_id == iproc ) {
+              char output_filename[400];
+              sprintf ( output_filename, "Nconf_%.4d.Nstoch_%.4d.%s.%s", Nconf, Nstoch, loop_type, loop_name );
+              FILE * ofs = fopen ( output_filename, "w" );
+              if ( ofs == NULL ) {
+                fprintf ( stderr, "[loop_analyse] Error from fopen %s %d\n", __FILE__, __LINE__ );
+                EXIT(1);
+              }
 
-                fprintf ( ofs, " %3d %4d   %3d% 3d% 3d   %d %d  %25.16e %25.16e\n", Nstoch, y0, 
-                    g_sink_momentum_list[imom][0], g_sink_momentum_list[imom][1], g_sink_momentum_list[imom][2],
-                    ic/4, ic%4, loop[isample][x0][imom][2*ic], loop[isample][x0][imom][2*ic+1] );
+              fprintf ( ofs, "# [loop_analyse] %s\n", data_tag );
+              for ( int x0 = 0; x0 < T; x0++ ) {
+                int const y0 = x0 + g_proc_coords[0] * T;
 
-              }  /* end of loop on components */
-            }  /* end of loop on momenta */
-          }  /* end of loop on time slices */
+                for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
 
-          fclose ( ofs );
-        }  /* end of if g_tr_id == iproc */
+                  for( int ic = 0; ic < 16; ic++ ) {
+
+                    loop_filtered[isample][x0][imom][2*ic  ] = loop[isample][x0][filtered_sink_momentum_index[imom]][2*ic  ];
+                    loop_filtered[isample][x0][imom][2*ic+1] = loop[isample][x0][filtered_sink_momentum_index[imom]][2*ic+1];
+
+                    fprintf ( ofs, " %3d %4d   %3d% 3d% 3d   %d %d  %25.16e %25.16e\n", Nstoch, y0, 
+                      g_sink_momentum_list[imom][0], g_sink_momentum_list[imom][1], g_sink_momentum_list[imom][2],
+                      ic/4, ic%4, loop[isample][x0][imom][2*ic], loop[isample][x0][imom][2*ic+1] );
+
+                  }  /* end of loop on components */
+                }  /* end of loop on momenta */
+              }  /* end of loop on time slices */
+
+              fclose ( ofs );
+
+            }  /* end of if g_tr_id == iproc */
 #ifdef HAVE_MPI
-        MPI_Barrier ( g_tr_comm );
+          MPI_Barrier ( g_tr_comm );
 #endif
-      }  /* end of loop on procs in time direction */
-    }  /* end of if io_proc > 0 and verbosity high level enough */
+          }  /* end of loop on procs in time direction */
+        }  /* end of if io_proc > 0 and verbosity high level enough */
 #if 0
 #endif  /* of if 0 */
 
-    /*****************************************************************/
-    /*****************************************************************/
+        /*****************************************************************/
+        /*****************************************************************/
 
-    sprintf ( data_tag, "/conf_%.4d/Nstoch_%.4d/%s", Nconf, Nstoch, loop_type);
-    if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
+        if (inner_loop_length > 1)
+          snprintf ( data_tag, 100, "/conf_%.4d/Nstoch_%.4d/%s/%s", Nconf, Nstoch, loop_type, direction_part );
+        else
+          snprintf ( data_tag, 100, "/conf_%.4d/Nstoch_%.4d/%s", Nconf, Nstoch, loop_type);
 
-    snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
-    if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
+        if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
 
-    exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 16, io_proc );
-    if ( exitstatus != 0 ) {
-      fprintf ( stderr, "[loop_analyse] Error from loop_write_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
-      EXIT(1);
-    }
+        snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq );
+        if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
+
+        exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 16, io_proc );
+        if ( exitstatus != 0 ) {
+          fprintf ( stderr, "[loop_analyse] Error from loop_write_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
+          EXIT(1);
+        }
 
 
-    /*****************************************************************
-     * set loop type
-     *****************************************************************/
-    /*
-     * sprintf ( loop_type, "%s", "dOp" );
-     * same for gen-oet
-     */
+        /*****************************************************************
+         * set loop type
+         *****************************************************************/
+        /*
+         * sprintf ( loop_type, "%s", "dOp" );
+         * same for gen-oet
+         */
+      }  /* end of loop for the different loop directions */
 
-  }  /* end of loop on oet samples */
+    }  /* end of loop on oet samples */
+
+  }  /* loop on different types */
 
   /***************************************************************************
    * decallocate fields
