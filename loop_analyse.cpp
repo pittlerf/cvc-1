@@ -253,7 +253,7 @@ int main(int argc, char **argv) {
   snprintf(attribute_qsq,100,"%d",(int)g_filtered_qsq);
 
 
-  snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq );
+  snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq, g_currentgammas );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
 
   exitstatus = loop_write_momentum_list_to_h5_file ( filtered_sink_momentum_list, filename, filtered_sink_momentum_number, io_proc );
@@ -371,7 +371,7 @@ int main(int argc, char **argv) {
           for ( int iproc = 0; iproc < g_nproc_t; iproc++ ) {
             if ( g_tr_id == iproc ) {
               char output_filename[400];
-              sprintf ( output_filename, "Nconf_%.4d.Nstoch_%.4d.%s.%s", Nconf, Nstoch, loop_type, loop_name );
+              sprintf ( output_filename, "Nconf_%.4d.Nstoch_%.4d.%s.%s_gamma%d", Nconf, Nstoch, loop_type, loop_name,g_currentgammas );
               FILE * ofs = fopen ( output_filename, "w" );
               if ( ofs == NULL ) {
                 fprintf ( stderr, "[loop_analyse] Error from fopen %s %d\n", __FILE__, __LINE__ );
@@ -383,18 +383,24 @@ int main(int argc, char **argv) {
                 int const y0 = x0 + g_proc_coords[0] * T;
 
                 for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
+                  double sp[32];
+
+                  _fm_eq_gamma_ti_fm(sp, g_currentgammas, loop[isample][x0][filtered_sink_momentum_index[imom]]);
+
+                  for( int ic = 0; ic < 32; ic++ ) {
+                    loop_filtered[isample][x0][imom][ic] = sp[ic];
+
+                  } /* end of loop on components */
 
                   for( int ic = 0; ic < 16; ic++ ) {
 
-                    loop_filtered[isample][x0][imom][2*ic  ] = loop[isample][x0][filtered_sink_momentum_index[imom]][2*ic  ];
-                    loop_filtered[isample][x0][imom][2*ic+1] = loop[isample][x0][filtered_sink_momentum_index[imom]][2*ic+1];
-
                     fprintf ( ofs, " %3d %4d   %3d% 3d% 3d   %d %d  %25.16e %25.16e\n", Nstoch, y0, 
-                      g_sink_momentum_list[imom][0], g_sink_momentum_list[imom][1], g_sink_momentum_list[imom][2],
-                      ic/4, ic%4, loop[isample][x0][imom][2*ic], loop[isample][x0][imom][2*ic+1] );
-
+                       g_sink_momentum_list[filtered_sink_momentum_index[imom]][0], g_sink_momentum_list[filtered_sink_momentum_index[imom]][1], g_sink_momentum_list[filtered_sink_momentum_index[imom]][2],
+                       ic/4, ic%4, loop_filtered[isample][x0][imom][2*ic], loop_filtered[isample][x0][imom][2*ic+1] );
                   }  /* end of loop on components */
+
                 }  /* end of loop on momenta */
+
               }  /* end of loop on time slices */
 
               fclose ( ofs );
@@ -418,7 +424,7 @@ int main(int argc, char **argv) {
 
         if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
 
-        snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq );
+        snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq, g_currentgammas);
         if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
 
         exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 16, io_proc );
