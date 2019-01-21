@@ -177,6 +177,7 @@ EXTERN int g_ts_nb_z_up, g_ts_nb_z_dn;
 EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
+EXTERN int g_spintrace;
 EXTERN int g_currentgammas;
 EXTERN int g_currentgammabasis;
 EXTERN int g_loop_number;

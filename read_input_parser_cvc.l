@@ -240,6 +240,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x SEQSRCMOMX
 %x SEQSRCMOMY
 %x SEQSRCMOMZ
+%x SPINTRACE
 %x CURRENTGAMMAS
 %x CURRENTGAMMABASIS
 %x LOOPTYPE
@@ -409,6 +410,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_y{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMY);
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
+spintrace{SPC}*={SPC}*                     BEGIN(SPINTRACE);
 ^currentgammastructure{SPC}*={SPC}*        BEGIN(CURRENTGAMMAS);
 ^currentgammabasis{SPC}*={SPC}*            BEGIN(CURRENTGAMMABASIS);
 ^filterQsq{SPC}*={SPC}*                    BEGIN(FILTERQSQ);
@@ -629,6 +631,10 @@ static inline double fltlist_next_token(int * const list_end){
 <FILTERQSQ>{FLT} {
   cvc::g_filtered_qsq = atof(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_filtered_qsq);
+}
+<SPINTRACE>{DIGIT}+ {
+  cvc::g_spintrace = (unsigned int)atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace set to %s\n",yytext);
 }
 <CURRENTGAMMABASIS>{FILENAME} {
   if(strcmp(yytext,"Chiral")==0){

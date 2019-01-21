@@ -387,12 +387,20 @@ int main(int argc, char **argv) {
 
                   _fm_eq_gamma_ti_fm(sp, g_currentgammabasis, g_currentgammas, loop[isample][x0][filtered_sink_momentum_index[imom]]);
 
+                  if (g_spintrace == 1){
+
                   /* Taking the trace */
 
+                    loop_filtered[isample][x0][imom][0] = sp[0]+sp[10]+sp[20]+sp[30];
+                    loop_filtered[isample][x0][imom][1] = sp[1]+sp[11]+sp[21]+sp[31];
 
-                  loop_filtered[isample][x0][imom][0] = sp[0]+sp[10]+sp[20]+sp[30];
-                  loop_filtered[isample][x0][imom][1] = sp[1]+sp[11]+sp[21]+sp[31];
-
+                  }
+                  else{
+                    for( int ic = 0; ic < 16; ic++ ) {
+                      loop_filtered[isample][x0][imom][2*ic+0]=sp[2*ic+0];
+                      loop_filtered[isample][x0][imom][2*ic+1]=sp[2*ic+1];
+                    }   
+                  }
                   for( int ic = 0; ic < 16; ic++ ) {
 
                     fprintf ( ofs, " %3d %4d   %3d% 3d% 3d   %d %d  %25.16e %25.16e\n", Nstoch, y0, 
@@ -427,6 +435,13 @@ int main(int argc, char **argv) {
 
         snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq, g_currentgammas);
         if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
+
+        if (g_spintrace == 1){
+          exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 1, io_proc );
+        }
+        else{
+          exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 16, io_proc );
+        }
 
         exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 1, io_proc );
         if ( exitstatus != 0 ) {

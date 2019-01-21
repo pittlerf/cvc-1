@@ -194,6 +194,7 @@ namespace cvc {
 
 #define _default_filtered_qsq 4.
 #define _default_currentgammas 4
+#define _default_spintrace 1
 #define _default_currentgammabasis 0 //Chiral,tmLQCD basis
 
 #define _default_csw 0

@@ -238,6 +238,7 @@ void set_default_input_values(void) {
   g_sequential_source_gamma_id_list[15] = _default_seq_source_gamma_id;
 
   g_sequential_source_gamma_id_number = _default_seq_source_gamma_id_number;
+  g_spintrace = _default_spintrace;
   g_filtered_qsq = _default_filtered_qsq ;
   g_currentgammas = _default_currentgammas ;
   g_currentgammabasis = _default_currentgammabasis;
