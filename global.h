@@ -178,6 +178,7 @@ EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
 EXTERN int g_currentgammas;
+EXTERN int g_currentgammabasis;
 EXTERN int g_loop_number;
 EXTERN int g_loop_type[MAX_LOOPTYPE_NUMBER];
 EXTERN double g_filtered_qsq;
@@ -196,7 +197,7 @@ EXTERN double g_tbc_phase_list[MAX_PARAM_NUMBER][4];
 EXTERN int g_tbc_phase_number;
 
 EXTERN int gamma_permutation[16][24], gamma_sign[16][24];
-EXTERN int gamma_matrix_permutation[16][32], gamma_matrix_sign[16][32];
+EXTERN int gamma_matrix_permutation[2][16][32], gamma_matrix_sign[2][16][32];
 EXTERN int perm_tab_3[6][3], perm_tab_4[24][4], perm_tab_3e[3][3], perm_tab_3o[3][3], perm_tab_4e[12][4], perm_tab_4o[12][4];
 EXTERN double perm_tab_3_sign[6];
 

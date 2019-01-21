@@ -241,6 +241,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x SEQSRCMOMY
 %x SEQSRCMOMZ
 %x CURRENTGAMMAS
+%x CURRENTGAMMABASIS
 %x LOOPTYPE
 %x FILTERQSQ
 %x SEQ2SRCMOM
@@ -409,6 +410,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
 ^currentgammastructure{SPC}*={SPC}*        BEGIN(CURRENTGAMMAS);
+^currentgammabasis{SPC}*={SPC}*            BEGIN(CURRENTGAMMABASIS);
 ^filterQsq{SPC}*={SPC}*                    BEGIN(FILTERQSQ);
 ^filterlooptype{SPC}*={SPC}*               BEGIN(LOOPTYPE);
 
@@ -627,6 +629,20 @@ static inline double fltlist_next_token(int * const list_end){
 <FILTERQSQ>{FLT} {
   cvc::g_filtered_qsq = atof(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_filtered_qsq);
+}
+<CURRENTGAMMABASIS>{FILENAME} {
+  if(strcmp(yytext,"Chiral")==0){
+    cvc::g_currentgammabasis = 0;
+  }
+  else if (strcmp(yytext,"UKQCD")==0){
+    cvc::g_currentgammabasis = 1;
+  }
+  else{
+    char error_message[200];
+    snprintf(error_message, 200, "# [read_input_parser] Invalid gamma basis: Choose between(\"chiral\",\"UKQCD\"\n");
+    yy_fatal_error(error_message);
+  }
+  if(cvc::myverbose!=0) printf("# [read_input_parser] Gamma basis used in loop_analyze %s\n",yytext);
 }
 <CURRENTGAMMAS>{DIGIT}+ {
   cvc::g_currentgammas = atoi(yytext);

@@ -1749,39 +1749,39 @@ namespace cvc {
 
 /* s_matrix = gamma * t_matrix */
 
-#define _fm_eq_gamma_ti_fm(s,gamma_index,t) {\
-  (s)[ 0] = (t)[gamma_permutation[(gamma_index)][ 0]] * gamma_sign[(gamma_index)][ 0];\
-  (s)[ 1] = (t)[gamma_permutation[(gamma_index)][ 1]] * gamma_sign[(gamma_index)][ 1];\
-  (s)[ 2] = (t)[gamma_permutation[(gamma_index)][ 2]] * gamma_sign[(gamma_index)][ 2];\
-  (s)[ 3] = (t)[gamma_permutation[(gamma_index)][ 3]] * gamma_sign[(gamma_index)][ 3];\
-  (s)[ 4] = (t)[gamma_permutation[(gamma_index)][ 4]] * gamma_sign[(gamma_index)][ 4];\
-  (s)[ 5] = (t)[gamma_permutation[(gamma_index)][ 5]] * gamma_sign[(gamma_index)][ 5];\
-  (s)[ 6] = (t)[gamma_permutation[(gamma_index)][ 6]] * gamma_sign[(gamma_index)][ 6];\
-  (s)[ 7] = (t)[gamma_permutation[(gamma_index)][ 7]] * gamma_sign[(gamma_index)][ 7];\
-  (s)[ 8] = (t)[gamma_permutation[(gamma_index)][ 8]] * gamma_sign[(gamma_index)][ 8];\
-  (s)[ 9] = (t)[gamma_permutation[(gamma_index)][ 9]] * gamma_sign[(gamma_index)][ 9];\
-  (s)[10] = (t)[gamma_permutation[(gamma_index)][10]] * gamma_sign[(gamma_index)][10];\
-  (s)[11] = (t)[gamma_permutation[(gamma_index)][11]] * gamma_sign[(gamma_index)][11];\
-  (s)[12] = (t)[gamma_permutation[(gamma_index)][12]] * gamma_sign[(gamma_index)][12];\
-  (s)[13] = (t)[gamma_permutation[(gamma_index)][13]] * gamma_sign[(gamma_index)][13];\
-  (s)[14] = (t)[gamma_permutation[(gamma_index)][14]] * gamma_sign[(gamma_index)][14];\
-  (s)[15] = (t)[gamma_permutation[(gamma_index)][15]] * gamma_sign[(gamma_index)][15];\
-  (s)[16] = (t)[gamma_permutation[(gamma_index)][16]] * gamma_sign[(gamma_index)][16];\
-  (s)[17] = (t)[gamma_permutation[(gamma_index)][17]] * gamma_sign[(gamma_index)][17];\
-  (s)[18] = (t)[gamma_permutation[(gamma_index)][18]] * gamma_sign[(gamma_index)][18];\
-  (s)[19] = (t)[gamma_permutation[(gamma_index)][19]] * gamma_sign[(gamma_index)][19];\
-  (s)[20] = (t)[gamma_permutation[(gamma_index)][20]] * gamma_sign[(gamma_index)][20];\
-  (s)[21] = (t)[gamma_permutation[(gamma_index)][21]] * gamma_sign[(gamma_index)][21];\
-  (s)[22] = (t)[gamma_permutation[(gamma_index)][22]] * gamma_sign[(gamma_index)][22];\
-  (s)[23] = (t)[gamma_permutation[(gamma_index)][23]] * gamma_sign[(gamma_index)][23];\
-  (s)[24] = (t)[gamma_permutation[(gamma_index)][24]] * gamma_sign[(gamma_index)][24];\
-  (s)[25] = (t)[gamma_permutation[(gamma_index)][25]] * gamma_sign[(gamma_index)][25];\
-  (s)[26] = (t)[gamma_permutation[(gamma_index)][26]] * gamma_sign[(gamma_index)][26];\
-  (s)[27] = (t)[gamma_permutation[(gamma_index)][27]] * gamma_sign[(gamma_index)][27];\
-  (s)[28] = (t)[gamma_permutation[(gamma_index)][28]] * gamma_sign[(gamma_index)][28];\
-  (s)[29] = (t)[gamma_permutation[(gamma_index)][29]] * gamma_sign[(gamma_index)][29];\
-  (s)[30] = (t)[gamma_permutation[(gamma_index)][30]] * gamma_sign[(gamma_index)][30];\
-  (s)[31] = (t)[gamma_permutation[(gamma_index)][31]] * gamma_sign[(gamma_index)][31];}
+#define _fm_eq_gamma_ti_fm(s,gamma_basis,gamma_index,t) {\
+  (s)[ 0] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 0]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 0];\
+  (s)[ 1] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 1]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 1];\
+  (s)[ 2] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 2]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 2];\
+  (s)[ 3] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 3]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 3];\
+  (s)[ 4] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 4]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 4];\
+  (s)[ 5] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 5]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 5];\
+  (s)[ 6] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 6]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 6];\
+  (s)[ 7] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 7]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 7];\
+  (s)[ 8] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 8]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 8];\
+  (s)[ 9] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][ 9]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][ 9];\
+  (s)[10] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][10]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][10];\
+  (s)[11] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][11]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][11];\
+  (s)[12] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][12]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][12];\
+  (s)[13] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][13]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][13];\
+  (s)[14] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][14]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][14];\
+  (s)[15] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][15]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][15];\
+  (s)[16] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][16]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][16];\
+  (s)[17] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][17]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][17];\
+  (s)[18] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][18]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][18];\
+  (s)[19] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][19]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][19];\
+  (s)[20] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][20]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][20];\
+  (s)[21] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][21]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][21];\
+  (s)[22] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][22]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][22];\
+  (s)[23] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][23]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][23];\
+  (s)[24] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][24]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][24];\
+  (s)[25] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][25]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][25];\
+  (s)[26] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][26]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][26];\
+  (s)[27] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][27]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][27];\
+  (s)[28] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][28]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][28];\
+  (s)[29] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][29]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][29];\
+  (s)[30] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][30]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][30];\
+  (s)[31] = (t)[gamma_matrix_permutation[(gamma_basis)][(gamma_index)][31]] * gamma_matrix_sign[(gamma_basis)][(gamma_index)][31];}
 
 
 /*************************************************/

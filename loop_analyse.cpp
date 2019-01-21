@@ -385,7 +385,7 @@ int main(int argc, char **argv) {
                 for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
                   double sp[32];
 
-                  _fm_eq_gamma_ti_fm(sp, g_currentgammas, loop[isample][x0][filtered_sink_momentum_index[imom]]);
+                  _fm_eq_gamma_ti_fm(sp, g_currentgammabasis, g_currentgammas, loop[isample][x0][filtered_sink_momentum_index[imom]]);
 
                   for( int ic = 0; ic < 32; ic++ ) {
                     loop_filtered[isample][x0][imom][ic] = sp[ic];
