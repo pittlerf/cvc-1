@@ -9,6 +9,7 @@
 #endif
 #include <math.h>
 #include "types.h"
+#include "enums.hpp"
 // FIXME: build system must be extended to differentiate between FFTW and FFTW3
 //#include "ifftw.h"
 #ifdef HAVE_TMLQCD_LIBWRAPPER
@@ -179,10 +180,6 @@ EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
 EXTERN int g_spintrace;
 EXTERN int g_currentgammas;
-typedef enum cvc_GammaBasis {
-  UKQCD = 0,
-  CHIRAL_TMLQCD,
-} cvc_GammaBasis;
 EXTERN cvc_GammaBasis g_currentgammabasis;
 EXTERN int g_loop_number;
 EXTERN int g_loop_type[MAX_LOOPTYPE_NUMBER];

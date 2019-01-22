@@ -24,6 +24,11 @@ typedef enum ExitCode_t {
   CVC_EXIT_MALLOC_FAILURE = 5
 } ExitCode_t;
 
+typedef enum cvc_GammaBasis {
+  UKQCD = 0,
+  CHIRAL_TMLQCD,
+} cvc_GammaBasis;
+
 }
 
 #endif
