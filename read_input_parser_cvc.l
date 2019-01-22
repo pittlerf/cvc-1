@@ -410,7 +410,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_y{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMY);
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
-spintrace{SPC}*={SPC}*                     BEGIN(SPINTRACE);
+^spintrace{SPC}*={SPC}*                    BEGIN(SPINTRACE);
 ^currentgammastructure{SPC}*={SPC}*        BEGIN(CURRENTGAMMAS);
 ^currentgammabasis{SPC}*={SPC}*            BEGIN(CURRENTGAMMABASIS);
 ^filterQsq{SPC}*={SPC}*                    BEGIN(FILTERQSQ);
@@ -637,7 +637,7 @@ spintrace{SPC}*={SPC}*                     BEGIN(SPINTRACE);
   if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace set to %s\n",yytext);
 }
 <CURRENTGAMMABASIS>{FILENAME} {
-  if(strcmp(yytext,"Chiral")==0){
+  if(strcmp(yytext,"Chiral_tmlqcd")==0){
     cvc::g_currentgammabasis = 0;
   }
   else if (strcmp(yytext,"UKQCD")==0){
