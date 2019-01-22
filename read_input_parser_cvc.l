@@ -632,9 +632,15 @@ static inline double fltlist_next_token(int * const list_end){
   cvc::g_filtered_qsq = atof(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_filtered_qsq);
 }
-<SPINTRACE>{DIGIT}+ {
-  cvc::g_spintrace = (unsigned int)atoi(yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace set to %s\n",yytext);
+<SPINTRACE>{FILENAME} {
+  if (strcmp(yytext,"yes")==0){
+    cvc::g_spintrace = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is on\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_spintrace = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is off\n");
+  }
 }
 <CURRENTGAMMABASIS>{FILENAME} {
   if(strcmp(yytext,"Chiral_tmlqcd")==0){
