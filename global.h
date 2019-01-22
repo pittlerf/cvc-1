@@ -179,7 +179,11 @@ EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
 EXTERN int g_spintrace;
 EXTERN int g_currentgammas;
-EXTERN int g_currentgammabasis;
+typedef enum cvc_GammaBasis {
+  UKQCD = 0,
+  CHIRAL_TMLQCD,
+} cvc_GammaBasis;
+EXTERN cvc_GammaBasis g_currentgammabasis;
 EXTERN int g_loop_number;
 EXTERN int g_loop_type[MAX_LOOPTYPE_NUMBER];
 EXTERN double g_filtered_qsq;

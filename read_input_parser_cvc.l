@@ -19,6 +19,7 @@ TYPE [0-9A-Z]+
 SDIGIT {SIGN}?[[:digit:]]
 STRING [a-zA-Z0-9"."_"-""/"","]+
 STRLIST [0-9"."","" "a-zA-Z]*
+EQL {SPC}*={SPC}*
 
 
 %{
@@ -411,10 +412,10 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
 ^spintrace{SPC}*={SPC}*                    BEGIN(SPINTRACE);
-^currentgammastructure{SPC}*={SPC}*        BEGIN(CURRENTGAMMAS);
-^currentgammabasis{SPC}*={SPC}*            BEGIN(CURRENTGAMMABASIS);
-^filterQsq{SPC}*={SPC}*                    BEGIN(FILTERQSQ);
-^filterlooptype{SPC}*={SPC}*               BEGIN(LOOPTYPE);
+^CurrentGammaStructure{SPC}*={SPC}*        BEGIN(CURRENTGAMMAS);
+^CurrentGammaBasis{EQL}                    BEGIN(CURRENTGAMMABASIS);
+^FilterQsq{SPC}*={SPC}*                    BEGIN(FILTERQSQ);
+^FilterLoopType{SPC}*={SPC}*               BEGIN(LOOPTYPE);
 
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
 ^gpu_precision{SPC}*={SPC}*                BEGIN(GPUPREC);
@@ -642,19 +643,13 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is off\n");
   }
 }
-<CURRENTGAMMABASIS>{FILENAME} {
-  if(strcmp(yytext,"Chiral_tmlqcd")==0){
-    cvc::g_currentgammabasis = 0;
-  }
-  else if (strcmp(yytext,"UKQCD")==0){
-    cvc::g_currentgammabasis = 1;
-  }
-  else{
-    char error_message[200];
-    snprintf(error_message, 200, "# [read_input_parser] Invalid gamma basis: Choose between(\"chiral\",\"UKQCD\"\n");
-    yy_fatal_error(error_message);
-  }
-  if(cvc::myverbose!=0) printf("# [read_input_parser] Gamma basis used in loop_analyze %s\n",yytext);
+<CURRENTGAMMABASIS>ukqcd {
+  cvc::g_currentgammabasis = cvc::UKQCD;
+  if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
+}
+<CURRENTGAMMABASIS>chiral_tmlqcd {
+  cvc::g_currentgammabasis = cvc::CHIRAL_TMLQCD;
+  if(cvc::myverbose!=0) printf("# [read_input_parser] CHIRAL gammabasis is choosen\n");
 }
 <CURRENTGAMMAS>{DIGIT}+ {
   cvc::g_currentgammas = atoi(yytext);
