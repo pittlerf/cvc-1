@@ -1,5 +1,5 @@
 /****************************************************
- * loop_analyse
+ * loop_extract
  *
  * PURPOSE:
  * DONE:
@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
 
   /* set the default values */
   if(filename_set==0) snprintf ( filename, 400, "%s.input", outfile_prefix );
-  /* fprintf(stdout, "# [loop_analyse] Reading input from file %s\n", filename); */
+  /* fprintf(stdout, "# [loop_extract] Reading input from file %s\n", filename); */
   read_input_parser(filename);
 
   /***************************************************************************
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
    * report git version
    ***************************************************************************/
   if ( g_cart_id == 0 ) {
-    fprintf(stdout, "# [loop_analyse] git version = %s\n", g_gitversion);
+    fprintf(stdout, "# [loop_extract] git version = %s\n", g_gitversion);
   }
 
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
    * initialize geometry fields
    ***************************************************************************/
   if ( init_geometry() != 0 ) {
-    fprintf(stderr, "[loop_analyse] Error from init_geometry %s %d\n", __FILE__, __LINE__);
+    fprintf(stderr, "[loop_extract] Error from init_geometry %s %d\n", __FILE__, __LINE__);
     EXIT(4);
   }
 
@@ -150,41 +150,41 @@ int main(int argc, char **argv) {
    ***************************************************************************/
   io_proc = get_io_proc ();
   if( io_proc < 0 ) {
-    fprintf(stderr, "[loop_analyse] Error, io proc must be ge 0 %s %d\n", __FILE__, __LINE__);
+    fprintf(stderr, "[loop_extract] Error, io proc must be ge 0 %s %d\n", __FILE__, __LINE__);
     EXIT(14);
   }
-  fprintf(stdout, "# [loop_analyse] proc%.4d has io proc id %d\n", g_cart_id, io_proc );
+  fprintf(stdout, "# [loop_extract] proc%.4d has io proc id %d\n", g_cart_id, io_proc );
   if (g_filtered_qsq > Qsq){
     if (g_proc_id == 0){
-     fprintf(stderr, "# [loop_analyse] We do not have momenta till %f\n",g_filtered_qsq);
+     fprintf(stderr, "# [loop_extract] We do not have momenta till %f\n",g_filtered_qsq);
      EXIT(1);
     }
   }
   if (g_proc_id == 0){
-    fprintf(stdout, "# [loop_analyse] Filtering value of Qsq %f\n", g_filtered_qsq);
+    fprintf(stdout, "# [loop_extract] Filtering value of Qsq %f\n", g_filtered_qsq);
   }
   if (g_loop_number == 0){
    if (g_proc_id == 0){
-    fprintf(stderr, "# [loop_analyse] Specify the type of loops you are interested in e.g.\n");
-    fprintf(stderr, "# [loop_analyse] filterlooptype = Scalar, Loops\n");
+    fprintf(stderr, "# [loop_extract] Specify the type of loops you are interested in e.g.\n");
+    fprintf(stderr, "# [loop_extract] filterlooptype = Scalar, Loops\n");
     EXIT(1);
    }
   }
   if (g_proc_id == 0)
-   fprintf(stdout, "# [loop_analyse] Following loops will be filtered\n");
+   fprintf(stdout, "# [loop_extract] Following loops will be filtered\n");
   for (int i=0; i<g_loop_number; ++i){
     switch( g_loop_type[i] ){
-     case 0: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] Scalar\n");
+     case 0: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar\n");
              break;
-     case 1: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] dOp\n");
+     case 1: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
              break;
-     case 2: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] Loops\n");
+     case 2: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
              break;
-     case 3: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LpsDw\n");
+     case 3: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
              break;
-     case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LoopsCV\n");
+     case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
              break;
-     case 5: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LpsDwCv\n");
+     case 5: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
              break;
     }
   }
@@ -192,9 +192,9 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * loop data filename
    ***************************************************************************/
-  char prefix[]="/scratch/snx3000/gasbarro/cypruscode/production/cA211a.30.32/scratch/loop/light";
+  char prefix[]="/scratch/snx3000/gasbarro/cypruscode/production/cB211a.072.64/scratch/loop/light";
   snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", prefix,filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
-  if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
+  if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
   /***************************************************************************
    * count momenta and build momentum list
@@ -214,10 +214,10 @@ int main(int argc, char **argv) {
     }
   }}}
   if ( g_sink_momentum_number <= 0 ) {
-    fprintf ( stderr, "[loop_analyse] Error, momentum list is empty %s %d\n", __FILE__, __LINE__ );
+    fprintf ( stderr, "[loop_extract] Error, momentum list is empty %s %d\n", __FILE__, __LINE__ );
     EXIT(1);
   } else {
-    if (io_proc == 2 && g_verbose > 1 ) fprintf ( stdout, "# [loop_analyse] number of momenta <= %3d is %3d\n", Qsq, g_sink_momentum_number );
+    if (io_proc == 2 && g_verbose > 1 ) fprintf ( stdout, "# [loop_extract] number of momenta <= %3d is %3d\n", Qsq, g_sink_momentum_number );
   }
 
   exitstatus = loop_get_momentum_list_from_h5_file ( g_sink_momentum_list, filename, g_sink_momentum_number, io_proc );
@@ -261,7 +261,7 @@ int main(int argc, char **argv) {
     snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq );
   }
 
-  if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
+  if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
   exitstatus = loop_write_momentum_list_to_h5_file ( filtered_sink_momentum_list, filename, filtered_sink_momentum_number, io_proc );
   if ( exitstatus != 0 ) {
@@ -292,7 +292,7 @@ int main(int argc, char **argv) {
    ***************************************************************************/
   double **** loop = init_4level_dtable ( g_nsample, T, g_sink_momentum_number, 32 );
   if ( loop == NULL ) {
-    fprintf(stderr, "[loop_analyse] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
+    fprintf(stderr, "[loop_extract] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
     EXIT(48);
   }
 
@@ -301,7 +301,7 @@ int main(int argc, char **argv) {
    ***************************************************************************/
   double **** loop_filtered = init_4level_dtable ( g_nsample, T, filtered_sink_momentum_number, 32 );
   if ( loop == NULL ) {
-    fprintf(stderr, "[loop_analyse] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
+    fprintf(stderr, "[loop_extract] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
     EXIT(48);
   }
 
@@ -326,26 +326,26 @@ int main(int argc, char **argv) {
       switch( g_loop_type[iloop_type] ){
        case 0: snprintf ( loop_type, 100, "%s", "Scalar" );
                inner_loop_length=1;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] Processing Scalar\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Processing Scalar\n");
                break;
        case 1: snprintf ( loop_type, 100, "%s", "dOp" );
                inner_loop_length=1;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] dOp\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
                break;
        case 2: snprintf ( loop_type, 100, "%s", "Loops" );
                inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] Loops\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
                break;
        case 3: snprintf ( loop_type, 100, "%s", "LpsDw" );
                inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LpsDw\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
                break;
-       case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LoopsCV\n");
+       case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
                EXIT(1); 
                break;
        case 5: snprintf ( loop_type, 100, "%s", "LpsDwCv" );
                inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_analyse] LpsDwCv\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
                break;
       }
 
@@ -357,23 +357,23 @@ int main(int argc, char **argv) {
         snprintf(direction_part, 100, "dir_%02d", loop_direction);
      
         if (inner_loop_length > 1)
-          snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s/%s/%s", Nconf, Nstoch, loop_type, direction_part, loop_name );
+          snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s/%s/%s", conf_traj, Nstoch, loop_type, direction_part, loop_name );
         else
-          snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s/%s", Nconf, Nstoch, loop_type, loop_name );
+          snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s/%s", conf_traj, Nstoch, loop_type, loop_name );
 
-        if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
+        if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
         snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", prefix, filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
 
         exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
         if ( exitstatus != 0 ) {
-          fprintf ( stderr, "[loop_analyse] Error from loop_read_from_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
+          fprintf ( stderr, "[loop_extract] Error from loop_read_from_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
           EXIT(1);
         }
 
         if ( io_proc > 0 ) {
           /*****************************************************************
-           * write in ASCII format
+           * Collecting data for writing
            *****************************************************************/
           for ( int iproc = 0; iproc < g_nproc_t; iproc++ ) {
             if ( g_tr_id == iproc ) {
@@ -383,11 +383,11 @@ int main(int argc, char **argv) {
                 snprintf ( output_filename, 400, "Nconf_%.4d.%s.%s_gamma%d", Nconf, loop_type, loop_name,g_currentgammas );
                 ofs = fopen ( output_filename, "a" );
                 if ( ofs == NULL ) {
-                  fprintf ( stderr, "[loop_analyse] Error from fopen %s %d\n", __FILE__, __LINE__ );
+                  fprintf ( stderr, "[loop_extract] Error from fopen %s %d\n", __FILE__, __LINE__ );
                   EXIT(1);
                 }
+                fprintf ( ofs, "# [loop_extract] %s\n", data_tag );
               } /* end of g_verbose */
-              //fprintf ( ofs, "# [loop_analyse] %s\n", data_tag );
               for ( int x0 = 0; x0 < T; x0++ ) {
                 int const y0 = x0 + g_proc_coords[0] * T;
 
@@ -411,6 +411,9 @@ int main(int argc, char **argv) {
                     }   
                   }
                   if (g_verbose > 4){
+                    /*****************************************************************
+                     * write in ASCII format
+                     *****************************************************************/
                     for( int ic = 0; ic < 16; ic++ ) {
                       fprintf ( ofs, " %3d %4d   %3d% 3d% 3d   %d %d  %25.16e %25.16e\n", Nstoch, y0, 
                        g_sink_momentum_list[filtered_sink_momentum_index[imom]][0], g_sink_momentum_list[filtered_sink_momentum_index[imom]][1], g_sink_momentum_list[filtered_sink_momentum_index[imom]][2],
@@ -435,8 +438,9 @@ int main(int argc, char **argv) {
 #if 0
 #endif  /* of if 0 */
 
-        /*****************************************************************/
-        /*****************************************************************/
+        /*****************************************************************
+         * Write data in h5 format with the correct tag
+         *****************************************************************/
 
 
         if (inner_loop_length > 1)
@@ -444,7 +448,7 @@ int main(int argc, char **argv) {
         else
           snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s", Nconf, Nstoch, loop_type);
 
-        if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_analyse] data_tag = %s\n", data_tag);
+        if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
         if (g_currentgammas != 4){
           snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq, g_currentgammas);
@@ -452,7 +456,7 @@ int main(int argc, char **argv) {
         else{
           snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq);
         }
-        if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_analyse] loop filename = %s\n", filename );
+        if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
         if (g_spintrace == 1){
           exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 1, io_proc );
@@ -462,18 +466,11 @@ int main(int argc, char **argv) {
         }
 
         if ( exitstatus != 0 ) {
-          fprintf ( stderr, "[loop_analyse] Error from loop_write_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
+          fprintf ( stderr, "[loop_extract] Error from loop_write_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
           EXIT(1);
         }
 
 
-        /*****************************************************************
-         * set loop type
-         *****************************************************************/
-        /*
-         * sprintf ( loop_type, "%s", "dOp" );
-         * same for gen-oet
-         */
       }  /* end of loop for the different loop directions */
 
     }  /* end of loop on oet samples */
@@ -500,8 +497,8 @@ int main(int argc, char **argv) {
 
   if(g_cart_id==0) {
     g_the_time = time(NULL);
-    fprintf(stdout, "# [loop_analyse] %s# [loop_analyse] end of run\n", ctime(&g_the_time));
-    fprintf(stderr, "# [loop_analyse] %s# [loop_analyse] end of run\n", ctime(&g_the_time));
+    fprintf(stdout, "# [loop_extract] %s# [loop_extract] end of run\n", ctime(&g_the_time));
+    fprintf(stderr, "# [loop_extract] %s# [loop_extract] end of run\n", ctime(&g_the_time));
   }
 
   return(0);
