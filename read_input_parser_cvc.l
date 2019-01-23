@@ -644,11 +644,11 @@ static inline double fltlist_next_token(int * const list_end){
   }
 }
 <CURRENTGAMMABASIS>ukqcd {
-  cvc::g_currentgammabasis = cvc::UKQCD;
+  cvc::g_matrix_gamma_basis = cvc::UKQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
 }
 <CURRENTGAMMABASIS>chiral_tmlqcd {
-  cvc::g_currentgammabasis = cvc::CHIRAL_TMLQCD;
+  cvc::g_matrix_gamma_basis = cvc::CHIRAL_TMLQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] CHIRAL gammabasis is choosen\n");
 }
 <CURRENTGAMMAS>{DIGIT}+ {

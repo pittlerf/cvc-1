@@ -180,7 +180,7 @@ EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
 EXTERN int g_spintrace;
 EXTERN int g_currentgammas;
-EXTERN cvc_GammaBasis g_currentgammabasis;
+EXTERN cvc_GammaBasis g_matrix_gamma_basis;
 EXTERN int g_loop_number;
 EXTERN int g_loop_type[MAX_LOOPTYPE_NUMBER];
 EXTERN double g_filtered_qsq;
