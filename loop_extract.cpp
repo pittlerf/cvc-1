@@ -154,16 +154,16 @@ int main(int argc, char **argv) {
     EXIT(14);
   }
   fprintf(stdout, "# [loop_extract] proc%.4d has io proc id %d\n", g_cart_id, io_proc );
-  if (g_filtered_qsq > Qsq){
+  if (g_spinprojection_filtered_qsq > Qsq){
     if (g_proc_id == 0){
-     fprintf(stderr, "# [loop_extract] We do not have momenta till %f\n",g_filtered_qsq);
+     fprintf(stderr, "# [loop_extract] We do not have momenta till %f\n",g_spinprojection_filtered_qsq);
      EXIT(1);
     }
   }
   if (g_proc_id == 0){
-    fprintf(stdout, "# [loop_extract] Filtering value of Qsq %f\n", g_filtered_qsq);
+    fprintf(stdout, "# [loop_extract] Filtering value of Qsq %f\n", g_spinprojection_filtered_qsq);
   }
-  if (g_loop_number == 0){
+  if (g_spinprojection_loop_number == 0){
    if (g_proc_id == 0){
     fprintf(stderr, "# [loop_extract] Specify the type of loops you are interested in e.g.\n");
     fprintf(stderr, "# [loop_extract] filterlooptype = Scalar, Loops\n");
@@ -172,8 +172,8 @@ int main(int argc, char **argv) {
   }
   if (g_proc_id == 0)
    fprintf(stdout, "# [loop_extract] Following loops will be filtered\n");
-  for (int i=0; i<g_loop_number; ++i){
-    switch( g_loop_type[i] ){
+  for (int i=0; i<g_spinprojection_loop_number; ++i){
+    switch( g_spinprojection_loop_type[i] ){
      case 0: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar\n");
              break;
      case 1: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
   for (int i=0;i<g_sink_momentum_number; ++i)
   {
     int momentum = g_sink_momentum_list[i][0]*g_sink_momentum_list[i][0]+g_sink_momentum_list[i][1]*g_sink_momentum_list[i][1]+g_sink_momentum_list[i][2]*g_sink_momentum_list[i][2];
-    if (momentum< g_filtered_qsq){
+    if (momentum< g_spinprojection_filtered_qsq){
       filtered_sink_momentum_list[index][0]=g_sink_momentum_list[i][0];
       filtered_sink_momentum_list[index][1]=g_sink_momentum_list[i][1];
       filtered_sink_momentum_list[index][2]=g_sink_momentum_list[i][2];
@@ -251,14 +251,14 @@ int main(int argc, char **argv) {
   char attribute_nmoms[100];
   snprintf(attribute_nmoms,100, "%d",filtered_sink_momentum_number);
   char attribute_qsq[100];
-  snprintf(attribute_qsq,100,"%d",(int)g_filtered_qsq);
+  snprintf(attribute_qsq,100,"%d",(int)g_spinprojection_filtered_qsq);
 
 
-  if (g_currentgammas != 4){
-    snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq, g_currentgammas );
+  if (g_spinprojection_gammas != 4){
+    snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq, g_spinprojection_gammas );
   }
   else{
-    snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq );
+    snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq );
   }
 
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
@@ -309,7 +309,7 @@ int main(int argc, char **argv) {
    * loop on different loop types
    ***************************************************************************/
 
-  for ( int iloop_type=0; iloop_type < g_loop_number ; ++iloop_type){
+  for ( int iloop_type=0; iloop_type < g_spinprojection_loop_number ; ++iloop_type){
 
   /***************************************************************************
    * loop on stochastic oet samples
@@ -323,7 +323,7 @@ int main(int argc, char **argv) {
 
       int inner_loop_length;
 
-      switch( g_loop_type[iloop_type] ){
+      switch( g_spinprojection_loop_type[iloop_type] ){
        case 0: snprintf ( loop_type, 100, "%s", "Scalar" );
                inner_loop_length=1;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Processing Scalar\n");
@@ -380,7 +380,7 @@ int main(int argc, char **argv) {
               char output_filename[400];
               FILE *ofs;
               if (g_verbose > 4){
-                snprintf ( output_filename, 400, "Nconf_%.4d.%s.%s_gamma%d", Nconf, loop_type, loop_name,g_currentgammas );
+                snprintf ( output_filename, 400, "Nconf_%.4d.%s.%s_gamma%d", Nconf, loop_type, loop_name,g_spinprojection_gammas );
                 ofs = fopen ( output_filename, "a" );
                 if ( ofs == NULL ) {
                   fprintf ( stderr, "[loop_extract] Error from fopen %s %d\n", __FILE__, __LINE__ );
@@ -394,9 +394,9 @@ int main(int argc, char **argv) {
                 for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
                   double sp[32];
 
-                  _fm_eq_gamma_ti_fm(sp, g_matrix_gamma_basis, g_currentgammas, loop[isample][x0][filtered_sink_momentum_index[imom]]);
+                  _fm_eq_gamma_ti_fm(sp, g_spinprojection_gamma_basis, g_spinprojection_gammas, loop[isample][x0][filtered_sink_momentum_index[imom]]);
 
-                  if (g_spintrace == 1){
+                  if (g_spinprojection_spintrace == 1){
 
                   /* Taking the trace */
 
@@ -450,15 +450,15 @@ int main(int argc, char **argv) {
 
         if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
-        if (g_currentgammas != 4){
-          snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq, g_currentgammas);
+        if (g_spinprojection_gammas != 4){
+          snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq, g_spinprojection_gammas);
         }
         else{
-          snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_filtered_qsq);
+          snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq);
         }
         if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
-        if (g_spintrace == 1){
+        if (g_spinprojection_spintrace == 1){
           exitstatus = contract_loop_write_to_h5_file ( loop_filtered[isample], filename, data_tag, filtered_sink_momentum_number, 1, io_proc );
         }
         else{

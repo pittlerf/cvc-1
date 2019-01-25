@@ -241,11 +241,11 @@ static inline double fltlist_next_token(int * const list_end){
 %x SEQSRCMOMX
 %x SEQSRCMOMY
 %x SEQSRCMOMZ
-%x SPINTRACE
-%x CURRENTGAMMAS
-%x CURRENTGAMMABASIS
-%x LOOPTYPE
-%x FILTERQSQ
+%x SPINPROJECTIONSPINTRACE
+%x SPINPROJECTIONGAMMAS
+%x SPINPROJECTIONGAMMABASIS
+%x SPINPROJECTIONLOOPTYPE
+%x SPINPROJECTIONFILTERQSQ
 %x SEQ2SRCMOM
 %x SEQ2SRCMOMX
 %x SEQ2SRCMOMY
@@ -411,11 +411,11 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_y{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMY);
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
-^spintrace{SPC}*={SPC}*                    BEGIN(SPINTRACE);
-^CurrentGammaStructure{SPC}*={SPC}*        BEGIN(CURRENTGAMMAS);
-^CurrentGammaBasis{EQL}                    BEGIN(CURRENTGAMMABASIS);
-^FilterQsq{SPC}*={SPC}*                    BEGIN(FILTERQSQ);
-^FilterLoopType{SPC}*={SPC}*               BEGIN(LOOPTYPE);
+^SpinProjectionSpinTrace{SPC}*={SPC}*      BEGIN(SPINPROJECTIONSPINTRACE);
+^SpinProjectionGammaStructure{SPC}*={SPC}* BEGIN(SPINPROJECTIONGAMMAS);
+^SpinProjectionGammaBasis{EQL}             BEGIN(SPINPROJECTIONGAMMABASIS);
+^SpinProjectionFilterQsq{SPC}*={SPC}*      BEGIN(SPINPROJECTIONFILTERQSQ);
+^SpinProjectionFilterLoopType{SPC}*={SPC}* BEGIN(SPINPROJECTIONLOOPTYPE);
 
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
 ^gpu_precision{SPC}*={SPC}*                BEGIN(GPUPREC);
@@ -629,33 +629,33 @@ static inline double fltlist_next_token(int * const list_end){
   } 
   if(cvc::myverbose!=0) printf("# [read_input_parser] source type set to %s\n",yytext);
 }
-<FILTERQSQ>{FLT} {
-  cvc::g_filtered_qsq = atof(yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_filtered_qsq);
+<SPINPROJECTIONFILTERQSQ>{FLT} {
+  cvc::g_spinprojection_filtered_qsq = atof(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_spinprojection_filtered_qsq);
 }
-<SPINTRACE>{FILENAME} {
+<SPINPROJECTIONSPINTRACE>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
-    cvc::g_spintrace = 1;
+    cvc::g_spinprojection_spintrace = 1;
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is on\n");
   }
   else if (strcmp(yytext,"no")==0){
-    cvc::g_spintrace = 0;
+    cvc::g_spinprojection_spintrace = 0;
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is off\n");
   }
 }
-<CURRENTGAMMABASIS>ukqcd {
-  cvc::g_matrix_gamma_basis = cvc::UKQCD;
+<SPINPROJECTIONGAMMABASIS>ukqcd {
+  cvc::g_spinprojection_gamma_basis = cvc::UKQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
 }
-<CURRENTGAMMABASIS>chiral_tmlqcd {
-  cvc::g_matrix_gamma_basis = cvc::CHIRAL_TMLQCD;
+<SPINPROJECTIONGAMMABASIS>chiral_tmlqcd {
+  cvc::g_spinprojection_gamma_basis = cvc::CHIRAL_TMLQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] CHIRAL gammabasis is choosen\n");
 }
-<CURRENTGAMMAS>{DIGIT}+ {
-  cvc::g_currentgammas = atoi(yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] spin projection on loops with gamma id %d\n", cvc::g_currentgammas);
+<SPINPROJECTIONGAMMAS>{DIGIT}+ {
+  cvc::g_spinprojection_gammas = atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] spin projection on loops with gamma id %d\n", cvc::g_spinprojection_gammas);
 }
-<LOOPTYPE>{STRLIST} {
+<SPINPROJECTIONLOOPTYPE>{STRLIST} {
   char paramname[100];
   char token[100];
   char error_message[200];
@@ -669,22 +669,22 @@ static inline double fltlist_next_token(int * const list_end){
       yy_fatal_error(error_message);
       }
     if( strcmp(token, "Scalar") == 0 ){
-      cvc::g_loop_type[index]=0;
+      cvc::g_spinprojection_loop_type[index]=0;
     }
     else if( strcmp(token, "dOp") == 0 ){
-      cvc::g_loop_type[index]=1;
+      cvc::g_spinprojection_loop_type[index]=1;
     }
     else if( strcmp(token, "Loops") == 0){
-      cvc::g_loop_type[index]=2;
+      cvc::g_spinprojection_loop_type[index]=2;
     }
     else if( strcmp(token, "LpsDw") == 0){
-      cvc::g_loop_type[index]=3;
+      cvc::g_spinprojection_loop_type[index]=3;
     }
     else if( strcmp(token, "LoopsCV") == 0){
-      cvc::g_loop_type[index]=4;
+      cvc::g_spinprojection_loop_type[index]=4;
     }
     else if( strcmp(token, "LpsDwCv") == 0){
-      cvc::g_loop_type[index]=5;
+      cvc::g_spinprojection_loop_type[index]=5;
     }
     else {
       snprintf(error_message, 200, "# [read_input_parser] Unknown loop type %s passed in the parsing of %s!\n", yytext, paramname);
@@ -694,7 +694,7 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] loop type saved to %s\n",token);
     cvc::strlist_next_token(&list_end, token, 100);
   }
-  cvc::g_loop_number=index;
+  cvc::g_spinprojection_loop_number=index;
 }
 <SPREC>{FLT} {
   cvc::solver_precision = atof(yytext);

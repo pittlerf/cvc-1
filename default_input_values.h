@@ -192,9 +192,9 @@ namespace cvc {
 #define _default_source_gamma_id -1
 #define _default_source_gamma_id_number 0
 
-#define _default_filtered_qsq 4.
-#define _default_currentgammas 4
-#define _default_spintrace 1
+#define _default_spinprojection_filtered_qsq 4.
+#define _default_spinprojection_gammas 4
+#define _default_spinprojection_spintrace 1
 
 #define _default_csw 0
 

@@ -238,9 +238,10 @@ void set_default_input_values(void) {
   g_sequential_source_gamma_id_list[15] = _default_seq_source_gamma_id;
 
   g_sequential_source_gamma_id_number = _default_seq_source_gamma_id_number;
-  g_spintrace = _default_spintrace;
-  g_filtered_qsq = _default_filtered_qsq ;
-  g_currentgammas = cvc::UKQCD ;
+  g_spinprojection_spintrace = _default_spinprojection_spintrace;
+  g_spinprojection_filtered_qsq = _default_spinprojection_filtered_qsq ;
+  g_spinprojection_gammas = _default_spinprojection_gammas  ;
+  g_spinprojection_gamma_basis = cvc::UKQCD ;
 
   g_source_gamma_id_number = _default_source_gamma_id_number;
   g_source_gamma_id_list[ 0] = _default_source_gamma_id;
