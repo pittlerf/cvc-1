@@ -5,6 +5,7 @@ read_input_praser.cpp
 **/*.backup
 **/.RData
 **/.Rhistory
+*.swp
 gitversion.cpp
 TODO
 DONE
