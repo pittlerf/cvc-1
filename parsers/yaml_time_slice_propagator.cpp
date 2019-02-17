@@ -3,6 +3,8 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <exception>
+#include <stdexcept>
 
 #include "meta_types.hpp"
 

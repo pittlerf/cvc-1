@@ -1,6 +1,10 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
+#include <map>
+#include <vector>
+#include <string>
+
 namespace cvc {
 
 typedef double * spinor_vector_type;
@@ -40,6 +44,8 @@ typedef struct {
   int nt;
   int nv;
 } gsp_type;
+
+typedef std::map<std::string, std::vector< std::vector<int> > > mom_lists_t;
 
 }  /* end of namespace cvc */
 #endif
