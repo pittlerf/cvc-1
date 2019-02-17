@@ -23,37 +23,31 @@ static inline std::string check_mom_prop(const std::string prop_in)
 
 typedef struct stoch_prop_meta_t
 {
-  int p[3];
+  mom_t p;
   int gamma;
   std::string flav;
 
   // this intentionally exists but does nothing
   stoch_prop_meta_t() {}
 
-  stoch_prop_meta_t(const int p_in[3],
+  stoch_prop_meta_t(const mom_t & p_in,
                     const int gamma_in,
-                    const std::string flav_in)
-  {
-    p[0] = p_in[0];
-    p[1] = p_in[1];
-    p[2] = p_in[2];
-    gamma = gamma_in;
-    flav = flav_in;
-  }
+                    const std::string & flav_in) :
+    p(p_in), gamma(gamma_in), flav(flav_in) {}
 
   std::string key(void) const 
   {
     return key(p, gamma, flav);
   }
 
-  std::string key(const int p_in[3],
-                       const int gamma_in,
-                       const std::string flav_in) const
+  std::string key(const mom_t & p_in,
+                  const int gamma_in,
+                  const std::string & flav_in) const
   {
     char temp[100];
     snprintf(temp, 100, 
              "f%s_g%d_px%+dpy%+dpz%+d",
-             flav_in.c_str(), gamma_in, p_in[0], p_in[1], p_in[2]);
+             flav_in.c_str(), gamma_in, p_in.x, p_in.y, p_in.z);
     return std::string(temp);
   }
 
@@ -64,41 +58,35 @@ typedef struct seq_stoch_prop_meta_t
   // this intentionally exists but does nothing
   seq_stoch_prop_meta_t() {}
 
-  seq_stoch_prop_meta_t(const int seq_p_in[3],
+  seq_stoch_prop_meta_t(const mom_t & seq_p_in,
                         const int seq_gamma_in,
                         const int seq_src_ts_in,
                         const std::string seq_flav_in,
-                        const int src_p_in[3],
+                        const mom_t & src_p_in,
                         const int src_gamma_in,
-                        const std::string src_flav_in)
-    : src_prop(src_p_in, src_gamma_in, src_flav_in)
-  {
-    p[0] = seq_p_in[0];
-    p[1] = seq_p_in[1];
-    p[2] = seq_p_in[2];
-    seq_src_ts = seq_src_ts_in;
-    gamma = seq_gamma_in;
-    flav = seq_flav_in;
-  }
+                        const std::string & src_flav_in)
+    : src_prop(src_p_in, src_gamma_in, src_flav_in),
+      p(seq_p_in), seq_src_ts(seq_src_ts_in), gamma(seq_gamma_in),
+      flav(seq_flav_in) {}
 
   std::string key(void) const
   {
     return key(p, gamma, seq_src_ts, flav);
   }
 
-  std::string key(const int p_in[3],
+  std::string key(const mom_t & p_in,
                   const int gamma_in,
                   const int seq_src_ts_in,
-                  const std::string flav_in) const
+                  const std::string & flav_in) const
   {
     char temp[100];
     snprintf(temp, 100,
              "f%s_g%d_px%+dpy%+dpz%+d::ts%d_",
-             flav_in.c_str(), gamma_in, p_in[0], p_in[1], p_in[2], seq_src_ts_in);
+             flav_in.c_str(), gamma_in, p_in.x, p_in.y, p_in.z, seq_src_ts_in);
     return( (std::string(temp)+src_prop.key()) );
   }
 
-  int p[3];
+  mom_t p;
   int gamma;
   int seq_src_ts;
   std::string flav;
@@ -142,8 +130,8 @@ typedef struct seq_stoch_prop_meta_t
  *
  */
 
-typedef struct twopt_oet_meta_t {
-  twopt_oet_meta_t(const std::string fprop_flav_in,
+typedef struct oet_meson_twopt_meta_t {
+  oet_meson_twopt_meta_t(const std::string fprop_flav_in,
                    const std::string bprop_flav_in,
                    const std::string src_mom_prop_in,
                    const int gi_in,
@@ -168,7 +156,7 @@ typedef struct twopt_oet_meta_t {
   int gb;
   ::cvc::complex normalisation;
 
-} twopt_oet_meta_t;
+} oet_meson_twopt_meta_t;
 
 
 /**
@@ -215,9 +203,9 @@ typedef struct twopt_oet_meta_t {
  * structures.
  *
  */
-typedef struct threept_oet_meta_t : twopt_oet_meta_t 
+typedef struct oet_meson_threept_meta_t : oet_meson_twopt_meta_t 
 {
-  threept_oet_meta_t(const std::string fprop_flav_in,
+  oet_meson_threept_meta_t(const std::string fprop_flav_in,
                      const std::string bprop_flav_in,
                      const std::string sprop_flav_in,
                      const std::string src_mom_prop_in,
@@ -226,8 +214,8 @@ typedef struct threept_oet_meta_t : twopt_oet_meta_t
                      const int gc_in,
                      const int gb_in,
                      const ::cvc::complex normalisation_in) :
-    twopt_oet_meta_t( fprop_flav_in, bprop_flav_in, src_mom_prop_in,
-                      gi_in, gf_in, gb_in, normalisation_in )
+    oet_meson_twopt_meta_t(fprop_flav_in, bprop_flav_in, src_mom_prop_in,
+                           gi_in, gf_in, gb_in, normalisation_in )
   {
     gc = gc_in;
     sprop_flav = sprop_flav_in;
@@ -235,15 +223,15 @@ typedef struct threept_oet_meta_t : twopt_oet_meta_t
 
   int gc;
   std::string sprop_flav;
-} threept_oet_meta_t; 
+} oet_meson_threept_meta_t; 
 
 typedef struct MetaCollection {
-  std::map<std::string, std::vector< std::vector<int> > > mom_lists;
+  mom_lists_t mom_lists;
   std::map<std::string, stoch_prop_meta_t> ts_props;
   DepGraph g;
 } MetaCollection;
 
-//typedef struct threept_shifts_oet_meta_t : threept_oet_meta_t
+//typedef struct threept_shifts_oet_meta_t : oet_meson_threept_meta_t
 //{
 //  threept_shifts_oet_meta_t(
 //      const std::string fprop_flav_in,
@@ -258,7 +246,7 @@ typedef struct MetaCollection {
 //      const std::vector<shift_t> right_shifts_in,
 //      const ::cvc::complex normalisation_in
 //      ) :
-//    threept_oet_meta_t(fprop_flav_in, bprop_flav_in, sprop_flav_in,
+//    oet_meson_threept_meta_t(fprop_flav_in, bprop_flav_in, sprop_flav_in,
 //                       src_mom_prop_in, gi_in, gf_in, gc_in, gb_in, normalisation_in)
 //  {
 //    left_shifts = left_shifts_in;

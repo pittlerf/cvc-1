@@ -45,7 +45,7 @@ typedef struct {
   int nv;
 } gsp_type;
 
-typedef std::map<std::string, std::vector< std::vector<int> > > mom_lists_t;
+typedef std::map<std::string, std::vector< mom_t > > mom_lists_t;
 
 }  /* end of namespace cvc */
 #endif

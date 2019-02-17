@@ -1,8 +1,19 @@
 #pragma once
 
-#include <vector>
-#include <exception>
-#include <stdexcept>
+#include "types.h"
+
+namespace cvc {
+
+static inline void describe_mom(const mom_t & mom, int & pnonzero, int & psq, int & pmax)
+{
+  psq = mom.x*mom.x + mom.y*mom.y + mom.z*mom.z;
+  pnonzero = static_cast<int>( mom.x != 0 ) + static_cast<int>( mom.y != 0 ) + 
+             static_cast<int>( mom.z != 0 );
+  pmax = 0;
+  for( const auto & p : {mom.x, mom.y, mom.z} ){
+    pmax = abs(p) > pmax ? abs(p) : pmax;
+  }
+}
 
 /**
  * @brief Comparison functor for momentum triplets, suitable for std::sort
@@ -12,23 +23,11 @@
  * and then by the number of non-zeros (not sure if this last condition would ever occur)
  */
 typedef struct momentum_compare_t {
-  bool operator()( const std::vector<int> & a, const std::vector<int> & b ){
-    if( a.size() != 3 || b.size() != 3 ){
-      throw( std::invalid_argument("in momentum_sort, 'a' and 'b' must of size 3!") );
-    }
-    int asq = a[0]*a[0] + a[1]*a[1] + a[2]*a[2];
-    int anonzero = static_cast<int>( a[0] != 0 ) + static_cast<int>( a[1] != 0 ) + static_cast<int>( a[2] != 0 );
-    int amax = 0;
-    for( const auto & p : a ){
-      amax = abs(p) > amax ? abs(p) : amax;
-    }
-
-    int bsq = b[0]*b[0] + b[1]*b[1] + b[2]*b[2];
-    int bnonzero = static_cast<int>( b[0] != 0 ) + static_cast<int>( b[1] != 0 ) + static_cast<int>( b[2] != 0 );
-    int bmax = 0;
-    for( const auto & p : b ){
-      bmax = abs(p) > bmax ? abs(p) : bmax;
-    }
+  bool operator()( const mom_t & a, const mom_t & b ){
+    int asq, anonzero, amax;
+    int bsq, bnonzero, bmax;
+    describe_mom(a, anonzero, asq, amax);
+    describe_mom(b, bnonzero, bsq, bmax);
 
     if( asq == bsq ){
       if( amax == bmax ){
@@ -41,4 +40,6 @@ typedef struct momentum_compare_t {
     }
   }
 } momentum_compare_t;
+
+} //namespace(cvc)
 
