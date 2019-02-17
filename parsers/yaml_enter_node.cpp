@@ -45,8 +45,8 @@ void enter_node(const YAML::Node &node,
           construct_momentum_list(it->second, verbose, metas.mom_lists );
         } else if ( it->first.as<std::string>() == "TimeSlicePropagator" ){
           construct_time_slice_propagator(it->second, verbose, metas.mom_lists, metas.ts_props );
-        } else if ( it->first.as<std::string>() == "OetTwoPointFunction" ){
-          construct_oet_two_point_function(it->second, verbose, metas.mom_lists, metas.ts_props, metas.g); 
+        } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
+          construct_oet_meson_two_point_function(it->second, verbose, metas.mom_lists, metas.ts_props, metas.g); 
         } else {
           char msg[200];
           snprintf(msg, 200,

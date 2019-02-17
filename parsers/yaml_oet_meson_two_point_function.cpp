@@ -10,19 +10,19 @@
 namespace cvc {
 namespace yaml {
 
-void construct_oet_two_point_function(const YAML::Node &node, 
-                                      const bool verbose,
-                                      const mom_lists_t & mom_lists,
-                                      const std::map< std::string, cvc::stoch_prop_meta_t > & props_meta,
-                                      DepGraph & g)
+void construct_oet_meson_two_point_function(const YAML::Node &node, 
+                                            const bool verbose,
+                                            const mom_lists_t & mom_lists,
+                                            const std::map< std::string, cvc::stoch_prop_meta_t > & props_meta,
+                                            DepGraph & g)
 {
   validate_nodetype(node, 
                     std::vector<YAML::NodeType::value>{YAML::NodeType::Map},
-                    "OetTwoPointFunction" );
+                    "OetMesonTwoPointFunction" );
   
   if( !node["id"] || !node["fwd_flav"] || !node["bwd_flav"] || !node["g_src"] || !node["g_snk"] || !node["P_src"] ||
       !node["P_snk"] || !node["momentum_conservation"] || !node["dirac_product"] || !node["flav_product"] ){
-    throw( std::invalid_argument("for 'OetTwoPointFunction', the properties 'id', 'fwd_flav', "
+    throw( std::invalid_argument("for 'OetMesonTwoPointFunction', the properties 'id', 'fwd_flav', "
                                  "'bwd_flav', 'g_src', 'g_snk', 'P_src', 'P_snk', 'momentum_conservation', "
                                  "'dirac_product' and 'flav_product' must be defined!\n") );
   }
