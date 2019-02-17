@@ -54,10 +54,28 @@ void validate_nodetype(const YAML::Node & node,
   }
 }
 
-void check_mom_lists_key(const mom_lists_t & mom_lists,
-                         const std::string & mom_lists_key,
-                         const std::string & mom_property_name,
-                         const std::string & object_name)
+void validate_bool(const std::string & str, const std::string & name)
+{
+  if( !( str == "true" || str == "false" ) ){
+    char msg[200];
+    snprintf(msg, 200, "'%s' must be either 'true' or 'false'!\n", name.c_str());
+    throw( std::invalid_argument(msg) );
+  }
+}
+
+void validate_join(const std::string & str, const std::string & name)
+{
+  if( !(str == "inner" || str == "outer" ) ){
+    char msg[200];
+    snprintf(msg, 200, "'%s' must be either 'inner' or 'outer'!\n", name.c_str());
+    throw( std::invalid_argument(msg) );
+  }
+}
+
+void validate_mom_lists_key(const mom_lists_t & mom_lists,
+                            const std::string & mom_lists_key,
+                            const std::string & mom_property_name,
+                            const std::string & object_name)
 {
   if( !mom_lists.count(mom_lists_key) ){
     char msg[200];

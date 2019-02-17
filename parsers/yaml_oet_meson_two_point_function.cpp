@@ -21,17 +21,22 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                     "OetMesonTwoPointFunction" );
   
   if( !node["id"] || !node["fwd_flav"] || !node["bwd_flav"] || !node["g_src"] || !node["g_snk"] || !node["P_src"] ||
-      !node["P_snk"] || !node["momentum_conservation"] || !node["dirac_product"] || !node["flav_product"] ){
+      !node["P_snk"] || !node["momentum_conservation"] || !node["dirac_join"] || !node["flav_join"] ){
     throw( std::invalid_argument("for 'OetMesonTwoPointFunction', the properties 'id', 'fwd_flav', "
                                  "'bwd_flav', 'g_src', 'g_snk', 'P_src', 'P_snk', 'momentum_conservation', "
-                                 "'dirac_product' and 'flav_product' must be defined!\n") );
+                                 "'dirac_join' and 'flav_join' must be defined!\n") );
   }
   
-  for( const auto & name : {"id", "fwd_flav", "bwd_flav", "momentum_conservation", 
-                            "dirac_product", "flav_product", "P_src", "P_snk"} ){
+  for( const std::string name : {"id", "fwd_flav", "bwd_flav", "momentum_conservation", 
+                                 "dirac_join", "flav_join", "P_src", "P_snk"} ){
     validate_nodetype(node[name],
                       std::vector<YAML::NodeType::value>{YAML::NodeType::Scalar}, 
                       name);
+    if( name == "momentum_conservation" ){
+      validate_bool(node[name].as<std::string>(), name);
+    } else if ( name == "dirac_join" || name == "flav_join" ){
+      validate_join(node[name].as<std::string>(), name);
+    }
   }
   for( const auto & name : {"g_src", "g_snk"} ){
     validate_nodetype(node[name], 
@@ -40,8 +45,8 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                       name);
   }
   for( const auto & name : {"P_src", "P_snk"} ){
-    check_mom_lists_key(mom_lists, node[name].as<std::string>(), name,
-                        node["id"].as<std::string>());
+    validate_mom_lists_key(mom_lists, node[name].as<std::string>(), name,
+                           node["id"].as<std::string>());
   }
 
   if(verbose){
