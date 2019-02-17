@@ -17,6 +17,8 @@
 #include <boost/graph/connected_components.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/make_shared.hpp>
+#include <fstream>
+#include <boost/graph/graphml.hpp>
 
 using namespace cvc;
 using namespace boost;
@@ -31,7 +33,7 @@ int main(int, char*[])
   for(int mom_x = -3; mom_x <= 3; mom_x++){
     for(int mom_y = -3; mom_y <= 3; mom_y++){
       for(int mom_z = -3; mom_z <= 3; mom_z++){
-        if( mom_x*mom_x + mom_y*mom_y + mom_z*mom_z < 5 ){
+        if( mom_x*mom_x + mom_y*mom_y + mom_z*mom_z <= 1 ){
           in_momenta.push_back( mom_t{ mom_x, mom_y, mom_z } );
           out_momenta.push_back( mom_t{ mom_x, mom_y, mom_z } );
         }
@@ -207,6 +209,12 @@ int main(int, char*[])
   }
   std::cout << std::endl;
 
+  boost::dynamic_properties dp;
+  dp.property("name", name_map);
+  std::fstream graphml_file("dependency_graph.graphml", std::ios_base::out);
+  boost::write_graphml(graphml_file, g, dp, true);
+  graphml_file.close();
+
   std::vector<int> component(num_vertices(g));
   int num = connected_components(g, &component[0]);
   std::vector<int>::size_type i;
@@ -218,15 +226,16 @@ int main(int, char*[])
   }
   std::cout << std::endl;
 
-  for( auto const& component : connected_components_subgraphs(g))
-  {
+  std::vector<ComponentGraph> component_subgraphs(connected_components_subgraphs(g));
+  for(size_t i_component = 0; i_component < component_subgraphs.size(); ++i_component){
     std::cout << std::endl;
-    for( auto e : make_iterator_range(edges(component))){
-      std::cout << g[source(e,component)].name << " --> " << g[target(e,component)].name << std::endl;
+    for( auto e : make_iterator_range(edges(component_subgraphs[i_component]))){
+      std::cout << g[source(e,component_subgraphs[i_component])].name << " --> " << 
+        g[target(e,component_subgraphs[i_component])].name << std::endl;
     }
     std::cout << std::endl;
 
-    for( auto v : make_iterator_range(vertices(component))){
+    for( auto v : make_iterator_range(vertices(component_subgraphs[i_component]))){
       if( !g[v].fulfilled )
         descend_and_fulfill<DepGraph>( v, g );
     }

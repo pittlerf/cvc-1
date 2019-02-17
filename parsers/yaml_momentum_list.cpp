@@ -8,18 +8,19 @@
 #include <cmath>
 
 #include "algorithms.hpp"
+#include "types.h"
 
 namespace cvc {
 namespace yaml {
 
-std::vector< std::vector<int> > parse_momentum_list(const YAML::Node & node)
+std::vector< mom_t > parse_momentum_list(const YAML::Node & node)
 {
   if( node.Type() != YAML::NodeType::Sequence ){
     throw( std::invalid_argument("in parse_momentum_list, 'node' must be of type YAML::NodeType::Sequence\n") );
   }
-  std::vector< std::vector<int> > momenta;
+  std::vector< mom_t > momenta;
   for(size_t i = 0; i < node.size(); ++i){
-    std::vector<int> mom{ node[i][0].as<int>(), node[i][1].as<int>(), node[i][2].as<int>() };
+    mom_t mom{ node[i][0].as<int>(), node[i][1].as<int>(), node[i][2].as<int>() };
     momenta.push_back(mom);
   }
   momentum_compare_t comp;
@@ -27,19 +28,19 @@ std::vector< std::vector<int> > parse_momentum_list(const YAML::Node & node)
   return momenta;
 }
 
-std::vector< std::vector<int> > psq_to_momentum_list(const YAML::Node & node)
+std::vector< mom_t > psq_to_momentum_list(const YAML::Node & node)
 {
   if( node.Type() != YAML::NodeType::Scalar ){
     throw( std::invalid_argument("in psq_to_momentum_list, 'node' must be of type YAML::NodeType::Scalar\n") );
   }
   const int psqmax = node.as<int>();
   const int pmax = static_cast<int>(sqrt( node.as<double>() )); 
-  std::vector< std::vector<int> > momenta;
+  std::vector< mom_t > momenta;
   for( int px = -pmax; px <= pmax; ++px ){
     for( int py = -pmax; py <= pmax; ++py ){
       for( int pz = -pmax; pz <= pmax; ++pz ){
         if( (px*px + py*py + pz*pz) <= psqmax ){
-          std::vector<int> mom{ px, py, pz };
+          mom_t mom{ px, py, pz };
           momenta.push_back(mom);
         }
       }
@@ -52,7 +53,7 @@ std::vector< std::vector<int> > psq_to_momentum_list(const YAML::Node & node)
 
 void construct_momentum_list(const YAML::Node & node,
                              const bool verbose,
-                             std::map< std::string, std::vector< std::vector<int> > > & mom_lists )
+                             mom_lists_t & mom_lists )
 {
   if( node.Type() != YAML::NodeType::Map ){
     throw( std::invalid_argument("in construct_momentum_list, 'node' must be of type YAML::NodeType::Map\n") );
@@ -62,7 +63,7 @@ void construct_momentum_list(const YAML::Node & node,
   }
 
   std::string id;
-  std::vector<std::vector<int>> momentum_list;
+  std::vector<mom_t> momentum_list;
   for(YAML::const_iterator it = node.begin(); it != node.end(); ++it){
     if(verbose){
       std::cout << "\n  " << it->first << ": " << it->second;
@@ -84,10 +85,11 @@ void construct_momentum_list(const YAML::Node & node,
   if( verbose ){
     std::cout << std::endl << "   ";
     for( const auto & mom : momentum_list ){
+      std::vector<int> mvec{mom.x, mom.y, mom.z};
       std::cout << "[";
-      for(size_t i = 0; i < mom.size(); ++i){
-        std::cout << mom[i];
-        if( i < mom.size()-1 ){
+      for(size_t i = 0; i < mvec.size(); ++i){
+        std::cout << mvec[i];
+        if( i < mvec.size()-1 ){
           std::cout << ",";
         } else {
           std::cout << "] ";

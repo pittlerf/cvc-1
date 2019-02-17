@@ -1,3 +1,6 @@
+#include "types.h"
+#include "meta_types.hpp"
+
 #include <yaml-cpp/yaml.h>
 #include <vector>
 #include <map>
@@ -6,14 +9,12 @@
 #include <exception>
 #include <stdexcept>
 
-#include "meta_types.hpp"
-
 namespace cvc {
 namespace yaml {
 
 void construct_time_slice_propagator(const YAML::Node &node, 
                                      const bool verbose,
-                                     std::map< std::string, std::vector< std::vector<int> > > & mom_lists,
+                                     mom_lists_t & mom_lists,
                                      std::map< std::string, cvc::stoch_prop_meta_t > & props_meta) {
   if( node.Type() != YAML::NodeType::Map ){
     throw( std::invalid_argument("in construct_time_slice_propagator, 'node' must be of type YAML::NodeType::Map\n") );
@@ -47,14 +48,14 @@ void construct_time_slice_propagator(const YAML::Node &node,
         g_src = node["g_src"].as<int>();
       }
 
-      cvc::stoch_prop_meta_t stoch_prop(mom.data(), g_src, node["id"].as<std::string>());
+      cvc::stoch_prop_meta_t stoch_prop(mom, g_src, node["id"].as<std::string>());
       props_meta[stoch_prop.key()] = stoch_prop;
       if(verbose){
         std::cout << "Added stoch_prop_meta_t: " << stoch_prop.key();
       }
     } else {
       for(size_t i = 0; i < node["g_src"].size(); ++i){
-        cvc::stoch_prop_meta_t stoch_prop(mom.data(), node["g_src"][i].as<int>(), 
+        cvc::stoch_prop_meta_t stoch_prop(mom, node["g_src"][i].as<int>(), 
                                           node["id"].as<std::string>());
         props_meta[stoch_prop.key()] = stoch_prop;
         if(verbose){

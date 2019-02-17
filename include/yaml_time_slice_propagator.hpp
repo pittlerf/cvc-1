@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.h"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -17,7 +19,7 @@ namespace yaml {
 */
 void construct_time_slice_propagator(const YAML::Node &node, 
                                      const bool verbose,
-                                     std::map< std::string, std::vector< std::vector<int> > > & mom_lists,
+                                     mom_lists_t & mom_lists,
                                      std::map< std::string, cvc::stoch_prop_meta_t > & props_meta);
 
 } //namespace(yaml)
