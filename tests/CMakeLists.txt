@@ -32,13 +32,16 @@ add_executable(test_threept_oet_shifts test_threept_oet_shifts.cpp)
 target_link_libraries(test_threept_oet_shifts cvc ${cvc_libraries})
 
 add_executable(boost_graph boost_graph.cpp)
-target_link_libraries(boost_graph const_arrays ${cvc_libraries})
+target_link_libraries(boost_graph const_arrays cvc ${cvc_libraries})
 
 add_executable(component_graph component_graph.cpp)
 target_link_libraries(component_graph ${cvc_libraries})
 
 add_executable(test_parse_yaml test_parse_yaml.cpp)
-target_link_libraries(test_parse_yaml yaml_parsers const_arrays ${cvc_libraries} )
+target_link_libraries(test_parse_yaml yaml_parsers const_arrays cvc ${cvc_libraries} )
+
+add_executable(test_Logger test_Logger.cpp)
+target_link_libraries(test_Logger cvc ${cvc_libraries})
 
 # copy over test file for test of h5utils
 configure_file(${CMAKE_SOURCE_DIR}/tests/test.h5
