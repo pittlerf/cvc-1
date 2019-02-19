@@ -400,7 +400,14 @@ add_executable(loop_analyse
 target_link_libraries(loop_analyse
   cvc_bare
   ${cvc_libraries})
-  
+
+add_executable(contractions
+  contractions.cpp)
+target_link_libraries(contractions
+  yaml_parsers
+  const_arrays
+  cvc
+  ${cvc_libraries})
 
 add_executable(cpff_tbc_invert_contract
   cpff_tbc_invert_contract.cpp)
