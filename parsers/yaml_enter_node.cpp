@@ -50,7 +50,8 @@ void enter_node(const YAML::Node &node,
           construct_momentum_list(it->second, verbose, metas.mom_lists );
         } else if ( it->first.as<std::string>() == "TimeSlicePropagator" ){
           construct_time_slice_propagator(it->second, verbose, metas.src_ts, metas.mom_lists, 
-                                          metas.srcs_meta, metas.props_meta, metas.props_graph );
+                                          metas.srcs_meta, metas.props_meta, metas.props_graph,
+                                          *(metas.ranspinor), *(metas.stochastic_source) );
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
           construct_oet_meson_two_point_function(it->second, verbose, metas.mom_lists, 
                                                  metas.props_meta, metas.corrs_graph); 

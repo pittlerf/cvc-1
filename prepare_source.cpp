@@ -9,15 +9,6 @@
  * CHANGES:
  ************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <complex.h>
-#include <time.h>
-#include <getopt.h>
-#include <sys/time.h>
-
 #include "cvc_linalg.h"
 #include "cvc_complex.h"
 #include "iblas.h"
@@ -35,6 +26,16 @@
 #include "make_x_orbits.h"
 #include "table_init_d.h"
 #include "loop_tools.h"
+#include "types.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <complex.h>
+#include <time.h>
+#include <getopt.h>
+#include <sys/time.h>
 
 #include <vector>
 #include <iostream>
@@ -1029,7 +1030,7 @@ int init_timeslice_source_oet ( double ** const s, int const tsrc, int * const m
       double const * const ran,
       int const gamma_id,
       int const t_src,
-      int const * const momentum)
+      const mom_t & momentum)
   {
     const unsigned int vol3 = LX * LY * LZ;
     const size_t vol3_fv_size = _GSI(vol3)*sizeof(double);
@@ -1058,11 +1059,11 @@ int init_timeslice_source_oet ( double ** const s, int const tsrc, int * const m
       double psi[24];
       // if momentum is provided, compute and apply the phase factors to the
       // random field 
-      if( momentum != NULL & have_source ){
+      if( momentum.x != 0 && momentum.y != 0 && momentum.z != 0 && have_source ){
         const double       TWO_MPI = 2. * M_PI;
-        const double       p[3] = { TWO_MPI * (double)momentum[0]/(double)LX_global,
-                                    TWO_MPI * (double)momentum[1]/(double)LY_global,
-                                    TWO_MPI * (double)momentum[2]/(double)LZ_global };
+        const double       p[3] = { TWO_MPI * (double)momentum.x/(double)LX_global,
+                                    TWO_MPI * (double)momentum.y/(double)LY_global,
+                                    TWO_MPI * (double)momentum.z/(double)LZ_global };
         const double phase_offset = p[0] * g_proc_coords[1] * LX + 
                                     p[1] * g_proc_coords[2] * LY + 
                                     p[2] * g_proc_coords[3] * LZ;

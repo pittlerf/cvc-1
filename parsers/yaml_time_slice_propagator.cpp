@@ -24,7 +24,10 @@ void construct_time_slice_propagator(const YAML::Node &node,
                                      mom_lists_t & mom_lists,
                                      std::map< std::string, ts_stoch_src_meta_t > & srcs_meta,
                                      std::map< std::string, stoch_prop_meta_t > & props_meta,
-                                     DepGraph & props_graph) {
+                                     DepGraph & props_graph,
+                                     const std::vector<double> & ranspinor,
+                                     std::vector<double> & src) 
+{
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
 #endif
@@ -66,7 +69,8 @@ void construct_time_slice_propagator(const YAML::Node &node,
       // vertex names, these vertices are unique and multiple insertions of the same
       // vertex will leave the graph unmodified
       Vertex src_vertex = boost::add_vertex(src_meta.key(),  props_graph);
-
+      props_graph[src_vertex].fulfill.reset( 
+          new TimeSliceSourceFulfill(src_ts, g_src, mom, src_meta.key(), ranspinor, src) ); 
 
       cvc::stoch_prop_meta_t prop_meta(mom, node["g_src"][i].as<int>(), node["id"].as<std::string>(),
                                        node["solver_driver"].as<std::string>(), node["solver_id"].as<int>());

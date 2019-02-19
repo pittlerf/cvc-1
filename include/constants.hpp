@@ -14,5 +14,6 @@ namespace cvc {
     constexpr int fulfill = 3;
     constexpr int memory_info = 2;
     constexpr int basic_progress = 1;
+    constexpr int detailed_progress = 5;
   } //verbosity
 } //namespace(cvc)

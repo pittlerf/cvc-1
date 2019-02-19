@@ -1,6 +1,8 @@
 #ifndef _PREPARE_SOURCE_H
 #define _PREPARE_SOURCE_H
 
+#include "types.h"
+
 namespace cvc {
 
 int prepare_volume_source ( double * const s, unsigned int const V);
@@ -43,7 +45,7 @@ int prepare_gamma_timeslice_oet(double * const s,
       double const * const ran,
       int const gamma_id,
       int const t_src,
-      int const * const momentum);
+      const mom_t & momentum);
 
 }  /* end of namespace cvc */
 

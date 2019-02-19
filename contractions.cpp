@@ -14,6 +14,7 @@
 #include "cvc_utils.h"
 #include "mpi_init.h"
 #include "enums.hpp"
+#include "ParallelMT19937_64.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <string>
@@ -25,6 +26,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <memory>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/range/iterator_range.hpp>
@@ -45,7 +47,11 @@ int main(int argc, char ** argv){
 		return(CVC_EXIT_CORE_INIT_FAILURE);
   }
 
+  // handy stopwatch
+  Stopwatch sw(g_cart_grid);
+  // console logger on proc_id 0
   Logger logger(0,verbosity::basic_progress,std::cout);
+  Logger all_logger(0,0,std::cout);
 
   mpi_init_xchange_contraction(2);
   mpi_init_xchange_eo_spinor ();
@@ -64,6 +70,10 @@ int main(int argc, char ** argv){
       true,
       CVC_EXIT_UTIL_FUNCTION_FAILURE);
 
+  ParallelMT19937_64 rng( (unsigned long long)(g_seed^Nconf) );
+  std::shared_ptr<std::vector<double>> ranspinor = std::make_shared< std::vector<double> >( _GSI(VOLUME) );
+  std::shared_ptr<std::vector<double>> stochastic_source = std::make_shared< std::vector<double> >(_GSI(VOLUME));
+
   io_proc = get_io_proc ();
   if( io_proc < 0 ) {
     PRINT_STATUS(io_proc, "[correlators] Error, io proc must be ge 0!");
@@ -74,7 +84,11 @@ int main(int argc, char ** argv){
   std::vector<int> src_time_slices{12};
 
   for(int src_ts : src_time_slices){
+    rng.gen_z2(ranspinor->data(), 24);
+
     MetaCollection metas;
+    metas.ranspinor = ranspinor;
+    metas.stochastic_source = stochastic_source;
     metas.src_ts = src_ts;
     YAML::Node input_node = YAML::LoadFile("definitions.yaml");
     yaml::enter_node(input_node, 0, metas, true); std::cout << std::endl;
