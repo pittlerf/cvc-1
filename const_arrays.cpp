@@ -1,6 +1,6 @@
 #include "enums.hpp"
 #include "types.h"
-#include "const_arrays.hpp"
+#include "constants.hpp"
 
 namespace cvc {
 
