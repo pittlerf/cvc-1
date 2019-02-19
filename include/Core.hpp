@@ -101,6 +101,9 @@ class Core {
         init(argc,argv);
       }
       initialised = true;
+#ifdef HAVE_MPI
+      MPI_Barrier(MPI_COMM_WORLD);
+#endif
     }
 
     // we don't want a default constructor because initialisation is non-trivial
