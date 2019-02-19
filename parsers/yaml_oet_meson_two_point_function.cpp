@@ -107,15 +107,15 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
               logger << "BwdDirac: " << gb[i_gb].as<int>() << std::endl;
             }
 
-            stoch_prop_meta_t fwd_prop(pi,
-                                       gi[i_gi].as<int>(),
-                                       node["fwd_flav"].as<std::string>());
-            stoch_prop_meta_t bwd_prop(zero_mom,
-                                       gb[i_gb].as<int>(),
-                                       node["bwd_flav"].as<std::string>());
+            std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
+                                                            gi[i_gi].as<int>(),
+                                                            node["fwd_flav"].as<std::string>()));
+            std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
+                                                            gb[i_gb].as<int>(),
+                                                            node["bwd_flav"].as<std::string>()));
 
-            validate_prop_key(props_meta, fwd_prop.key(), "fwd_flav", node["id"].as<std::string>());
-            validate_prop_key(props_meta, bwd_prop.key(), "bwd_flav", node["id"].as<std::string>());
+            validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
+            validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
 
             char corrkey[500];
             snprintf(corrkey, 500,
@@ -129,7 +129,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
 
             Vertex corrvertex = add_vertex(corrkey, g);
             g[corrvertex].fulfill.reset( new 
-                CorrFulfill(fwd_prop.key(), bwd_prop.key(), pf, gf[i_gf].as<int>()) ); 
+                CorrFulfill(fwd_prop_key, bwd_prop_key, pf, gf[i_gf].as<int>()) ); 
 
           } // gb
         } // gf

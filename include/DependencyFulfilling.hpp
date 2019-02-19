@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug_printf.hpp"
 #include "enums.hpp"
 #include "types.h"
 
@@ -16,6 +17,11 @@ struct FulfillDependency {
     virtual void operator()() const = 0;
 };
 
+struct NullFulfill : public FulfillDependency {
+  NullFulfill() {}
+  void operator()() const {}
+};
+
 struct SeqSourceFulfill : public FulfillDependency {
   int src_ts;
   mom_t pf;
@@ -26,9 +32,7 @@ struct SeqSourceFulfill : public FulfillDependency {
 
   void operator()() const
   {
-    char msg[500];
-    snprintf(msg, 500, "SeqSourceFulfill: Creating source on ts %d of %s\n", src_ts, src_prop_key.c_str());
-    std::cout << msg;
+    debug_printf(0,0,"SeqSourceFulfill: Creating source on ts %d of %s\n", src_ts, src_prop_key.c_str());
   }
 };
 
@@ -41,9 +45,7 @@ struct PropFulfill : public FulfillDependency {
 
   void operator()() const
   {
-    char msg[500];
-    snprintf(msg, 500, "PropFulfill: Inverting %s on %s\n", flav.c_str(), src_key.c_str());
-    std::cout << msg;
+    debug_printf(0,0,"PropFulfill: Inverting %s on %s\n", flav.c_str(), src_key.c_str());
   }
 };
 
@@ -57,12 +59,10 @@ struct CovDevFulfill : public FulfillDependency {
 
   void operator()() const
   {
-    char msg[500];
-    snprintf(msg, 500, "CovDevFulfill: Applying CovDev in dir %c, dim %c on %s\n", 
+    debug_printf(0,0,"CovDevFulfill: Applying CovDev in dir %c, dim %c on %s\n", 
         shift_dir_names[dir],
         latDim_names[dim], 
         spinor_key.c_str());
-    std::cout << msg;
   }
 
 };
@@ -78,10 +78,8 @@ struct CorrFulfill : public FulfillDependency {
 
   void operator()() const
   {
-    char msg[500];
-    snprintf(msg, 500, "CorrFullfill: Contracting %s+-g%d/px%dpy%dpz%d-%s\n",
+    debug_printf(0,0, "CorrFullfill: Contracting %s+-g%d/px%dpy%dpz%d-%s\n",
         dagpropkey.c_str(), gamma, p.x, p.y, p.z, propkey.c_str());
-    std::cout << msg;
   }
 };
 
@@ -96,13 +94,12 @@ template <typename Graph>
 static inline void descend_and_fulfill(typename boost::graph_traits<Graph>::vertex_descriptor v,
                                        Graph & g)
 {
-  std::cout << "Entered " << g[v].name << std::endl;
+  debug_printf(0,0,"Entered %s\n",g[v].name.c_str());
   
   // if we hit a vertex which can be fulfilled immediately, let's do so
   // this will break one class of infinite recursions
   if( g[v].independent && !g[v].fulfilled ){
-    std::cout << "Calling fulfill of " << g[v].name << std::endl;
-    fflush(stdout);
+    debug_printf(0,0,"Calling fulfill of %s\n",g[v].name.c_str());
     (*(g[v].fulfill))();
     g[v].fulfilled = true;
   }
@@ -112,18 +109,15 @@ static inline void descend_and_fulfill(typename boost::graph_traits<Graph>::vert
   for( boost::tie(e, e_end) = boost::out_edges(v, g); e != e_end; ++e)
     if( g[boost::target(*e, g)].fulfilled == false && 
         g[boost::target(*e, g)].level < g[v].level ){
-      std::cout << "Descending into " << g[boost::target(*e, g)].name << std::endl;
-      fflush(stdout);
+      debug_printf(0,0,"Descending into %s\n",g[boost::target(*e, g)].name.c_str());
       descend_and_fulfill( boost::target(*e, g), g );
     }
 
-  std::cout << "Came up the hierarchy, ready to fulfill!" << std::endl;
-  fflush(stdout);
+  debug_printf(0,0,"Came up the hierarchy, ready to fulfill!\n");
 
   // in any case, when we come back here, we are ready to fulfill
   //if( g[v].fulfilled == false ){
-    std::cout << "Calling fulfill of " << g[v].name << std::endl;
-    fflush(stdout);
+    debug_printf(0,0,"Calling fulfill of %s\n",g[v].name.c_str());
     (*(g[v].fulfill))();
     g[v].fulfilled = true;
   //}

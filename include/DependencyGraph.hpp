@@ -10,11 +10,19 @@
 #include <boost/range/iterator_range.hpp>
 #include <boost/make_shared.hpp>
 
+#include <memory>
+#include <utility>
+
 namespace cvc {
 
 struct VertexProperties {
-  VertexProperties() : fulfilled(false), independent(false), level(1) {}
-  VertexProperties(const std::string& _name) : name(_name), fulfilled(false), independent(false), level(1) {}; 
+  VertexProperties() : 
+    fulfilled(false), independent(false), 
+    level(1), fulfill(new NullFulfill) {}
+
+  VertexProperties(const std::string& _name) : 
+    name(_name), fulfilled(false), independent(false), 
+    level(1), fulfill(new NullFulfill) {} 
 
   std::string name;
   int component;
@@ -47,7 +55,7 @@ namespace boost {
 
 namespace cvc {
 
-typedef boost::adjacency_list<boost::vecS,                                                                                                        
+typedef boost::adjacency_list<boost::vecS,
                               boost::vecS, 
                               boost::undirectedS,
                               VertexProperties
@@ -56,6 +64,11 @@ typedef boost::adjacency_list<boost::vecS,
 typedef typename boost::graph_traits<DepGraph>::vertex_descriptor Vertex;
 typedef typename boost::graph_traits<DepGraph>::edge_descriptor Edge;
 typedef boost::graph_traits<DepGraph> DepGraphTraits;
+
+typedef DepGraphTraits::edge_iterator edge_iter;
+typedef DepGraphTraits::vertex_iterator vertex_iter;
+typedef DepGraphTraits::vertex_descriptor Vertex;
+typedef DepGraphTraits::edge_descriptor Edge;
 
 typedef boost::shared_ptr<std::vector<unsigned long>> vertex_component_map;
 

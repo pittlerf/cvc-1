@@ -1,7 +1,14 @@
+#define MAIN_PROGRAM
+#include "global.h"
+#undef MAIN_PROGRAM
+
+
 #include "DependencyGraph.hpp"
 #include "DependencyFulfilling.hpp"
 #include "enums.hpp"
 #include "types.h"
+#include "Core.hpp"
+#include "Logger.hpp"
 
 #include <iostream>
 #include <utility>
@@ -23,8 +30,10 @@
 using namespace cvc;
 using namespace boost;
 
-int main(int, char*[])
+int main(int argc, char ** argv)
 {
+  Core core(argc,argv,"boost_graph");
+  Logger logger(0,0,std::cout);
   DepGraph g;
 
   std::vector<mom_t> in_momenta;
@@ -193,21 +202,21 @@ int main(int, char*[])
   typedef graph_traits<DepGraph>::vertex_iterator vertex_iter;
   std::pair<vertex_iter, vertex_iter> vp;
   for(vp = vertices(g); vp.first != vp.second; ++vp.first){
-    std::cout << name_map[*vp.first] << std::endl;
+    logger << name_map[*vp.first] << std::endl;
   }
-  std::cout << std::endl;
+  logger << std::endl;
 
   graph_traits<DepGraph>::edge_iterator ei, ei_end;
   graph_traits<DepGraph>::vertex_descriptor from, to;
   for(boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei){
     from = source(*ei, g);
     to = target(*ei, g);
-    std::cout << "( " << g[from].name << "(" <<
+    logger << "( " << g[from].name << "(" <<
       g[from].level << ")" << " -> " <<
       g[to].name << "(" << g[to].level << ")" <<
       " )" << std::endl;
   }
-  std::cout << std::endl;
+  logger << std::endl;
 
   boost::dynamic_properties dp;
   dp.property("name", name_map);
@@ -218,22 +227,24 @@ int main(int, char*[])
   std::vector<int> component(num_vertices(g));
   int num = connected_components(g, &component[0]);
   std::vector<int>::size_type i;
-  std::cout << "Total number of components: " << num << std::endl;
+  logger << "Total number of components: " << num << std::endl;
   for(i = 0; i != component.size(); ++i){
     g[i].component = component[i];
-    std::cout << "Vertex " << name_map[i] << " is in component " << component[i];
-    std::cout << " also stored " << g[i].component << std::endl;
+    logger << "Vertex " << name_map[i] << " is in component " << component[i];
+    logger << " also stored " << g[i].component << std::endl;
   }
-  std::cout << std::endl;
+  logger << std::endl;
 
   std::vector<ComponentGraph> component_subgraphs(connected_components_subgraphs(g));
   for(size_t i_component = 0; i_component < component_subgraphs.size(); ++i_component){
-    std::cout << std::endl;
+    logger << std::endl << std::endl;
+    logger << "Working on component " << i_component << std::endl;
+
     for( auto e : make_iterator_range(edges(component_subgraphs[i_component]))){
       std::cout << g[source(e,component_subgraphs[i_component])].name << " --> " << 
         g[target(e,component_subgraphs[i_component])].name << std::endl;
     }
-    std::cout << std::endl;
+    logger << std::endl;
 
     for( auto v : make_iterator_range(vertices(component_subgraphs[i_component]))){
       if( !g[v].fulfilled )

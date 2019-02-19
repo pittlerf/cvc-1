@@ -12,6 +12,37 @@
 
 namespace cvc {
 
+typedef struct ts_stoch_src_meta_t
+{
+  mom_t p;
+  int gamma;
+  int src_ts;
+  
+  ts_stoch_src_meta_t() {}
+  
+  ts_stoch_src_meta_t(const mom_t & p_in,
+                      const int gamma_in,
+                      const int src_ts_in) :
+   p(p_in), gamma(gamma_in), src_ts(src_ts_in) {}
+
+  std::string key(void)
+  {
+    return key(p, gamma, src_ts);
+  }
+
+  static std::string key(const mom_t & p_in,
+                         const int gamma_in,
+                         const int src_ts_in)
+  {
+    char key[100];
+    snprintf(key, 100, "g%d/px%dpy%dpz%d/t%d", 
+             gamma_in, 
+             p_in.x, p_in.y, p_in.z, 
+             src_ts_in);
+    return std::string(key);
+  }
+} ts_stoch_src_meta_t;
+
 static inline std::string check_mom_prop(const std::string prop_in)
 {
   if( !(prop_in == "fwd" || prop_in == "bwd" || prop_in == "neither") ){
@@ -20,29 +51,39 @@ static inline std::string check_mom_prop(const std::string prop_in)
   return prop_in;
 }
 
-
 typedef struct stoch_prop_meta_t
 {
   mom_t p;
   int gamma;
   std::string flav;
+  std::string solver_driver;
+  int solver_id;
 
   // this intentionally exists but does nothing
   stoch_prop_meta_t() {}
-
+  
   stoch_prop_meta_t(const mom_t & p_in,
                     const int gamma_in,
                     const std::string & flav_in) :
-    p(p_in), gamma(gamma_in), flav(flav_in) {}
+    p(p_in), gamma(gamma_in), flav(flav_in), 
+    solver_driver("undefined"), solver_id(-1) {}
+
+  stoch_prop_meta_t(const mom_t & p_in,
+                    const int gamma_in,
+                    const std::string & flav_in,
+                    const std::string & solver_driver_in,
+                    const int solver_id_in) :
+    p(p_in), gamma(gamma_in), flav(flav_in),
+    solver_driver(solver_driver_in), solver_id(solver_id_in) {}
 
   std::string key(void) const 
   {
     return key(p, gamma, flav);
   }
 
-  std::string key(const mom_t & p_in,
-                  const int gamma_in,
-                  const std::string & flav_in) const
+  static std::string key(const mom_t & p_in,
+                         const int gamma_in,
+                         const std::string & flav_in)
   {
     char temp[100];
     snprintf(temp, 100, 
@@ -227,8 +268,13 @@ typedef struct oet_meson_threept_meta_t : oet_meson_twopt_meta_t
 
 typedef struct MetaCollection {
   mom_lists_t mom_lists;
-  std::map<std::string, stoch_prop_meta_t> ts_props;
-  DepGraph g;
+
+  int src_ts;
+  std::map<std::string, stoch_prop_meta_t> props_meta;
+  std::map<std::string, ts_stoch_src_meta_t> srcs_meta;
+  DepGraph props_graph;
+  
+  DepGraph corrs_graph;
 } MetaCollection;
 
 //typedef struct threept_shifts_oet_meta_t : oet_meson_threept_meta_t

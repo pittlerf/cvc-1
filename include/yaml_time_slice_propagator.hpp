@@ -1,10 +1,12 @@
 #pragma once
 
 #include "types.h"
+#include "DependencyGraph.hpp"
 
 #include <map>
 #include <string>
 #include <vector>
+#include <yaml-cpp/yaml.h>
 
 namespace cvc {
 namespace yaml {
@@ -19,8 +21,11 @@ namespace yaml {
 */
 void construct_time_slice_propagator(const YAML::Node &node, 
                                      const bool verbose,
+                                     const int src_ts,
                                      mom_lists_t & mom_lists,
-                                     std::map< std::string, cvc::stoch_prop_meta_t > & props_meta);
+                                     std::map< std::string, cvc::ts_stoch_src_meta_t > & srcs_meta,
+                                     std::map< std::string, cvc::stoch_prop_meta_t > & props_meta,
+                                     DepGraph & props_graph);
 
 } //namespace(yaml)
 } //namespace(cvc)

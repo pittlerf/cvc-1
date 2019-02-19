@@ -1,5 +1,6 @@
 #include "types.h"
 #include "meta_types.hpp"
+#include "yaml_utils.hpp"
 
 #include <yaml-cpp/yaml.h>
 
@@ -12,6 +13,12 @@
 
 namespace cvc {
 namespace yaml {
+
+void validate_nodetype(const YAML::Node & node,
+                       const YAML::NodeType::value & type,
+                       const std::string & object_name){
+  validate_nodetype(node, std::vector<YAML::NodeType::value>{type}, object_name);
+}
 
 void validate_nodetype(const YAML::Node & node,
                        const std::vector<YAML::NodeType::value> & types,
@@ -82,7 +89,7 @@ void validate_mom_lists_key(const mom_lists_t & mom_lists,
   if( !mom_lists.count(mom_lists_key) ){
     char msg[200];
     snprintf(msg, 200,
-             "In the definition of momentum '%s' of '%s', the momentum list '%s' does not seem"
+             "In the definition of momentum '%s' of '%s', the momentum list '%s' does not seem "
              "to exist!\n",
              mom_property_name.c_str(), object_name.c_str(), mom_lists_key.c_str());
     throw( std::invalid_argument(msg) );
