@@ -45,7 +45,7 @@ int main(int argc, char ** argv){
 		return(CVC_EXIT_CORE_INIT_FAILURE);
   }
 
-  Logger logger(0,0,std::cout);
+  Logger logger(0,verbosity::basic_progress,std::cout);
 
   mpi_init_xchange_contraction(2);
   mpi_init_xchange_eo_spinor ();
@@ -79,14 +79,14 @@ int main(int argc, char ** argv){
     YAML::Node input_node = YAML::LoadFile("definitions.yaml");
     yaml::enter_node(input_node, 0, metas, true); std::cout << std::endl;
 
+    debug_printf(0,verbosity::memory_info,
+                 "Memory required for %d basic propagators, %.2f GB\n",
+                 metas.props_meta.size(), 
+                 (double)metas.props_meta.size()*sizeof(double)*_GSI(g_nproc*VOLUME)*1.0e-9);
+
     boost::property_map<DepGraph, std::string VertexProperties::*>::type name_map = 
       boost::get(&VertexProperties::name, metas.corrs_graph);
     
-    std::pair<vertex_iter, vertex_iter> vp;
-    for(vp = boost::vertices(metas.corrs_graph); vp.first != vp.second; ++vp.first){
-      debug_printf(0,0,"%s\n", name_map[*vp.first].c_str());
-    }
-
     std::vector<ComponentGraph> 
       independent_srcs_and_props(connected_components_subgraphs(metas.props_graph));
     for( size_t i_component = 0; i_component < independent_srcs_and_props.size(); ++i_component){

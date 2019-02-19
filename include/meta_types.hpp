@@ -35,7 +35,7 @@ typedef struct ts_stoch_src_meta_t
                          const int src_ts_in)
   {
     char key[100];
-    snprintf(key, 100, "g%d/px%dpy%dpz%d/t%d", 
+    snprintf(key, 100, "g%d/px%+dpy%+dpz%d/t%+d", 
              gamma_in, 
              p_in.x, p_in.y, p_in.z, 
              src_ts_in);
