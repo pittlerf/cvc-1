@@ -6,6 +6,8 @@
 #include "constants.hpp"
 #include "prepare_source.h"
 #include "Logger.hpp"
+#include "Stopwatch.hpp"
+#include "dummy_solver.h"
 
 #include <string>
 #include <iostream>
@@ -31,10 +33,10 @@ struct NullFulfill : public FulfillDependency {
 };
 
 struct TimeSliceSourceFulfill : public FulfillDependency {
-  int src_ts;
-  int gamma;
-  mom_t p;
-  std::string src_key;
+  const int src_ts;
+  const int gamma;
+  const mom_t p;
+  const std::string src_key;
   const std::vector<double> & ranspinor;
   std::vector<double> & src;
 
@@ -109,16 +111,54 @@ struct SeqSourceFulfill : public FulfillDependency {
 };
 
 struct PropFulfill : public FulfillDependency {
-  std::string src_key;
-  std::string flav;
+  const int solver_id;
+  const std::string prop_key;
+  std::map< std::string, std::vector<double> > & props_data;
+  const std::vector<double> & src;
 
-  PropFulfill(const std::string& _src_key, const std::string& _flav) : 
-    src_key(_src_key), flav(_flav) {}
+
+  PropFulfill(const std::string & prop_key_in,
+              const int solver_id_in,
+              const std::vector<double> & src_in,
+              std::map< std::string, std::vector<double> > & props_data_in) : 
+    prop_key(prop_key_in), solver_id(solver_id_in), src(src_in), 
+    props_data(props_data_in) {}
 
   void operator()() const
   {
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
+
     debug_printf(0,verbosity::fulfill,
-                 "PropFulfill: Inverting %s on %s\n", flav.c_str(), src_key.c_str());
+                 "PropFulfill: Inverting to generate propagator %s\n", prop_key.c_str());
+    
+    Stopwatch sw(g_cart_grid);
+    std::vector<double> workspinorA(_GSI(VOLUMEPLUSRAND), 0.0);
+    std::vector<double> workspinorB(_GSI(VOLUMEPLUSRAND), 0.0);
+
+    memcpy(workspinorA.data(), src.data(), _GSI(VOLUME)*sizeof(double));
+
+    int exitstatus = 0;
+    CHECK_EXITSTATUS_NEGATIVE(
+      exitstatus,
+      _TMLQCD_INVERT(workspinorB.data(), workspinorA.data(), solver_id),
+      "[PropFulfill] Error from TMLQCD_INVERT",
+      true,
+      CVC_EXIT_UTIL_FUNCTION_FAILURE);
+
+    if(g_verbose >= verbosity::fulfill) sw.elapsed_print("TMLQCD_INVERT"); 
+
+    if( !props_data.count(prop_key) ){
+      props_data.emplace( std::make_pair(prop_key,
+                                         std::vector<double>(_GSI(VOLUME) ) ) );
+    }
+    memcpy( props_data[ prop_key ].data(), workspinorB.data(), _GSI(VOLUME)*sizeof(double) );
+
+
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
   }
 };
 

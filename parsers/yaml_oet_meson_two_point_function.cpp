@@ -14,7 +14,6 @@ namespace cvc {
 namespace yaml {
 
 void construct_oet_meson_two_point_function(const YAML::Node &node, 
-                                            const bool verbose,
                                             mom_lists_t & mom_lists,
                                             const std::map< std::string, cvc::stoch_prop_meta_t > & props_meta,
                                             DepGraph & g)

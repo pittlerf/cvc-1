@@ -13,7 +13,7 @@ namespace yaml {
 void enter_node(const YAML::Node &node, 
                 const unsigned int depth,
                 MetaCollection & metas,
-                const bool verbose){
+                DataCollection & data){
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
 #endif
@@ -31,7 +31,7 @@ void enter_node(const YAML::Node &node,
           logger << "[ ";
         }
         const YAML::Node & subnode = node[i];
-        enter_node(subnode, depth+1, metas, verbose);
+        enter_node(subnode, depth+1, metas, data);
         if( depth <= 2 ){
           logger << " ]";
         } else if( i < node.size()-1 ) {
@@ -47,13 +47,14 @@ void enter_node(const YAML::Node &node,
         }
         
         if( it->first.as<std::string>() == "MomentumList" ){
-          construct_momentum_list(it->second, verbose, metas.mom_lists );
+          construct_momentum_list(it->second, metas.mom_lists );
         } else if ( it->first.as<std::string>() == "TimeSlicePropagator" ){
-          construct_time_slice_propagator(it->second, verbose, metas.src_ts, metas.mom_lists, 
+          construct_time_slice_propagator(it->second, metas.src_ts, metas.mom_lists, 
                                           metas.srcs_meta, metas.props_meta, metas.props_graph,
+                                          data.props_data,
                                           *(metas.ranspinor), *(metas.stochastic_source) );
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
-          construct_oet_meson_two_point_function(it->second, verbose, metas.mom_lists, 
+          construct_oet_meson_two_point_function(it->second, metas.mom_lists, 
                                                  metas.props_meta, metas.corrs_graph); 
         } else {
           char msg[200];

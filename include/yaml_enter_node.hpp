@@ -12,12 +12,11 @@ namespace yaml {
    * @param node Starting node.
    * @param depth Current depth.
    * @param metas Collection of maps of meta types.
-   * @param verbose Toggle verbose output.
    */
   void enter_node(const YAML::Node &node,
                   const unsigned int depth, 
                   MetaCollection & metas,
-                  const bool verbose = true);
+                  DataCollection & data);
 
 } //namespace(yaml)
 } //namespace(cvc)

@@ -55,7 +55,6 @@ std::vector< mom_t > psq_to_momentum_list(const YAML::Node & node)
 }
 
 void construct_momentum_list(const YAML::Node & node,
-                             const bool verbose,
                              mom_lists_t & mom_lists )
 {
 #ifdef HAVE_MPI

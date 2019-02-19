@@ -86,12 +86,14 @@ int main(int argc, char ** argv){
   for(int src_ts : src_time_slices){
     rng.gen_z2(ranspinor->data(), 24);
 
+    DataCollection data;
     MetaCollection metas;
     metas.ranspinor = ranspinor;
     metas.stochastic_source = stochastic_source;
     metas.src_ts = src_ts;
     YAML::Node input_node = YAML::LoadFile("definitions.yaml");
-    yaml::enter_node(input_node, 0, metas, true); std::cout << std::endl;
+    yaml::enter_node(input_node, 0, metas, data); 
+    logger << std::endl;
 
     debug_printf(0,verbosity::memory_info,
                  "Memory required for %d basic propagators, %.2f GB\n",
