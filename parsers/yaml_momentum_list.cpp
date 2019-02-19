@@ -1,3 +1,9 @@
+#include "global.h"
+#include "Logger.hpp"
+#include "constants.hpp"
+#include "algorithms.hpp"
+#include "types.h"
+
 #include <yaml-cpp/yaml.h>
 #include <vector>
 #include <map>
@@ -6,9 +12,6 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
-
-#include "algorithms.hpp"
-#include "types.h"
 
 namespace cvc {
 namespace yaml {
@@ -55,6 +58,11 @@ void construct_momentum_list(const YAML::Node & node,
                              const bool verbose,
                              mom_lists_t & mom_lists )
 {
+#ifdef HAVE_MPI
+  MPI_Barrier(g_cart_grid);
+#endif
+  cvc::Logger logger(0, verbosity::input_relay, std::cout);
+
   if( node.Type() != YAML::NodeType::Map ){
     throw( std::invalid_argument("in construct_momentum_list, 'node' must be of type YAML::NodeType::Map\n") );
   }
@@ -65,9 +73,8 @@ void construct_momentum_list(const YAML::Node & node,
   std::string id;
   std::vector<mom_t> momentum_list;
   for(YAML::const_iterator it = node.begin(); it != node.end(); ++it){
-    if(verbose){
-      std::cout << "\n  " << it->first << ": " << it->second;
-    }
+    { logger << "\n  " << it->first << ": " << it->second; }
+
     if( it->first.as<std::string>() == "id" ){
       id = it->second.as<std::string>();
     } else if( it->first.as<std::string>() == "Plist" ){
@@ -82,23 +89,29 @@ void construct_momentum_list(const YAML::Node & node,
       throw( std::invalid_argument(msg) );
     }
   }
-  if( verbose ){
-    std::cout << std::endl << "   ";
+ 
+  { 
+    logger << std::endl << "   ";
     for( const auto & mom : momentum_list ){
       std::vector<int> mvec{mom.x, mom.y, mom.z};
-      std::cout << "[";
+      logger << "[";
       for(size_t i = 0; i < mvec.size(); ++i){
-        std::cout << mvec[i];
+        logger << mvec[i];
         if( i < mvec.size()-1 ){
-          std::cout << ",";
+          logger << ",";
         } else {
-          std::cout << "] ";
+          logger << "] ";
         }
       }
     }
-    std::cout << std::endl;
+    logger << std::endl;
   }
+  
   mom_lists[id] = momentum_list;
+
+#ifdef HAVE_MPI
+  MPI_Barrier(g_cart_grid);
+#endif
 }
 
 } //namespace(yaml)

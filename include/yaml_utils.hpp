@@ -18,6 +18,11 @@ void validate_mom_lists_key(const mom_lists_t & mom_lists,
                             const std::string & mom_property_name,
                             const std::string & object_name);
 
+void validate_prop_key(const std::map<std::string, stoch_prop_meta_t> & props_meta,
+                       const std::string & key,
+                       const std::string & quarkline_name,
+                       const std::string & object_name);
+
 void validate_bool(const std::string & str, const std::string & name);
 void validate_join(const std::string & str, const std::string & name);
 

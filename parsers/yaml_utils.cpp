@@ -1,3 +1,6 @@
+#include "types.h"
+#include "meta_types.hpp"
+
 #include <yaml-cpp/yaml.h>
 
 #include <cstring>
@@ -6,7 +9,6 @@
 #include <algorithm>
 #include <iostream>
 
-#include "types.h"
 
 namespace cvc {
 namespace yaml {
@@ -83,6 +85,21 @@ void validate_mom_lists_key(const mom_lists_t & mom_lists,
              "In the definition of momentum '%s' of '%s', the momentum list '%s' does not seem"
              "to exist!\n",
              mom_property_name.c_str(), object_name.c_str(), mom_lists_key.c_str());
+    throw( std::invalid_argument(msg) );
+  }
+}
+
+void validate_prop_key(const std::map<std::string, stoch_prop_meta_t> & props_meta,
+                       const std::string & key,
+                       const std::string & quarkline_name,
+                       const std::string & object_name)
+{
+  if( !props_meta.count(key) ){
+    char msg[200];
+    snprintf(msg, 200,
+             "In the definition of '%s', quark line '%s', propagator '%s' does not seem"
+             "to exist!\n",
+             object_name.c_str(), quarkline_name.c_str(), key.c_str());
     throw( std::invalid_argument(msg) );
   }
 }

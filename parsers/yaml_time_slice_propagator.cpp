@@ -1,5 +1,8 @@
+#include "global.h"
 #include "types.h"
 #include "meta_types.hpp"
+#include "Logger.hpp"
+#include "constants.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <vector>
@@ -16,6 +19,11 @@ void construct_time_slice_propagator(const YAML::Node &node,
                                      const bool verbose,
                                      mom_lists_t & mom_lists,
                                      std::map< std::string, cvc::stoch_prop_meta_t > & props_meta) {
+#ifdef HAVE_MPI
+  MPI_Barrier(g_cart_grid);
+#endif
+  cvc::Logger logger(0, verbosity::input_relay, std::cout);
+
   if( node.Type() != YAML::NodeType::Map ){
     throw( std::invalid_argument("in construct_time_slice_propagator, 'node' must be of type YAML::NodeType::Map\n") );
   }
@@ -24,9 +32,10 @@ void construct_time_slice_propagator(const YAML::Node &node,
     throw( std::invalid_argument("for TimeSlicePropagator, the properties 'id', 'solver_id',"
                                  " 'solver_driver', 'g_src' and 'P_src' must be defined!\n") );
   }
-  if( verbose ){
+
+  {
     for(YAML::const_iterator it = node.begin(); it != node.end(); ++it){
-      std::cout << "\n  " << it->first << ": " << it->second;
+      logger << "\n  " << it->first << ": " << it->second;
     }
   }
   if( !mom_lists.count( node["P_src"].as<std::string>() ) ){
@@ -39,7 +48,6 @@ void construct_time_slice_propagator(const YAML::Node &node,
   const std::string momlist_key = node["P_src"].as<std::string>();
   for( auto & mom : mom_lists[ momlist_key ] ){
     if( node["g_src"].Type() == YAML::NodeType::Scalar ){
-      if(verbose) std::cout << std::endl;
       
       int g_src;
       if( node["g_src"].as<std::string>().find("spin_dilution") != std::string::npos ){
@@ -50,21 +58,24 @@ void construct_time_slice_propagator(const YAML::Node &node,
 
       cvc::stoch_prop_meta_t stoch_prop(mom, g_src, node["id"].as<std::string>());
       props_meta[stoch_prop.key()] = stoch_prop;
-      if(verbose){
-        std::cout << "Added stoch_prop_meta_t: " << stoch_prop.key();
+      {
+        logger << "\nAdded stoch_prop_meta_t: " << stoch_prop.key();
       }
     } else {
       for(size_t i = 0; i < node["g_src"].size(); ++i){
         cvc::stoch_prop_meta_t stoch_prop(mom, node["g_src"][i].as<int>(), 
                                           node["id"].as<std::string>());
         props_meta[stoch_prop.key()] = stoch_prop;
-        if(verbose){
-          std::cout << "Added stoch_prop_meta_t: " << stoch_prop.key() << std::endl;
+        {
+          logger << "\nAdded stoch_prop_meta_t: " << stoch_prop.key();
         }
       }
     }
   }
-  if(verbose) std::cout << std::endl;
+  { logger << std::endl; }
+#ifdef HAVE_MPI
+  MPI_Barrier(g_cart_grid);
+#endif
 }
 
 } // namespace(yaml)

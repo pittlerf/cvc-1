@@ -1,7 +1,10 @@
+#include "global.h"
+
 #include "DependencyGraph.hpp"
 #include "meta_types.hpp"
 #include "yaml_utils.hpp"
-#include "const_arrays.hpp"
+#include "constants.hpp"
+#include "Logger.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <exception>
@@ -16,11 +19,16 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                                             const std::map< std::string, cvc::stoch_prop_meta_t > & props_meta,
                                             DepGraph & g)
 {
-  if(verbose){
+#ifdef HAVE_MPI
+  MPI_Barrier(g_cart_grid);
+#endif
+  cvc::Logger logger(0, verbosity::input_relay, std::cout);
+
+  { 
     for(YAML::const_iterator it = node.begin(); it != node.end(); ++it){
-      std::cout << "\n  " << it->first << ": " << it->second;
+      logger << "\n  " << it->first << ": " << it->second;
     }
-    std::cout << std::endl;
+    logger << std::endl;
   }
 
   validate_nodetype(node, 
@@ -65,20 +73,20 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
         }
       }
 
-      if(verbose){
+      {
         std::vector<int> pivec{ pi.x, pi.y, pi.z };
         std::vector<int> pfvec{ pf.x, pf.y, pf.z };
-        std::cout << "Momentum: (" << pivec[0];
+        logger << "Momentum: (" << pivec[0];
         for( size_t i_pi = 1; i_pi < pivec.size(); ++i_pi ){
-          if( i_pi < 3 ) std::cout << ",";
-          std::cout << pivec[i_pi];
+          if( i_pi < 3 ) logger << ",";
+          logger << pivec[i_pi];
         }
-        std::cout << " ; " << pfvec[0];
+        logger << " ; " << pfvec[0];
         for( size_t i_pf = 1; i_pf < pfvec.size(); ++i_pf ){
-          if( i_pf < 3 ) std::cout << ",";
-          std::cout << pfvec[i_pf];
+          if( i_pf < 3 ) logger << ",";
+          logger << pfvec[i_pf];
         }
-        std::cout << ")" << std::endl;
+        logger << ")" << std::endl;
       }
 
 
@@ -93,10 +101,10 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
         }
         for( size_t i_gf = 0; i_gf < gf.size(); ++i_gf ){
           for( size_t i_gb = 0; i_gb < gb.size(); ++i_gb ){
-            if(verbose){
-              std::cout << "Dirac: (" << gf[i_gf].as<int>() << 
+            {
+              logger << "Dirac: (" << gf[i_gf].as<int>() << 
                 "," << gi[i_gi].as<int>() << ")  ";
-              std::cout << "BwdDirac: " << gb[i_gb].as<int>() << std::endl;
+              logger << "BwdDirac: " << gb[i_gb].as<int>() << std::endl;
             }
 
             stoch_prop_meta_t fwd_prop(pi,
@@ -105,14 +113,18 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
             stoch_prop_meta_t bwd_prop(zero_mom,
                                        gb[i_gb].as<int>(),
                                        node["bwd_flav"].as<std::string>());
+
+            validate_prop_key(props_meta, fwd_prop.key(), "fwd_flav", node["id"].as<std::string>());
+            validate_prop_key(props_meta, bwd_prop.key(), "bwd_flav", node["id"].as<std::string>());
+
             char corrkey[500];
             snprintf(corrkey, 500,
                      "%s+-g-%s-g/gf%d/pfx%dpfy%dpfz%d/gi%d/pix%dpiy%dpz%d",
                      node["bwd_flav"].as<std::string>().c_str(),
                      node["fwd_flav"].as<std::string>().c_str(),
-                     gf[i_gf].as<std::string>().c_str(),
+                     gf[i_gf].as<int>(),
                      pf.x, pf.y, pf.z,
-                     gi[i_gi].as<std::string>().c_str(),
+                     gi[i_gi].as<int>(),
                      pi.x, pi.y, pi.z);
 
             Vertex corrvertex = add_vertex(corrkey, g);
@@ -124,6 +136,9 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
       } // gi
     } // pf
   } // pi
+#ifdef HAVE_MPI
+  MPI_Barrier(g_cart_grid);
+#endif
 }
 
 } //namespace(yaml)
