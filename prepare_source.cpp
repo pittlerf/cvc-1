@@ -27,6 +27,8 @@
 #include "table_init_d.h"
 #include "loop_tools.h"
 #include "types.h"
+#include "debug_printf.hpp"
+#include "constants.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1038,6 +1040,10 @@ int init_timeslice_source_oet ( double ** const s, int const tsrc, int * const m
     const unsigned int src_index = (t_src % T)*vol3;
     const unsigned int src_offset = _GSI(src_index);
 
+    debug_printf(0,verbosity::detailed_progress,
+      "[prepare_gamma_timeslice_oet] gamma %d, px %+d py %+d, pz %+d\n",
+      gamma_id, momentum.x, momentum.y, momentum.z); 
+
     std::vector<double> buffer;
     // on the tasks that hold part of the source time slice, we copy the relevant
     // part of the random field 
@@ -1059,7 +1065,7 @@ int init_timeslice_source_oet ( double ** const s, int const tsrc, int * const m
       double psi[24];
       // if momentum is provided, compute and apply the phase factors to the
       // random field 
-      if( momentum.x != 0 && momentum.y != 0 && momentum.z != 0 && have_source ){
+      if( (momentum.x != 0 || momentum.y != 0 || momentum.z != 0) && have_source ){
         const double       TWO_MPI = 2. * M_PI;
         const double       p[3] = { TWO_MPI * (double)momentum.x/(double)LX_global,
                                     TWO_MPI * (double)momentum.y/(double)LY_global,
