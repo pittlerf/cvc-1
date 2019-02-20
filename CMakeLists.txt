@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.8)
-project (cvc LANGUAGES C CXX Fortran)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+
+project (cvc LANGUAGES C CXX Fortran)
 
 include(FortranCInterface)
 FortranCInterface_HEADER(fortran_name_mangling.h MACRO_NAMESPACE "F_")
@@ -120,7 +122,15 @@ if(HDF5_FOUND)
   message(STATUS "  HDF5_INCLUDE_DIRS=${HDF5_INCLUDE_DIRS}")
   message(STATUS "  HDF5_LIBRARIES=${HDF5_LIBRARIES}")
 else()
-  message(STATUS "HDF5 could not be found!")
+  message(FATAL_ERROR "HDF5 could not be found!")
+endif()
+
+find_package(HighFive REQUIRED)
+if(HighFive_FOUND)
+  include_directories($<TARGET_PROPERTY:HighFive,INTERFACE_INCLUDE_DIRECTORIES>)
+  list(APPEND cvc_librarires $<TARGET_PROPERTY:HighFive,INTERFACE_LINK_LIBRARIES>)
+else()
+  message(FATAL_ERROR "HighFive could nto be found!")
 endif()
 
 # attempt to find lhpc-aff-config

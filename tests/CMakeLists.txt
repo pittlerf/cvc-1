@@ -43,6 +43,9 @@ target_link_libraries(test_parse_yaml yaml_parsers const_arrays cvc ${cvc_librar
 add_executable(test_Logger test_Logger.cpp)
 target_link_libraries(test_Logger cvc ${cvc_libraries})
 
+add_executable(test_HighFive test_HighFive.cpp)
+target_link_libraries(test_HighFive ${cvc_libraries})
+
 # copy over test file for test of h5utils
 configure_file(${CMAKE_SOURCE_DIR}/tests/test.h5
   ${CMAKE_BINARY_DIR}/tests/test.h5
