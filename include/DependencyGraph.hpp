@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DependencyFulfilling.hpp"
+#include "DependencyResolving.hpp"
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -17,19 +17,19 @@ namespace cvc {
 
 struct VertexProperties {
   VertexProperties() : 
-    fulfilled(false), independent(false), 
-    level(1), fulfill(new NullFulfill) {}
+    resolved(false), independent(false), 
+    level(1), resolve(new NullResolve) {}
 
   VertexProperties(const std::string& _name) : 
-    name(_name), fulfilled(false), independent(false), 
-    level(1), fulfill(new NullFulfill) {} 
+    name(_name), resolved(false), independent(false), 
+    level(1), resolve(new NullResolve) {} 
 
   std::string name;
   int component;
-  bool fulfilled;
+  bool resolved;
   bool independent;
   unsigned int level;
-  std::shared_ptr<FulfillDependency> fulfill;
+  std::shared_ptr<ResolveDependency> resolve;
 };
 
 }

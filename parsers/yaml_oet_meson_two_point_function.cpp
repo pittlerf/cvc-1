@@ -1,6 +1,7 @@
 #include "global.h"
 #include "cvc_complex.h"
 
+#include "DependencyResolving.hpp"
 #include "DependencyGraph.hpp"
 #include "meta_types.hpp"
 #include "yaml_utils.hpp"
@@ -138,8 +139,8 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
             path_list.push_back(subpath);
 
             Vertex corrvertex = add_vertex(h5::path_list_to_key(path_list), g);
-            g[corrvertex].fulfill.reset( new 
-                CorrFulfill(fwd_prop_key,
+            g[corrvertex].resolve.reset( new 
+                CorrResolve(fwd_prop_key,
                             bwd_prop_key,
                             pf, 
                             gf[i_gf].as<int>(),

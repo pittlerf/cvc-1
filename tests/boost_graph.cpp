@@ -4,7 +4,7 @@
 
 
 #include "DependencyGraph.hpp"
-#include "DependencyFulfilling.hpp"
+#include "DependencyResolving.hpp"
 #include "enums.hpp"
 #include "types.h"
 #include "Core.hpp"
@@ -82,7 +82,7 @@ int main(int argc, char ** argv)
                5, out_mom.x, out_mom.y, out_mom.z);
 
       Vertex seqsrcvertex = add_vertex(seqsrcname, g);
-      g[seqsrcvertex].fulfill.reset( new SeqSourceFulfill(dt, out_mom, bwdpropname) );
+      g[seqsrcvertex].resolve.reset( new SeqSourceResolve(dt, out_mom, bwdpropname) );
       g[seqsrcvertex].independent = true;
 
       char seqpropname[200];
@@ -93,7 +93,7 @@ int main(int argc, char ** argv)
                5, in_mom.x, in_mom.y, in_mom.z);
 
       Vertex seqpropvertex = add_vertex(seqpropname, g);
-      g[seqpropvertex].fulfill.reset( new PropFulfill("d", seqsrcname) );
+      g[seqpropvertex].resolve.reset( new PropResolve("d", seqsrcname) );
       add_unique_edge(seqpropvertex, seqsrcvertex, g);
 
       char corrname[200];
@@ -107,7 +107,7 @@ int main(int argc, char ** argv)
                5, in_mom.x, in_mom.y, in_mom.z);
       
       Vertex corrvertex = add_vertex(corrname, g);
-      g[corrvertex].fulfill.reset( new CorrFulfill(fwdpropname, seqpropname, seqmom, 0 ) ); 
+      g[corrvertex].resolve.reset( new CorrResolve(fwdpropname, seqpropname, seqmom, 0 ) ); 
       add_unique_edge(corrvertex, seqpropvertex, g);
 
       // for derivative operators we don't have any momentum transfer
@@ -149,12 +149,12 @@ int main(int argc, char ** argv)
                            in_mom.x, in_mom.y, in_mom.z);
         
                   Vertex Dpropvertex = add_vertex(Dpropname, g);
-                  g[Dpropvertex].fulfill.reset( new CovDevFulfill( fwdpropname, dir1, dim1 ) );
+                  g[Dpropvertex].resolve.reset( new CovDevResolve( fwdpropname, dir1, dim1 ) );
                   g[Dpropvertex].independent = true; 
 
                   Vertex DDpropvertex = add_vertex(DDpropname, g);
                   add_unique_edge(DDpropvertex, Dpropvertex, g);
-                  g[DDpropvertex].fulfill.reset( new CovDevFulfill( Dpropname, dir2, dim2 ) );
+                  g[DDpropvertex].resolve.reset( new CovDevResolve( Dpropname, dir2, dim2 ) );
                   
 
                   char Dcorrname[200];
@@ -171,7 +171,7 @@ int main(int argc, char ** argv)
                   Vertex Dcorrvertex = add_vertex(Dcorrname,g);
                   add_unique_edge(Dcorrvertex, Dpropvertex,g);
                   add_unique_edge(Dcorrvertex, seqpropvertex, g);
-                  g[Dcorrvertex].fulfill.reset( new CorrFulfill(Dpropname, seqpropname, seqmom, gc ) ); 
+                  g[Dcorrvertex].resolve.reset( new CorrResolve(Dpropname, seqpropname, seqmom, gc ) ); 
 
                   char DDcorrname[200];
                   snprintf(DDcorrname,
@@ -187,7 +187,7 @@ int main(int argc, char ** argv)
                   Vertex DDcorrvertex = add_vertex(DDcorrname, g);
                   add_unique_edge(DDcorrvertex, DDpropvertex, g);
                   add_unique_edge(DDcorrvertex, seqpropvertex, g);
-                  g[DDcorrvertex].fulfill.reset( new CorrFulfill(DDpropname, seqpropname, seqmom, gc ) );
+                  g[DDcorrvertex].resolve.reset( new CorrResolve(DDpropname, seqpropname, seqmom, gc ) );
                 } // gc
               } // dir2
             } // dim2
@@ -247,8 +247,8 @@ int main(int argc, char ** argv)
     logger << std::endl;
 
     for( auto v : make_iterator_range(vertices(component_subgraphs[i_component]))){
-      if( !g[v].fulfilled )
-        descend_and_fulfill<DepGraph>( v, g );
+      if( !g[v].resolveed )
+        descend_and_resolve<DepGraph>( v, g );
     }
   }
   return 0;

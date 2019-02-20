@@ -3,7 +3,7 @@
 #undef MAIN_PROGRAM
 
 #include "DependencyGraph.hpp"
-#include "DependencyFulfilling.hpp"
+#include "DependencyResolving.hpp"
 #include "meta_types.hpp"
 #include "algorithms.hpp"
 #include "yaml_parsers.hpp"

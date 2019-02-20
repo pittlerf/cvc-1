@@ -3,7 +3,7 @@
 #undef MAIN_PROGRAM
 
 #include "DependencyGraph.hpp"
-#include "DependencyFulfilling.hpp"
+#include "DependencyResolving.hpp"
 #include "meta_types.hpp"
 #include "algorithms.hpp"
 #include "yaml_parsers.hpp"
@@ -92,15 +92,15 @@ int main(int argc, char ** argv){
     for( size_t i_component = 0; i_component < independent_srcs_and_props.size(); ++i_component){
       logger << std::endl << "Working on source / propagator set " << i_component << std::endl;
       for(auto v : boost::make_iterator_range(boost::vertices(independent_srcs_and_props[i_component]))){
-        if( !metas.props_graph[v].fulfilled ){
-          descend_and_fulfill<DepGraph>(v, metas.props_graph);
+        if( !metas.props_graph[v].resolved ){
+          descend_and_resolve<DepGraph>(v, metas.props_graph);
         }
       }
     }
 
     for( auto v : boost::make_iterator_range(boost::vertices(metas.corrs_graph)) ){
-      if( !metas.corrs_graph[v].fulfilled )
-        descend_and_fulfill<DepGraph>(v, metas.corrs_graph);
+      if( !metas.corrs_graph[v].resolved )
+        descend_and_resolve<DepGraph>(v, metas.corrs_graph);
     }
   }
 

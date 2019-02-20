@@ -69,8 +69,8 @@ void construct_time_slice_propagator(const YAML::Node &node,
       // vertex names, these vertices are unique and multiple insertions of the same
       // vertex will leave the graph unmodified
       Vertex src_vertex = boost::add_vertex(src_meta.key(),  props_graph);
-      props_graph[src_vertex].fulfill.reset( 
-          new TimeSliceSourceFulfill(src_ts, g_src, mom, src_meta.key(), ranspinor, src) ); 
+      props_graph[src_vertex].resolve.reset( 
+          new TimeSliceSourceResolve(src_ts, g_src, mom, src_meta.key(), ranspinor, src) ); 
 
       ::cvc::stoch_prop_meta_t prop_meta(mom, node["g_src"][i].as<int>(), node["id"].as<std::string>(),
                                        node["solver_driver"].as<std::string>(), node["solver_id"].as<int>());
@@ -78,8 +78,8 @@ void construct_time_slice_propagator(const YAML::Node &node,
 
       // multiple insertions of the same propagator leave the graph unmodified
       Vertex prop_vertex = boost::add_vertex(prop_meta.key(), props_graph);
-      props_graph[prop_vertex].fulfill.reset( 
-          new PropFulfill(prop_meta.key(), node["solver_id"].as<int>(), src, props_data) );
+      props_graph[prop_vertex].resolve.reset( 
+          new PropResolve(prop_meta.key(), node["solver_id"].as<int>(), src, props_data) );
       
       // connect propagator and source with a unique edge (multiple connections
       // leave the graph unmodified)
