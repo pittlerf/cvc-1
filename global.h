@@ -52,6 +52,16 @@
     } \
   }
 
+#define CHECK_EXITSTATUS_NOT(_status, _targetstatus, _call, _errmsg, _terminate, _signal) \
+  (_status) = (_call); \
+  if( (_status) != (_targetstatus) ){ \
+    fprintf(stderr, "%s Status was %d, \n %s line %d\n", (_errmsg), (_status), __FILE__, __LINE__); \
+    fflush(stderr); \
+    if( (_terminate) ){ \
+      EXIT((_signal)); \
+    } \
+  }
+
 #define CHECK_EXITSTATUS_NEGATIVE(_status, _call, _errmsg, _terminate, _signal) \
   (_status) = (_call); \
   if( (_status) < 0 ){ \

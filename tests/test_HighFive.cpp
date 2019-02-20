@@ -1,5 +1,3 @@
-#include "h5utils.hpp"
-
 #include <highfive/H5File.hpp>
 #include <highfive/H5DataSet.hpp>
 #include <highfive/H5DataSpace.hpp>
@@ -19,14 +17,6 @@ int main(int argc, char ** argv)
   HighFive::DataSet dataset = file.createDataSet<double>("/group/subgroup/dataset_one", HighFive::DataSpace::From(data));
   dataset.write(data);
   file.flush();
-
-  std::list<std::string> path_list;
-  path_list.push_back("group2");
-  path_list.push_back("subgroup2");
-  path_list.push_back("subsubgroup");
-  path_list.push_back("dataset_two");
-
-  cvc::h5::write_dataset(file, path_list, data); 
-
+  
   return 0;
 }

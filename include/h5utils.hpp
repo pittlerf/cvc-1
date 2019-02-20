@@ -1,5 +1,10 @@
 #include <global.h>
 #include <enums.hpp>
+#include <cvc_utils.h>
+
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
 
 #include <highfive/H5File.hpp>
 #include <highfive/H5Group.hpp>
@@ -17,26 +22,60 @@
 namespace cvc {
 namespace h5 {
 
-template<typename T>
-void write_dataset(HighFive::File & file, 
+  /**
+   * @brief Simple writing of time-dependent data
+   *
+   *  Data should be ordered such that t is the slowest dimension and any
+   *  reductions over the time slice communicator should already have been
+   *  performed as the function below will be a no-op for any rank that
+   *  is not at the origin of the XYZ cartesian grid of each time slice
+   *  group.
+   *
+   * @param file
+   * @param path_list
+   * @param local_data
+   */
+void write_t_dataset(const std::string & filename, 
     const std::list<std::string> & path_list, 
-    const std::vector<T> & data)
+    const std::vector<double> & local_data)
 {
-  std::string path;
-  for( auto const & subpath : path_list ){
-    path += "/" + subpath;
-    // up until the last element, these are groups
-    // the final element is instead the name of the dataset
-    // and we will not create a group with this name
-    if( !file.exist(path) && subpath != *(--path_list.end()) ){
-      file.createGroup(path);
+  const int io_proc = get_io_proc();
+
+  if(io_proc > 0){
+  #ifdef HAVE_MPI
+    std::vector<double> buffer( local_data.size()*(T_global/T) );
+    int existatus;
+    CHECK_EXITSTATUS_NOT(
+        existatus,
+        MPI_SUCCESS,
+        MPI_Gather(local_data.data(), local_data.size(), MPI_DOUBLE, buffer.data(), local_data.size(), MPI_DOUBLE, 0, g_tr_comm),
+        "[cvc::h5::write_t_dataset] Failure in MPI_Gather\n",
+        true,
+        CVC_EXIT_MPI_FAILURE);
+  #else
+    std::vector<double> & buffer = data;
+  #endif
+  
+    if(io_proc == 2){
+      HighFive::File file(filename, HighFive::File::ReadWrite | HighFive::File::Create); 
+  
+      std::string path;
+      for( auto const & subpath : path_list ){
+        path += "/" + subpath;
+        // up until the last element, these are groups
+        // the final element is instead the name of the dataset
+        // and we will not create a group with this name
+        if( !file.exist(path) && subpath != *(--path_list.end()) ){
+          file.createGroup(path);
+        }
+      }
+      // we just attempt to create the dataset. If it already exists, things will fail
+      // and HighFive will give us a useful exception
+      HighFive::DataSet dataset = file.createDataSet<double>(path, HighFive::DataSpace::From(buffer));
+      dataset.write(buffer);
+      file.flush();
     }
   }
-  // we just attempt to create the dataset. If it already exists, things will fail
-  // and HighFive will give us a useful exception
-  HighFive::DataSet dataset = file.createDataSet<T>(path, HighFive::DataSpace::From(data));
-  dataset.write(data);
-  file.flush();
 }
 
 
