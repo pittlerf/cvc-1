@@ -31,7 +31,7 @@ void construct_time_slice_propagator(const YAML::Node &node,
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
 #endif
-  cvc::Logger logger(0, verbosity::input_relay, std::cout);
+  ::cvc::Logger logger(0, verbosity::input_relay, std::cout);
 
   validate_nodetype(node, YAML::NodeType::Map, "TimeSlicePropagator");
   
@@ -72,7 +72,7 @@ void construct_time_slice_propagator(const YAML::Node &node,
       props_graph[src_vertex].fulfill.reset( 
           new TimeSliceSourceFulfill(src_ts, g_src, mom, src_meta.key(), ranspinor, src) ); 
 
-      cvc::stoch_prop_meta_t prop_meta(mom, node["g_src"][i].as<int>(), node["id"].as<std::string>(),
+      ::cvc::stoch_prop_meta_t prop_meta(mom, node["g_src"][i].as<int>(), node["id"].as<std::string>(),
                                        node["solver_driver"].as<std::string>(), node["solver_id"].as<int>());
       props_meta[prop_meta.key()] = prop_meta;
 
@@ -83,7 +83,7 @@ void construct_time_slice_propagator(const YAML::Node &node,
       
       // connect propagator and source with a unique edge (multiple connections
       // leave the graph unmodified)
-      cvc::add_unique_edge(prop_vertex, src_vertex, props_graph); 
+      ::cvc::add_unique_edge(prop_vertex, src_vertex, props_graph); 
       {
         logger << "\nAdded stoch_prop_meta_t: " << prop_meta.key();
       }

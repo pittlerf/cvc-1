@@ -86,17 +86,22 @@ int main(int argc, char ** argv){
   for(int src_ts : src_time_slices){
     rng.gen_z2(ranspinor->data(), 24);
 
+    char corr_h5_filename[100];
+    snprintf(corr_h5_filename, 100, "corr.%04d.t%d.h5", Nconf, src_ts);
+    OutputDefinitions odefs;
+    odefs.corr_h5_filename = corr_h5_filename; 
+
     DataCollection data;
     MetaCollection metas;
     metas.ranspinor = ranspinor;
     metas.stochastic_source = stochastic_source;
     metas.src_ts = src_ts;
     YAML::Node input_node = YAML::LoadFile("definitions.yaml");
-    yaml::enter_node(input_node, 0, metas, data); 
+    yaml::enter_node(input_node, 0, odefs, metas, data); 
     logger << std::endl;
 
     debug_printf(0,verbosity::memory_info,
-                 "Memory required for %d basic propagators, %.2f GB\n",
+                 "[MEMORY_INFO] Memory required for %d basic propagators, %.2f GB\n",
                  metas.props_meta.size(), 
                  (double)metas.props_meta.size()*sizeof(double)*_GSI(g_nproc*VOLUME)*1.0e-9);
 
@@ -114,9 +119,13 @@ int main(int argc, char ** argv){
       }
     }
 
-    for( auto v : boost::make_iterator_range(boost::vertices(metas.corrs_graph)) ){
-      if( !metas.corrs_graph[v].fulfilled )
-        descend_and_fulfill<DepGraph>(v, metas.corrs_graph);
+    std::vector<ComponentGraph>
+      independent_obs(connected_components_subgraphs(metas.corrs_graph));
+    for( size_t i_component = 0; i_component < independent_obs.size(); ++i_component){
+      for( auto v : boost::make_iterator_range(boost::vertices(independent_obs[i_component])) ){
+        if( !metas.corrs_graph[v].fulfilled )
+          descend_and_fulfill<DepGraph>(v, metas.corrs_graph);
+      }
     }
   }
 

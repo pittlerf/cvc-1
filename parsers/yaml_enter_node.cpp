@@ -12,12 +12,13 @@ namespace yaml {
 
 void enter_node(const YAML::Node &node, 
                 const unsigned int depth,
+                const OutputDefinitions & odefs,
                 MetaCollection & metas,
                 DataCollection & data){
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
 #endif
-  cvc::Logger logger(0, verbosity::input_relay, std::cout);
+  ::cvc::Logger logger(0, verbosity::input_relay, std::cout);
 
   YAML::NodeType::value type = node.Type();
   std::string indent( 2*(size_t)depth, ' ');
@@ -31,7 +32,7 @@ void enter_node(const YAML::Node &node,
           logger << "[ ";
         }
         const YAML::Node & subnode = node[i];
-        enter_node(subnode, depth+1, metas, data);
+        enter_node(subnode, depth+1, odefs, metas, data);
         if( depth <= 2 ){
           logger << " ]";
         } else if( i < node.size()-1 ) {
@@ -54,8 +55,12 @@ void enter_node(const YAML::Node &node,
                                           data.props_data,
                                           *(metas.ranspinor), *(metas.stochastic_source) );
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
-          construct_oet_meson_two_point_function(it->second, metas.mom_lists, 
-                                                 metas.props_meta, metas.corrs_graph); 
+          construct_oet_meson_two_point_function(it->second,
+                                                 metas.mom_lists,
+                                                 odefs.corr_h5_filename,
+                                                 metas.props_meta,
+                                                 data.props_data,
+                                                 metas.corrs_graph); 
         } else {
           char msg[200];
           snprintf(msg, 200,

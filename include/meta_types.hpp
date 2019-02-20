@@ -284,6 +284,10 @@ typedef struct DataCollection {
   std::map<std::string, std::vector<double> > props_data;
 } DataCollection;
 
+typedef struct OutputDefinitions {
+  std::string corr_h5_filename;
+} OutputDefinitions;
+
 //typedef struct threept_shifts_oet_meta_t : oet_meson_threept_meta_t
 //{
 //  threept_shifts_oet_meta_t(

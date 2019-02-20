@@ -1,4 +1,5 @@
 #include "global.h"
+#include "cvc_complex.h"
 
 #include "DependencyGraph.hpp"
 #include "meta_types.hpp"
@@ -9,19 +10,24 @@
 #include <yaml-cpp/yaml.h>
 #include <exception>
 #include <stdexcept>
+#include <string>
+#include <vector>
+#include <map>
 
 namespace cvc {
 namespace yaml {
 
 void construct_oet_meson_two_point_function(const YAML::Node &node, 
                                             mom_lists_t & mom_lists,
-                                            const std::map< std::string, cvc::stoch_prop_meta_t > & props_meta,
+                                            const std::string & output_filename,
+                                            std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
+                                            std::map< std::string, std::vector<double> > & props_data,
                                             DepGraph & g)
 {
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
 #endif
-  cvc::Logger logger(0, verbosity::input_relay, std::cout);
+  ::cvc::Logger logger(0, verbosity::input_relay, std::cout);
 
   { 
     for(YAML::const_iterator it = node.begin(); it != node.end(); ++it){
@@ -115,20 +121,32 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
 
             validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
             validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
-
-            char corrkey[500];
-            snprintf(corrkey, 500,
-                     "%s+-g-%s-g/gf%d/pfx%dpfy%dpfz%d/gi%d/pix%dpiy%dpz%d",
+            
+            char subpath[100];
+            std::list<std::string> path_list;
+            snprintf(subpath, 100, "%s+-g-%s-g",
                      node["bwd_flav"].as<std::string>().c_str(),
-                     node["fwd_flav"].as<std::string>().c_str(),
-                     gf[i_gf].as<int>(),
-                     pf.x, pf.y, pf.z,
-                     gi[i_gi].as<int>(),
-                     pi.x, pi.y, pi.z);
+                     node["fwd_flav"].as<std::string>().c_str());
+            path_list.push_back(subpath);
+            snprintf(subpath, 100, "gf%d", gf[i_gf].as<int>());
+            path_list.push_back(subpath);
+            snprintf(subpath, 100, "pfx%+dpfy%+dpfz%+d", pf.x, pf.y, pf.z);
+            path_list.push_back(subpath);
+            snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
+            path_list.push_back(subpath);
+            snprintf(subpath, 100, "pix%+dpiy%+dpiz%+d", pi.x, pi.y, pi.z);
+            path_list.push_back(subpath);
 
-            Vertex corrvertex = add_vertex(corrkey, g);
+            Vertex corrvertex = add_vertex(h5::path_list_to_key(path_list), g);
             g[corrvertex].fulfill.reset( new 
-                CorrFulfill(fwd_prop_key, bwd_prop_key, pf, gf[i_gf].as<int>()) ); 
+                CorrFulfill(fwd_prop_key,
+                            bwd_prop_key,
+                            pf, 
+                            gf[i_gf].as<int>(),
+                            path_list,
+                            output_filename,
+                            props_data,
+                            ::cvc::complex{1.0, 0.0} ) );
 
           } // gb
         } // gf

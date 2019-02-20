@@ -8,11 +8,14 @@
 #include "Logger.hpp"
 #include "Stopwatch.hpp"
 #include "dummy_solver.h"
+#include "h5utils.hpp"
+#include "cvc_complex.h"
 
 #include <string>
 #include <iostream>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
+#include <highfive/H5File.hpp>
 
 #include <cstdio>
 
@@ -188,22 +191,56 @@ struct CovDevFulfill : public FulfillDependency {
 };
 
 struct CorrFulfill : public FulfillDependency {
-  std::string propkey;
-  std::string dagpropkey;
-  mom_t p;
-  int gamma;
+  const ::cvc::complex normalisation;
+  const std::string propkey;
+  const std::string dagpropkey;
+  const std::list<std::string> path_list;
+  const std::string output_filename;
+  std::map< std::string, std::vector<double> > & props_data;
+  const mom_t p;
+  const int gamma;
 
-  CorrFulfill(const std::string& _propkey, const std::string& _dagpropkey, const mom_t& _p, const int _gamma) :
-    propkey(_propkey), dagpropkey(_dagpropkey), p(_p), gamma(_gamma) {}
+  CorrFulfill(const std::string & propkey_in,
+              const std::string & dagpropkey_in, 
+              const mom_t& p_in,
+              const int gamma_in, 
+              const std::list<std::string> & path_list_in,
+              const std::string & output_filename_in, 
+              std::map< std::string, std::vector<double> > & props_data_in, 
+              const ::cvc::complex & normalisation_in) :
+    propkey(propkey_in),
+    dagpropkey(dagpropkey_in), 
+    p(p_in),
+    gamma(gamma_in),
+    path_list(path_list_in),
+    output_filename(output_filename_in),
+    props_data(props_data_in),
+    normalisation(normalisation_in) {}
 
   void operator()() const
   {
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
 #endif
-    debug_printf(0,verbosity::fulfill, 
-        "CorrFullfill: Contracting %s+-g%d/px%dpy%dpz%d-%s\n",
-        dagpropkey.c_str(), gamma, p.x, p.y, p.z, propkey.c_str());
+    debug_printf(0, verbosity::fulfill, "CorrFullfill: Contracting %s\n", h5::path_list_to_key(path_list).c_str());
+
+    std::vector<int> mom = {p.x, p.y, p.z};
+    std::vector<double> corr(2*T);
+    Stopwatch sw(g_cart_grid);
+    contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
+        corr.data(), gamma, mom.data(), props_data[ dagpropkey ].data(),
+        props_data[ propkey ].data());
+    scale_cplx( corr.data(), T, normalisation );
+    if(g_verbose >= verbosity::fulfill){
+      sw.elapsed_print_and_reset("contract_twopoint_gamma5_gamma_snk_only_snk_momentum local current and normalisation");
+    }
+    
+    sw.reset();
+    h5::write_t_dataset(output_filename, path_list, corr);
+    if( g_verbose >= verbosity::fulfill ){
+      sw.elapsed_print("write_t_data in CorrFullFill");
+    }
+
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
 #endif
