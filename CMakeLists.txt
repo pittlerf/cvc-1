@@ -411,9 +411,9 @@ target_link_libraries(loop_analyse
   cvc_bare
   ${cvc_libraries})
 
-add_executable(contractions
-  contractions.cpp)
-target_link_libraries(contractions
+add_executable(correlators
+  correlators.cpp)
+target_link_libraries(correlators
   yaml_parsers
   const_arrays
   cvc
