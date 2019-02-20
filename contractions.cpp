@@ -41,7 +41,7 @@ int main(int argc, char ** argv){
   int io_proc = -1;
   double * gauge_field_with_phase = NULL;
 
-  Core core(argc,argv,"test_parse_yaml");
+  Core core(argc,argv,"correlators");
   if( !core.is_initialised() ){
 		debug_printf(g_proc_id,0,"[correlators] Core initialisation failure!\n");
 		return(CVC_EXIT_CORE_INIT_FAILURE);
@@ -96,12 +96,15 @@ int main(int argc, char ** argv){
     metas.ranspinor = ranspinor;
     metas.stochastic_source = stochastic_source;
     metas.src_ts = src_ts;
-    YAML::Node input_node = YAML::LoadFile("definitions.yaml");
+
+    logger << "# [correlators] Parsing " << core.get_cmd_options()["definitions_yaml"].as<std::string>() <<
+      std::endl;
+    YAML::Node input_node = YAML::LoadFile( core.get_cmd_options()["definitions_yaml"].as<std::string>() ); 
     yaml::enter_node(input_node, 0, odefs, metas, data); 
     logger << std::endl;
 
     debug_printf(0,verbosity::memory_info,
-                 "[MEMORY_INFO] Memory required for %d basic propagators, %.2f GB\n",
+                 "# [correlators] [MEMORY_INFO] Memory required for %d basic propagators, %.2f GB\n",
                  metas.props_meta.size(), 
                  (double)metas.props_meta.size()*sizeof(double)*_GSI(g_nproc*VOLUME)*1.0e-9);
 
@@ -111,10 +114,11 @@ int main(int argc, char ** argv){
     std::vector<ComponentGraph> 
       independent_srcs_and_props(connected_components_subgraphs(metas.props_graph));
     for( size_t i_component = 0; i_component < independent_srcs_and_props.size(); ++i_component){
-      logger << std::endl << "Working on source / propagator set " << i_component << std::endl;
+      logger << std::endl << "# [correlators] Working on source / propagator set " << 
+        i_component+1 << " of " << independent_srcs_and_props.size() << std::endl;
       for(auto v : boost::make_iterator_range(boost::vertices(independent_srcs_and_props[i_component]))){
-        if( !metas.props_graph[v].fulfilled ){
-          descend_and_fulfill<DepGraph>(v, metas.props_graph);
+        if( !metas.props_graph[v].resolved ){
+          descend_and_resolve<DepGraph>(v, metas.props_graph);
         }
       }
     }
@@ -122,9 +126,11 @@ int main(int argc, char ** argv){
     std::vector<ComponentGraph>
       independent_obs(connected_components_subgraphs(metas.corrs_graph));
     for( size_t i_component = 0; i_component < independent_obs.size(); ++i_component){
+      logger << std::endl << "# [correlators] Working on object set " << i_component+1 << 
+        " of " << independent_obs.size() << std::endl;
       for( auto v : boost::make_iterator_range(boost::vertices(independent_obs[i_component])) ){
-        if( !metas.corrs_graph[v].fulfilled )
-          descend_and_fulfill<DepGraph>(v, metas.corrs_graph);
+        if( !metas.corrs_graph[v].resolved )
+          descend_and_resolve<DepGraph>(v, metas.corrs_graph);
       }
     }
   }

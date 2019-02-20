@@ -68,7 +68,7 @@ struct TimeSliceSourceResolve : public ResolveDependency {
         gamma,
         src_ts,
         p),
-      "[contractions] Error from prepare_gamma_timeslice_oet!",
+      "[TimeSliceSourceResolve] Error from prepare_gamma_timeslice_oet!",
       true,
       CVC_EXIT_MALLOC_FAILURE);
     
@@ -78,7 +78,7 @@ struct TimeSliceSourceResolve : public ResolveDependency {
       const unsigned int src_index = _GSI((src_ts % T)*vol3);
       
       Logger logger(have_source ? g_proc_id : -1, verbosity::detailed_progress, std::cout);
-      logger << "TimeSliceSourceResolve: process " << g_proc_id <<
+      logger << "# [TimeSliceSourceResolve] process " << g_proc_id <<
         " elements 0-24" << std::endl;
 
       for(size_t i = src_index; i < src_index+24; ++i ){

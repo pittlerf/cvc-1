@@ -11,7 +11,7 @@ namespace cvc {
      * @brief verbosity level at which input parsers will relay what they read
      */
     constexpr int input_relay = 3;
-    constexpr int fulfill = 3;
+    constexpr int resolve = 3;
     constexpr int memory_info = 2;
     constexpr int basic_progress = 1;
     constexpr int detailed_progress = 5;

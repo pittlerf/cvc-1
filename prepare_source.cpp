@@ -1041,7 +1041,7 @@ int init_timeslice_source_oet ( double ** const s, int const tsrc, int * const m
     const unsigned int src_offset = _GSI(src_index);
 
     debug_printf(0,verbosity::detailed_progress,
-      "[prepare_gamma_timeslice_oet] gamma %d, px %+d py %+d, pz %+d\n",
+      "[prepare_gamma_timeslice_oet] gamma %d, px %d py %d, pz %d\n",
       gamma_id, momentum.x, momentum.y, momentum.z); 
 
     std::vector<double> buffer;

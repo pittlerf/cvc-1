@@ -131,11 +131,11 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
             path_list.push_back(subpath);
             snprintf(subpath, 100, "gf%d", gf[i_gf].as<int>());
             path_list.push_back(subpath);
-            snprintf(subpath, 100, "pfx%+dpfy%+dpfz%+d", pf.x, pf.y, pf.z);
+            snprintf(subpath, 100, "pfx%dpfy%dpfz%d", pf.x, pf.y, pf.z);
             path_list.push_back(subpath);
             snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
             path_list.push_back(subpath);
-            snprintf(subpath, 100, "pix%+dpiy%+dpiz%+d", pi.x, pi.y, pi.z);
+            snprintf(subpath, 100, "pix%dpiy%dpiz%d", pi.x, pi.y, pi.z);
             path_list.push_back(subpath);
 
             Vertex corrvertex = add_vertex(h5::path_list_to_key(path_list), g);
