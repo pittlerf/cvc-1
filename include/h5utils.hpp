@@ -20,17 +20,18 @@ namespace h5 {
 template<typename T>
 void write_dataset(HighFive::File & file, 
     const std::list<std::string> & path_list, 
-    const std::string & dataset_name,
     const std::vector<T> & data)
 {
   std::string path;
   for( auto const & subpath : path_list ){
     path += "/" + subpath;
-    if( !file.exist(path) ){
+    // up until the last element, these are groups
+    // the final element is instead the name of the dataset
+    // and we will not create a group with this name
+    if( !file.exist(path) && subpath != *(--path_list.end()) ){
       file.createGroup(path);
     }
   }
-  path += "/" + dataset_name;
   // we just attempt to create the dataset. If it already exists, things will fail
   // and HighFive will give us a useful exception
   HighFive::DataSet dataset = file.createDataSet<T>(path, HighFive::DataSpace::From(data));

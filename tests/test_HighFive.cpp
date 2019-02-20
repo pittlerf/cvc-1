@@ -24,8 +24,9 @@ int main(int argc, char ** argv)
   path_list.push_back("group2");
   path_list.push_back("subgroup2");
   path_list.push_back("subsubgroup");
+  path_list.push_back("dataset_two");
 
-  cvc::h5::write_dataset(file, path_list, "dataset_two", data); 
+  cvc::h5::write_dataset(file, path_list, data); 
 
   return 0;
 }
