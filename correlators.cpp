@@ -17,6 +17,10 @@
 #include "ParallelMT19937_64.hpp"
 #include "h5utils.hpp"
 
+#ifdef HAVE_MPI
+#include <mpi.h>
+#endif
+
 #include <yaml-cpp/yaml.h>
 #include <string>
 #include <iostream>
@@ -73,7 +77,6 @@ int main(int argc, char ** argv){
 
   ParallelMT19937_64 rng( (unsigned long long)(g_seed^Nconf) );
   std::shared_ptr<std::vector<double>> ranspinor = std::make_shared< std::vector<double> >( _GSI(VOLUME) );
-  std::shared_ptr<std::vector<double>> stochastic_source = std::make_shared< std::vector<double> >(_GSI(VOLUME));
 
   io_proc = get_io_proc ();
   if( io_proc < 0 ) {
@@ -95,7 +98,6 @@ int main(int argc, char ** argv){
     DataCollection data;
     MetaCollection metas;
     metas.ranspinor = ranspinor;
-    metas.stochastic_source = stochastic_source;
     metas.src_ts = src_ts;
 
     logger << "# [correlators] Parsing " << core.get_cmd_options()["definitions_yaml"].as<std::string>() <<
@@ -136,8 +138,11 @@ int main(int argc, char ** argv){
       sw.reset();
       // write the correlators in this group to file and clear the temporary storage
       h5::write_correlators(corr_h5_filename, odefs.corrs_data);
-      odefs.corrs_data.clear();
       sw.elapsed_print("Correlator I/O");
+#ifdef HAVE_MPI
+      MPI_Barrier(g_cart_grid);
+#endif
+      odefs.corrs_data.clear();
     }
   }
 

@@ -21,6 +21,7 @@ namespace yaml {
 
 void construct_oet_meson_two_point_function(const YAML::Node &node, 
                                             mom_lists_t & mom_lists,
+                                            const int src_ts,
                                             std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
                                             std::map< std::string, std::vector<double> > & props_data,
                                             std::map< std::string, ::cvc::H5Correlator > & corrs_data, 
@@ -43,20 +44,20 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                     "OetMesonTwoPointFunction" );
   
   if( !node["id"] || !node["fwd_flav"] || !node["bwd_flav"] || !node["gi"] || !node["gf"] || !node["gb"] ||
-      !node["Pi"] || !node["Pf"] || !node["momentum_conservation"] || !node["dirac_join"] || !node["flav_join"] ){
+      !node["Pi"] || !node["Pf"] || !node["momentum_conservation"] || !node["dirac_join"] ){
     throw( std::invalid_argument("for 'OetMesonTwoPointFunction', the properties 'id', 'fwd_flav', "
-                                 "'bwd_flav', 'gi', 'gf', 'gb', 'Pi', 'Pf', 'momentum_conservation', "
-                                 "'dirac_join' and 'flav_join' must be defined!\n") );
+                                 "'bwd_flav', 'gi', 'gf', 'gb', 'Pi', 'Pf', 'momentum_conservation' and "
+                                 "'dirac_join' must be defined!\n") );
   }
   
   for( const std::string name : {"id", "fwd_flav", "bwd_flav", "momentum_conservation", 
-                                 "dirac_join", "flav_join", "Pi", "Pf"} ){
+                                 "dirac_join", "Pi", "Pf"} ){
     validate_nodetype(node[name],
                       std::vector<YAML::NodeType::value>{YAML::NodeType::Scalar}, 
                       name);
     if( name == "momentum_conservation" ){
       validate_bool(node[name].as<std::string>(), name);
-    } else if ( name == "dirac_join" || name == "flav_join" ){
+    } else if ( name == "dirac_join" ){
       validate_join(node[name].as<std::string>(), name);
     }
   }
@@ -70,7 +71,8 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                            node["id"].as<std::string>());
   }
 
-
+  // loop over the momentum and gamma combiations to construct all instances of this
+  // correlation function
   for( const auto & pi : mom_lists[ node["Pi"].as<std::string>() ] ){
     for( const auto & pf : mom_lists[ node["Pf"].as<std::string>() ] ){
       mom_t mom_xchange{ -(pi.x+pf.x), -(pi.y+pf.y), -(pi.z+pf.z) };
@@ -116,9 +118,11 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
 
             std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
                                                             gi[i_gi].as<int>(),
+                                                            src_ts,
                                                             node["fwd_flav"].as<std::string>()));
             std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
                                                             gb[i_gb].as<int>(),
+                                                            src_ts,
                                                             node["bwd_flav"].as<std::string>()));
 
             validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
@@ -129,10 +133,11 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                      node["bwd_flav"].as<std::string>().c_str(),
                      node["fwd_flav"].as<std::string>().c_str());
 
-
             char subpath[100];
             std::list<std::string> path_list;
             path_list.push_back(corrtype);
+            snprintf(subpath, 100, "t%d", src_ts);
+            path_list.push_back(subpath);
             snprintf(subpath, 100, "gf%d", gf[i_gf].as<int>());
             path_list.push_back(subpath);
             snprintf(subpath, 100, "pfx%dpfy%dpfz%d", pf.x, pf.y, pf.z);

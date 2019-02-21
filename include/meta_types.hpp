@@ -55,6 +55,7 @@ typedef struct stoch_prop_meta_t
 {
   mom_t p;
   int gamma;
+  int src_ts;
   std::string flav;
   std::string solver_driver;
   int solver_id;
@@ -64,31 +65,34 @@ typedef struct stoch_prop_meta_t
   
   stoch_prop_meta_t(const mom_t & p_in,
                     const int gamma_in,
+                    const int src_ts_in,
                     const std::string & flav_in) :
-    p(p_in), gamma(gamma_in), flav(flav_in), 
+    p(p_in), gamma(gamma_in), flav(flav_in), src_ts(src_ts_in),
     solver_driver("undefined"), solver_id(-1) {}
 
   stoch_prop_meta_t(const mom_t & p_in,
                     const int gamma_in,
+                    const int src_ts_in,
                     const std::string & flav_in,
                     const std::string & solver_driver_in,
                     const int solver_id_in) :
-    p(p_in), gamma(gamma_in), flav(flav_in),
+    p(p_in), gamma(gamma_in), flav(flav_in), src_ts(src_ts_in),
     solver_driver(solver_driver_in), solver_id(solver_id_in) {}
 
   std::string key(void) const 
   {
-    return key(p, gamma, flav);
+    return key(p, gamma, src_ts, flav);
   }
 
   static std::string key(const mom_t & p_in,
                          const int gamma_in,
+                         const int src_ts_in,
                          const std::string & flav_in)
   {
     char temp[100];
     snprintf(temp, 100, 
-             "f%s_g%d_px%dpy%dpz%d",
-             flav_in.c_str(), gamma_in, p_in.x, p_in.y, p_in.z);
+             "f%s_g%d_px%dpy%dpz%d_t%d",
+             flav_in.c_str(), gamma_in, p_in.x, p_in.y, p_in.z, src_ts_in);
     return std::string(temp);
   }
 
@@ -102,13 +106,17 @@ typedef struct seq_stoch_prop_meta_t
   seq_stoch_prop_meta_t(const mom_t & seq_p_in,
                         const int seq_gamma_in,
                         const int seq_src_ts_in,
+                        const int src_ts_in,
                         const std::string seq_flav_in,
                         const mom_t & src_p_in,
                         const int src_gamma_in,
                         const std::string & src_flav_in)
-    : src_prop(src_p_in, src_gamma_in, src_flav_in),
-      p(seq_p_in), seq_src_ts(seq_src_ts_in), gamma(seq_gamma_in),
-      flav(seq_flav_in) {}
+    : src_prop(src_p_in, src_gamma_in, src_ts_in, src_flav_in),
+      p(seq_p_in),
+      seq_src_ts(seq_src_ts_in),
+      gamma(seq_gamma_in),
+      flav(seq_flav_in),
+      src_ts(src_ts_in) {}
 
   std::string key(void) const
   {
@@ -129,6 +137,7 @@ typedef struct seq_stoch_prop_meta_t
 
   mom_t p;
   int gamma;
+  int src_ts;
   int seq_src_ts;
   std::string flav;
 
@@ -270,7 +279,6 @@ typedef struct MetaCollection {
   mom_lists_t mom_lists;
 
   std::shared_ptr< const std::vector<double> > ranspinor;
-  std::shared_ptr< std::vector<double> > stochastic_source;
 
   int src_ts;
   std::map<std::string, stoch_prop_meta_t> props_meta;

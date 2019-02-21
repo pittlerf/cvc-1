@@ -10,14 +10,17 @@
 #include "dummy_solver.h"
 #include "h5utils.hpp"
 #include "cvc_complex.h"
+#include "propagator_io.h"
+#include "SourceCreators.hpp"
 
-#include <string>
-#include <iostream>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <highfive/H5File.hpp>
 
+#include <string>
+#include <iostream>
 #include <cstdio>
+#include <algorithm>
 
 namespace cvc {
 
@@ -72,6 +75,17 @@ struct TimeSliceSourceResolve : public ResolveDependency {
       true,
       CVC_EXIT_MALLOC_FAILURE);
     
+
+    if( g_write_source ){
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
+      std::string filename = src_key;
+      std::replace( filename.begin(), filename.end(), '/', '_');
+      filename += ".lime";
+      write_propagator(src.data(), filename.c_str(), 0, 64);
+    } 
+
     if(g_verbose >= verbosity::detailed_progress){
       const bool have_source = ( (src_ts / T) == g_proc_coords[0] );
       const unsigned int vol3 = LX * LY * LZ;
@@ -86,6 +100,7 @@ struct TimeSliceSourceResolve : public ResolveDependency {
       }
       logger << std::endl;
     }
+
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
 #endif
@@ -117,15 +132,14 @@ struct PropResolve : public ResolveDependency {
   const int solver_id;
   const std::string prop_key;
   std::map< std::string, std::vector<double> > & props_data;
-  const std::vector<double> & src;
-
+  std::shared_ptr<CreateSource> create_source;
 
   PropResolve(const std::string & prop_key_in,
               const int solver_id_in,
-              const std::vector<double> & src_in,
-              std::map< std::string, std::vector<double> > & props_data_in) : 
-    prop_key(prop_key_in), solver_id(solver_id_in), src(src_in), 
-    props_data(props_data_in) {}
+              std::map< std::string, std::vector<double> > & props_data_in,
+              CreateSource * create_source_in) : 
+    prop_key(prop_key_in), solver_id(solver_id_in), 
+    props_data(props_data_in), create_source(create_source_in) {}
 
   void operator()() const
   {
@@ -140,7 +154,7 @@ struct PropResolve : public ResolveDependency {
     std::vector<double> workspinorA(_GSI(VOLUMEPLUSRAND), 0.0);
     std::vector<double> workspinorB(_GSI(VOLUMEPLUSRAND), 0.0);
 
-    memcpy(workspinorA.data(), src.data(), _GSI(VOLUME)*sizeof(double));
+    (*create_source)(workspinorA);
 
     int exitstatus = 0;
     CHECK_EXITSTATUS_NEGATIVE(
@@ -158,10 +172,18 @@ struct PropResolve : public ResolveDependency {
     }
     memcpy( props_data[ prop_key ].data(), workspinorB.data(), _GSI(VOLUME)*sizeof(double) );
 
-
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
 #endif
+
+    if( g_write_propagator ){
+      std::string filename = prop_key + ".lime";
+      write_propagator(workspinorB.data(), filename.c_str(), 0, 64);
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
+    }
+
   }
 };
 

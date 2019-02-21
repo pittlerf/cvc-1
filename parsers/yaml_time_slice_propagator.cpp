@@ -4,6 +4,7 @@
 #include "Logger.hpp"
 #include "constants.hpp"
 #include "DependencyGraph.hpp"
+#include "SourceCreators.hpp"
 #include "yaml_time_slice_propagator.hpp"
 #include "yaml_utils.hpp"
 
@@ -25,8 +26,7 @@ void construct_time_slice_propagator(const YAML::Node &node,
                                      std::map< std::string, stoch_prop_meta_t > & props_meta,
                                      DepGraph & props_graph,
                                      std::map< std::string, std::vector<double> > & props_data,
-                                     const std::vector<double> & ranspinor,
-                                     std::vector<double> & src) 
+                                     const std::vector<double> & ranspinor)
 {
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
@@ -68,22 +68,38 @@ void construct_time_slice_propagator(const YAML::Node &node,
       // vertex for the source. Because of the way that we deal with the 
       // vertex names, these vertices are unique and multiple insertions of the same
       // vertex will leave the graph unmodified
-      Vertex src_vertex = boost::add_vertex(src_meta.key(),  props_graph);
-      props_graph[src_vertex].resolve.reset( 
-          new TimeSliceSourceResolve(src_ts, g_src, mom, src_meta.key(), ranspinor, src) ); 
+      // Vertex src_vertex = boost::add_vertex(src_meta.key(),  props_graph);
+      // props_graph[src_vertex].resolve.reset( 
+      //     new TimeSliceSourceResolve(src_ts, g_src, mom, src_meta.key(), ranspinor, src) ); 
 
-      ::cvc::stoch_prop_meta_t prop_meta(mom, node["g_src"][i].as<int>(), node["id"].as<std::string>(),
-                                       node["solver_driver"].as<std::string>(), node["solver_id"].as<int>());
+      ::cvc::stoch_prop_meta_t prop_meta(mom, 
+                                         node["g_src"][i].as<int>(),
+                                         src_ts,
+                                         node["id"].as<std::string>(),
+                                         node["solver_driver"].as<std::string>(),
+                                         node["solver_id"].as<int>());
       props_meta[prop_meta.key()] = prop_meta;
 
       // multiple insertions of the same propagator leave the graph unmodified
       Vertex prop_vertex = boost::add_vertex(prop_meta.key(), props_graph);
       props_graph[prop_vertex].resolve.reset( 
-          new PropResolve(prop_meta.key(), node["solver_id"].as<int>(), src, props_data) );
+          new PropResolve(
+            prop_meta.key(),
+            node["solver_id"].as<int>(),
+            props_data,
+            new CreateGammaTimeSliceSource(
+              src_ts,
+              node["g_src"][i].as<int>(),
+              mom,
+              src_meta.key(),
+              ranspinor)
+          ) );
       
-      // connect propagator and source with a unique edge (multiple connections
-      // leave the graph unmodified)
-      ::cvc::add_unique_edge(prop_vertex, src_vertex, props_graph); 
+      // all propagators of a given flavour (id) will be collected in one group
+      // that way, the MG setup, if any, can be used optimally
+      Vertex id_vertex = boost::add_vertex(node["id"].as<std::string>(), props_graph);
+      ::cvc::add_unique_edge(prop_vertex, id_vertex, props_graph);
+
       {
         logger << "\nAdded stoch_prop_meta_t: " << prop_meta.key();
       }
