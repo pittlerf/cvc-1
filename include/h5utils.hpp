@@ -1,6 +1,10 @@
-#include <global.h>
-#include <enums.hpp>
-#include <cvc_utils.h>
+#pragma once
+
+#include "global.h"
+#include "enums.hpp"
+#include "cvc_utils.h"
+#include "debug_printf.hpp"
+#include "constants.hpp"
 
 #ifdef HAVE_MPI
 #include <mpi.h>
@@ -29,6 +33,26 @@ namespace h5 {
       key += "/" + subpath;
     }
     return(key);
+  }
+
+  static inline std::string recursive_path_create(
+      HighFive::File & file,
+      const std::list<std::string> & path_list)
+  {
+    std::string path;
+    for( auto const & subpath : path_list ){
+      path += "/" + subpath;
+      // up until the last element, these are groups
+      // the final element is instead the name of the dataset
+      // and we will not create a group with this name
+      if( !file.exist(path) && subpath != *(--path_list.end()) ){
+        debug_printf(0, verbosity::detailed_progress,
+            "Creating H5 path %s\n", path.c_str());
+
+        file.createGroup(path);
+      }
+    }
+    return path;
   }
 
   /**
@@ -63,22 +87,13 @@ namespace h5 {
           true,
           CVC_EXIT_MPI_FAILURE);
 #else
-      std::vector<double> & buffer = data;
+      const std::vector<double> & buffer = data;
 #endif
     
       if(io_proc == 2){
         HighFive::File file(filename, HighFive::File::ReadWrite | HighFive::File::Create); 
     
-        std::string path;
-        for( auto const & subpath : path_list ){
-          path += "/" + subpath;
-          // up until the last element, these are groups
-          // the final element is instead the name of the dataset
-          // and we will not create a group with this name
-          if( !file.exist(path) && subpath != *(--path_list.end()) ){
-            file.createGroup(path);
-          }
-        }
+        std::string path = recursive_path_create(file, path_list);
         // we just attempt to create the dataset. If it already exists, things will fail
         // and HighFive will give us a useful exception
         HighFive::DataSet dataset = file.createDataSet<double>(path, HighFive::DataSpace::From(buffer));
@@ -88,6 +103,55 @@ namespace h5 {
     }
   }
 
+  static inline void write_correlators(const std::string & filename,
+      std::map< std::string, H5Correlator > & corrs)
+  {
+    const int io_proc = get_io_proc();
+
+    if(io_proc > 0){
+      std::shared_ptr<HighFive::File> file_ptr;
+      std::string path;
+      std::vector<double> buffer;
+
+      if(io_proc == 2){
+        file_ptr.reset( new HighFive::File(filename, HighFive::File::ReadWrite | HighFive::File::Create ) );
+      }
+      for( auto & elem : corrs ){
+        int elem_size = elem.second.storage.size();
+        
+        if(io_proc == 2){
+          buffer.resize( elem_size * (T_global/T) );
+          path = recursive_path_create( *(file_ptr), elem.second.path_list);
+          if( g_verbose >= verbosity::detailed_progress ){
+            std::cout << "# [write_correlators] Dataset path : " << path << std::endl;
+          }
+        }
+
+        std::vector<double> & local_data = elem.second.storage;
+#ifdef HAVE_MPI
+        int existatus;
+        CHECK_EXITSTATUS_NOT(
+            existatus,
+            MPI_SUCCESS,
+            MPI_Gather(local_data.data(), elem_size, MPI_DOUBLE, 
+                       buffer.data(), elem_size, MPI_DOUBLE, 0, g_tr_comm),
+            "[cvc::h5::write_t_dataset] Failure in MPI_Gather\n",
+            true,
+            CVC_EXIT_MPI_FAILURE);
+#else
+        buffer = data;
+#endif
+
+        if(io_proc == 2){
+          HighFive::DataSet dataset = file_ptr->createDataSet<double>(path, HighFive::DataSpace::From(buffer));
+          dataset.write(buffer);
+        }
+      } // loop over corrs
+      if( io_proc == 2 ){
+        file_ptr->flush();
+      }
+    } // if(io_proc > 0)
+  }
 
   #define H5UTILS_MAX_KEY_LENGTH 500
   

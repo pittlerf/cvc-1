@@ -15,6 +15,7 @@
 #include "mpi_init.h"
 #include "enums.hpp"
 #include "ParallelMT19937_64.hpp"
+#include "h5utils.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <string>
@@ -88,9 +89,9 @@ int main(int argc, char ** argv){
 
     char corr_h5_filename[100];
     snprintf(corr_h5_filename, 100, "corr.%04d.t%d.h5", Nconf, src_ts);
-    OutputDefinitions odefs;
+    OutputCollection odefs;
     odefs.corr_h5_filename = corr_h5_filename; 
-
+    
     DataCollection data;
     MetaCollection metas;
     metas.ranspinor = ranspinor;
@@ -132,6 +133,11 @@ int main(int argc, char ** argv){
         if( !metas.corrs_graph[v].resolved )
           descend_and_resolve<DepGraph>(v, metas.corrs_graph);
       }
+      sw.reset();
+      // write the correlators in this group to file and clear the temporary storage
+      h5::write_correlators(corr_h5_filename, odefs.corrs_data);
+      odefs.corrs_data.clear();
+      sw.elapsed_print("Correlator I/O");
     }
   }
 

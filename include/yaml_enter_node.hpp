@@ -17,7 +17,7 @@ namespace yaml {
    */
   void enter_node(const YAML::Node &node,
                   const unsigned int depth,
-                  const OutputDefinitions & odefs, 
+                  OutputCollection & odefs, 
                   MetaCollection & metas,
                   DataCollection & data);
 

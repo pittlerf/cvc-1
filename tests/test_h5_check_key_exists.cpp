@@ -2,8 +2,9 @@
 #include "global.h"
 #undef MAIN_PROGRAM
 
+#include "h5utils.hpp"
+
 #include <hdf5.h>
-#include <h5utils.h>
 
 #include <cstdio>
 #include <string>

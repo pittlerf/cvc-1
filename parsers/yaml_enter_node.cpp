@@ -6,15 +6,18 @@
 
 #include <yaml-cpp/yaml.h>
 #include <iostream>
+#include <map>
+#include <string>
 
 namespace cvc {
 namespace yaml {
 
 void enter_node(const YAML::Node &node, 
                 const unsigned int depth,
-                const OutputDefinitions & odefs,
+                OutputCollection & odefs,
                 MetaCollection & metas,
-                DataCollection & data){
+                DataCollection & data)
+{
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
 #endif
@@ -57,9 +60,9 @@ void enter_node(const YAML::Node &node,
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
           construct_oet_meson_two_point_function(it->second,
                                                  metas.mom_lists,
-                                                 odefs.corr_h5_filename,
                                                  metas.props_meta,
                                                  data.props_data,
+                                                 odefs.corrs_data,
                                                  metas.corrs_graph); 
         } else {
           char msg[200];

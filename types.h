@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <list>
 
 namespace cvc {
 
@@ -46,6 +47,16 @@ typedef struct {
 } gsp_type;
 
 typedef std::map<std::string, std::vector< mom_t > > mom_lists_t;
+
+typedef struct H5Correlator {
+  H5Correlator() {}
+  H5Correlator(const std::list<std::string> & path_list_in,
+               const size_t nelem) :
+    path_list(path_list_in), storage(nelem) {}
+
+  std::list<std::string> path_list;
+  std::vector<double> storage;
+} H5Correlator;
 
 }  /* end of namespace cvc */
 #endif

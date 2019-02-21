@@ -7,6 +7,7 @@
 #include "yaml_utils.hpp"
 #include "constants.hpp"
 #include "Logger.hpp"
+#include "types.h"
 
 #include <yaml-cpp/yaml.h>
 #include <exception>
@@ -20,9 +21,9 @@ namespace yaml {
 
 void construct_oet_meson_two_point_function(const YAML::Node &node, 
                                             mom_lists_t & mom_lists,
-                                            const std::string & output_filename,
                                             std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
                                             std::map< std::string, std::vector<double> > & props_data,
+                                            std::map< std::string, ::cvc::H5Correlator > & corrs_data, 
                                             DepGraph & g)
 {
 #ifdef HAVE_MPI
@@ -122,13 +123,16 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
 
             validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
             validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
-            
-            char subpath[100];
-            std::list<std::string> path_list;
-            snprintf(subpath, 100, "%s+-g-%s-g",
+
+            char corrtype[100];
+            snprintf(corrtype, 100, "%s+-g-%s-g",
                      node["bwd_flav"].as<std::string>().c_str(),
                      node["fwd_flav"].as<std::string>().c_str());
-            path_list.push_back(subpath);
+
+
+            char subpath[100];
+            std::list<std::string> path_list;
+            path_list.push_back(corrtype);
             snprintf(subpath, 100, "gf%d", gf[i_gf].as<int>());
             path_list.push_back(subpath);
             snprintf(subpath, 100, "pfx%dpfy%dpfz%d", pf.x, pf.y, pf.z);
@@ -138,16 +142,22 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
             snprintf(subpath, 100, "pix%dpiy%dpiz%d", pi.x, pi.y, pi.z);
             path_list.push_back(subpath);
 
-            Vertex corrvertex = add_vertex(h5::path_list_to_key(path_list), g);
+            Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
             g[corrvertex].resolve.reset( new 
                 CorrResolve(fwd_prop_key,
                             bwd_prop_key,
                             pf, 
                             gf[i_gf].as<int>(),
                             path_list,
-                            output_filename,
                             props_data,
+                            corrs_data,
                             ::cvc::complex{1.0, 0.0} ) );
+            
+
+            // adding a vertex for the correlator type allows correlators to be
+            // processed in bunches for efficient I/O
+            Vertex corrtypevertex = boost::add_vertex(std::string(corrtype), g);
+            ::cvc::add_unique_edge(corrvertex, corrtypevertex, g);
 
           } // gb
         } // gf

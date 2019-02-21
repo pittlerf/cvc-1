@@ -195,8 +195,8 @@ struct CorrResolve : public ResolveDependency {
   const std::string propkey;
   const std::string dagpropkey;
   const std::list<std::string> path_list;
-  const std::string output_filename;
   std::map< std::string, std::vector<double> > & props_data;
+  std::map< std::string, H5Correlator > & corrs_data; 
   const mom_t p;
   const int gamma;
 
@@ -205,16 +205,16 @@ struct CorrResolve : public ResolveDependency {
               const mom_t& p_in,
               const int gamma_in, 
               const std::list<std::string> & path_list_in,
-              const std::string & output_filename_in, 
-              std::map< std::string, std::vector<double> > & props_data_in, 
+              std::map< std::string, std::vector<double> > & props_data_in,
+              std::map< std::string, H5Correlator > & corrs_data_in, 
               const ::cvc::complex & normalisation_in) :
     propkey(propkey_in),
     dagpropkey(dagpropkey_in), 
     p(p_in),
     gamma(gamma_in),
     path_list(path_list_in),
-    output_filename(output_filename_in),
     props_data(props_data_in),
+    corrs_data(corrs_data_in),
     normalisation(normalisation_in) {}
 
   void operator()() const
@@ -222,24 +222,25 @@ struct CorrResolve : public ResolveDependency {
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
 #endif
+    const std::string key = h5::path_list_to_key(path_list);
+
     debug_printf(0, verbosity::resolve, 
-        "# [CorrFullfill] Contracting %s\n", h5::path_list_to_key(path_list).c_str());
+        "# [CorrFullfill] Contracting %s\n", key.c_str() );
 
     std::vector<int> mom = {p.x, p.y, p.z};
-    std::vector<double> corr(2*T);
+    if( !corrs_data.count(key) ){
+      corrs_data.emplace( std::make_pair(key,
+                                         H5Correlator(path_list, 2*T) ) );
+    }
+
     Stopwatch sw(g_cart_grid);
     contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
-        corr.data(), gamma, mom.data(), props_data[ dagpropkey ].data(),
+        corrs_data[key].storage.data(), 
+        gamma, mom.data(), props_data[ dagpropkey ].data(),
         props_data[ propkey ].data());
-    scale_cplx( corr.data(), T, normalisation );
+    scale_cplx( corrs_data[key].storage.data(), T, normalisation );
     if(g_verbose >= verbosity::resolve){
       sw.elapsed_print_and_reset("contract_twopoint_gamma5_gamma_snk_only_snk_momentum local current and normalisation");
-    }
-    
-    sw.reset();
-    h5::write_t_dataset(output_filename, path_list, corr);
-    if( g_verbose >= verbosity::resolve ){
-      sw.elapsed_print("write_t_data in CorrFullFill");
     }
 
 #ifdef HAVE_MPI
@@ -281,7 +282,7 @@ static inline void descend_and_resolve(typename boost::graph_traits<Graph>::vert
       descend_and_resolve( boost::target(*e, g), g );
     }
 
-  debug_printf(0,verbosity::resolve,"# [descend_and_resolve] Came up the hierarchy, ready to resolve depdency!\n");
+  debug_printf(0,verbosity::resolve,"# [descend_and_resolve] Came up the hierarchy, ready to resolve depedency!\n");
 
   // in any case, when we come back here, we are ready to resolve
   //if( g[v].resolved == false ){
