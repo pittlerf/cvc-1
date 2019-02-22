@@ -192,8 +192,12 @@ struct CovDevResolve : public ResolveDependency {
   int dir;
   int dim;
 
-  CovDevResolve(const std::string& _spinor_key, const int _dir, const int _dim) :
-    spinor_key(_spinor_key), dir(_dir), dim(_dim) {}
+  CovDevResolve(const std::string& spinor_key_in, 
+                const int dir_in,
+                const int dim_in) :
+    spinor_key(spinor_key_in),
+    dir(dir_in),
+    dim(dim_in) {}
 
   void operator()() const
   {

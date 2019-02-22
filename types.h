@@ -58,5 +58,10 @@ typedef struct H5Correlator {
   std::vector<double> storage;
 } H5Correlator;
 
+typedef struct deriv_t {
+  int dim;
+  int dir; 
+} deriv_t;
+
 }  /* end of namespace cvc */
 #endif

@@ -17,6 +17,7 @@ void construct_oet_meson_three_point_function(
     std::map< std::string, std::vector<double> > & props_data,
     std::map< std::string, ::cvc::H5Correlator > & corrs_data,
     std::map< std::string, std::vector<double> > & seq_props_data,
+    std::map< std::string, std::vector<double> > & deriv_props_data,
     DepGraph & g);
 
 } // namespace(yaml)

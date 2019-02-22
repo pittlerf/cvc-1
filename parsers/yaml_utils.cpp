@@ -148,5 +148,6 @@ void check_missing_nodes(
   }
 }
 
+
 } // namespace(yaml)
 } // namespace(cvc)

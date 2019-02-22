@@ -8,6 +8,7 @@
 #include "constants.hpp"
 #include "Logger.hpp"
 #include "types.h"
+#include "deriv_tools.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <exception>
@@ -27,6 +28,7 @@ void construct_oet_meson_three_point_function(
     std::map< std::string, std::vector<double> > & props_data,
     std::map< std::string, ::cvc::H5Correlator > & corrs_data,
     std::map< std::string, std::vector<double> > & seq_props_data,
+    std::map< std::string, std::vector<double> > & deriv_props_data,
     DepGraph & g)
 {
 #ifdef HAVE_MPI
@@ -146,90 +148,221 @@ void construct_oet_meson_three_point_function(
                       std::endl;
                   }
 
-                  std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
-                                                                  gi[i_gi].as<int>(),
-                                                                  src_ts,
-                                                                  node["fwd_flav"].as<std::string>()));
+                  std::vector< std::vector<deriv_t> > deriv_chains;
+                  deriv_chains = create_derivatives(0, Dc[i_Dc].as<int>(), deriv_chains);
+                  
+                  if( deriv_chains.size() == 0 ){
+                    std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
+                                                                    gi[i_gi].as<int>(),
+                                                                    src_ts,
+                                                                    node["fwd_flav"].as<std::string>()));
 
-                  std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
-                                                                  gb[i_gb].as<int>(),
-                                                                  src_ts,
-                                                                  node["bwd_flav"].as<std::string>()));
+                    std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
+                                                                    gb[i_gb].as<int>(),
+                                                                    src_ts,
+                                                                    node["bwd_flav"].as<std::string>()));
 
-                  validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
-                  validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
+                    validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
+                    validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
 
-                  ::cvc::seq_stoch_prop_meta_t seq_prop(mom_xchange,
-                                                        gf[i_gf].as<int>(),
-                                                        (src_ts + dt + T_global) % T_global,
-                                                        src_ts,
-                                                        node["seq_flav"].as<std::string>(),
-                                                        pi,
-                                                        gb[i_gb].as<int>(),
-                                                        node["bwd_flav"].as<std::string>()
-                                                        );
+                    ::cvc::seq_stoch_prop_meta_t seq_prop(mom_xchange,
+                                                          gf[i_gf].as<int>(),
+                                                          (src_ts + dt + T_global) % T_global,
+                                                          src_ts,
+                                                          node["seq_flav"].as<std::string>(),
+                                                          pi,
+                                                          gb[i_gb].as<int>(),
+                                                          node["bwd_flav"].as<std::string>()
+                                                          );
 
-                  const std::string seq_prop_key = seq_prop.key();
+                    const std::string seq_prop_key = seq_prop.key();
 
-                  char seq_src_string[200];
-                  snprintf(seq_src_string, 200, "g%d_px%dpy%dpz%d::ts%d::%s",
-                      gf[i_gf].as<int>(), pf.x, pf.y, pf.z,
-                      seq_src_ts,
-                      bwd_prop_key.c_str());
-                  const std::string seq_src_key(seq_src_string);
+                    char seq_src_string[200];
+                    snprintf(seq_src_string, 200, "g%d_px%dpy%dpz%d::ts%d::%s",
+                        gf[i_gf].as<int>(), pf.x, pf.y, pf.z,
+                        seq_src_ts,
+                        bwd_prop_key.c_str());
+                    const std::string seq_src_key(seq_src_string);
 
-                  Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, g);
-                  g[seq_prop_vertex].resolve.reset( new PropResolve(
-                        seq_prop_key,
-                        node["seq_solver_id"].as<int>(),
-                        seq_props_data,
-                        new CreateSequentialGammaTimeSliceSource(
-                          src_ts,
+                    Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, g);
+                    g[seq_prop_vertex].resolve.reset( new PropResolve(
+                          seq_prop_key,
+                          node["seq_solver_id"].as<int>(),
+                          seq_props_data,
+                          new CreateSequentialGammaTimeSliceSource(
+                            src_ts,
+                            seq_src_ts,
+                            gf[i_gf].as<int>(),
+                            pf,
+                            seq_src_key,
+                            bwd_prop_key,
+                            props_data) ) );
+
+                    char corrtype[100];
+                    snprintf(corrtype, 100, "s%s%s+-g-%s-g",
+                             node["bwd_flav"].as<std::string>().c_str(),
+                             node["seq_flav"].as<std::string>().c_str(),
+                             node["fwd_flav"].as<std::string>().c_str());
+
+                    char subpath[100];
+                    std::list<std::string> path_list;
+                    path_list.push_back(corrtype);
+                    snprintf(subpath, 100, "t%d", src_ts);
+                    path_list.push_back(subpath);
+                    snprintf(subpath, 100, "dt%d", dt);
+                    path_list.push_back(subpath);
+                    snprintf(subpath, 100, "gf%d", gf[i_gf].as<int>());
+                    path_list.push_back(subpath);
+                    snprintf(subpath, 100, "pfx%dpfy%dpfz%d", pf.x, pf.y, pf.z);
+                    path_list.push_back(subpath);
+                    snprintf(subpath, 100, "gc%d", gc[i_gc].as<int>());
+                    path_list.push_back(subpath); 
+                    snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
+                    path_list.push_back(subpath);
+                    snprintf(subpath, 100, "pix%dpiy%dpiz%d", pi.x, pi.y, pi.z);
+                    path_list.push_back(subpath);
+
+                    Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
+                    ::cvc::add_unique_edge(corrvertex, seq_prop_vertex, g);
+
+                    // for the three point function, the forward and daggered propagator
+                    // are in separate maps
+                    g[corrvertex].resolve.reset( new 
+                        CorrResolve(fwd_prop_key,
+                                    seq_prop_key,
+                                    mom_xchange, 
+                                    gc[i_gc].as<int>(),
+                                    path_list,
+                                    props_data,
+                                    seq_props_data,
+                                    corrs_data,
+                                    ::cvc::complex{1.0, 0.0} ) );
+                  
+                  } else { // if( deriv_chains.size() > 0 )
+                  
+                    for( auto const & deriv_chain : deriv_chains ){
+                      std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
+                                                                      gi[i_gi].as<int>(),
+                                                                      src_ts,
+                                                                      node["fwd_flav"].as<std::string>()));
+
+                      std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
+                                                                      gb[i_gb].as<int>(),
+                                                                      src_ts,
+                                                                      node["bwd_flav"].as<std::string>()));
+
+                      validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
+                      validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
+
+                      ::cvc::seq_stoch_prop_meta_t seq_prop(mom_xchange,
+                                                            gf[i_gf].as<int>(),
+                                                            (src_ts + dt + T_global) % T_global,
+                                                            src_ts,
+                                                            node["seq_flav"].as<std::string>(),
+                                                            pi,
+                                                            gb[i_gb].as<int>(),
+                                                            node["bwd_flav"].as<std::string>()
+                                                            );
+
+                      const std::string seq_prop_key = seq_prop.key();
+
+                      char seq_src_string[200];
+                      snprintf(seq_src_string, 200, "g%d_px%dpy%dpz%d::ts%d::%s",
+                          gf[i_gf].as<int>(), pf.x, pf.y, pf.z,
                           seq_src_ts,
-                          gf[i_gf].as<int>(),
-                          pf,
-                          seq_src_key,
-                          bwd_prop_key,
-                          props_data) ) );
+                          bwd_prop_key.c_str());
+                      const std::string seq_src_key(seq_src_string);
 
-                  char corrtype[100];
-                  snprintf(corrtype, 100, "s%s%s+-g-%s-g",
-                           node["bwd_flav"].as<std::string>().c_str(),
-                           node["seq_flav"].as<std::string>().c_str(),
-                           node["fwd_flav"].as<std::string>().c_str());
+                      Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, g);
+                      g[seq_prop_vertex].resolve.reset( new PropResolve(
+                            seq_prop_key,
+                            node["seq_solver_id"].as<int>(),
+                            seq_props_data,
+                            new CreateSequentialGammaTimeSliceSource(
+                              src_ts,
+                              seq_src_ts,
+                              gf[i_gf].as<int>(),
+                              pf,
+                              seq_src_key,
+                              bwd_prop_key,
+                              props_data) ) );
 
-                  char subpath[100];
-                  std::list<std::string> path_list;
-                  path_list.push_back(corrtype);
-                  snprintf(subpath, 100, "t%d", src_ts);
-                  path_list.push_back(subpath);
-                  snprintf(subpath, 100, "dt%d", dt);
-                  path_list.push_back(subpath);
-                  snprintf(subpath, 100, "gf%d", gf[i_gf].as<int>());
-                  path_list.push_back(subpath);
-                  snprintf(subpath, 100, "pfx%dpfy%dpfz%d", pf.x, pf.y, pf.z);
-                  path_list.push_back(subpath);
-                  snprintf(subpath, 100, "gc%d", gc[i_gc].as<int>());
-                  path_list.push_back(subpath); 
-                  snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
-                  path_list.push_back(subpath);
-                  snprintf(subpath, 100, "pix%dpiy%dpiz%d", pi.x, pi.y, pi.z);
-                  path_list.push_back(subpath);
+                      char corrtype[100];
+                      snprintf(corrtype, 100, "s%s%s+-g-%s-g",
+                               node["bwd_flav"].as<std::string>().c_str(),
+                               node["seq_flav"].as<std::string>().c_str(),
+                               node["fwd_flav"].as<std::string>().c_str());
 
-                  Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
-                  ::cvc::add_unique_edge(corrvertex, seq_prop_vertex, g);
-                  // for the three point function, the forward and daggered propagator
-                  // are in separate maps
-                  g[corrvertex].resolve.reset( new 
-                      CorrResolve(fwd_prop_key,
-                                  seq_prop_key,
-                                  mom_xchange, 
-                                  gc[i_gc].as<int>(),
-                                  path_list,
-                                  props_data,
-                                  seq_props_data,
-                                  corrs_data,
-                                  ::cvc::complex{1.0, 0.0} ) );
+                      char subpath[100];
+                      std::list<std::string> path_list;
+                      path_list.push_back(corrtype);
+                      snprintf(subpath, 100, "t%d", src_ts);
+                      path_list.push_back(subpath);
+                      snprintf(subpath, 100, "dt%d", dt);
+                      path_list.push_back(subpath);
+                      snprintf(subpath, 100, "gf%d", gf[i_gf].as<int>());
+                      path_list.push_back(subpath);
+                      snprintf(subpath, 100, "pfx%dpfy%dpfz%d", pf.x, pf.y, pf.z);
+                      path_list.push_back(subpath);
+                      snprintf(subpath, 100, "gc%d", gc[i_gc].as<int>());
+                      path_list.push_back(subpath);
+                      for( auto const & deriv : deriv_chain ){
+                        snprintf(subpath, 100, "Ddim%d:dir%d", deriv.dim, deriv.dir);
+                        path_list.push_back(subpath);
+                      }
+                      snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
+                      path_list.push_back(subpath);
+                      snprintf(subpath, 100, "pix%dpiy%dpiz%d", pi.x, pi.y, pi.z);
+                      path_list.push_back(subpath);
+
+                      Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
+                      ::cvc::add_unique_edge(corrvertex, seq_prop_vertex, g);
+
+                      // add the various derivative vertices
+                      std::vector<Vertex> deriv_vertices;
+                      std::string deriv_prop_key = fwd_prop_key;
+                      for( auto const & deriv : deriv_chain ){
+                        char deriv_prop_string[200];
+                        snprintf(deriv_prop_string, 200,
+                            "Ddim%d:dir%d::%s", deriv.dim, deriv.dir, deriv_prop_key.c_str());
+
+                        std::string new_deriv_prop_key(deriv_prop_string);
+                        Vertex deriv_vertex = boost::add_vertex(new_deriv_prop_key, g);
+                        g[deriv_vertex].resolve.reset( new CovDevResolve(
+                              deriv_prop_key, deriv.dir, deriv.dim) );
+                        deriv_vertices.push_back( deriv_vertex );
+                        deriv_prop_key = new_deriv_prop_key;
+                      }
+                      // now connect the correlator and the derivatives 
+                      for(std::vector<Vertex>::reverse_iterator rit = deriv_vertices.rbegin();
+                          rit != deriv_vertices.rend(); ++rit  ){
+                        // only the very highest derivative is directly connected to the correlator
+                        if( rit == deriv_vertices.rbegin() ){
+                          ::cvc::add_unique_edge(corrvertex, *rit, g);
+                        }
+                        // while all derivatives are connected to each other up until the lowest derivative
+                        if( rit+1 != deriv_vertices.rend() ){
+                          ::cvc::add_unique_edge(*rit, *(rit+1), g);
+                        }
+                        // note that if other correlators get connected to some of the lower derivatives
+                        // from here, the graph will be correctly connected and the processing order will
+                        // be correct
+                      }
+
+                      // for the three point function, the forward and daggered propagator
+                      // are in separate maps
+                      g[corrvertex].resolve.reset( new 
+                          CorrResolve(deriv_prop_key,
+                                      seq_prop_key,
+                                      mom_xchange, 
+                                      gc[i_gc].as<int>(),
+                                      path_list,
+                                      deriv_props_data,
+                                      seq_props_data,
+                                      corrs_data,
+                                      ::cvc::complex{1.0, 0.0} ) );
+                    } // end of for( deriv_chain in deriv_chains )
+                  } // end of if( deriv_chains.size() > 0 ) 
                   
 
         //          // adding a vertex for the correlator type allows correlators to be
