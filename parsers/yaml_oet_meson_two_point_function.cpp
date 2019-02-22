@@ -39,32 +39,30 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
     logger << std::endl;
   }
 
-  validate_nodetype(node, 
-                    std::vector<YAML::NodeType::value>{YAML::NodeType::Map},
-                    "OetMesonTwoPointFunction" );
-  
-  if( !node["id"] || !node["fwd_flav"] || !node["bwd_flav"] || !node["gi"] || !node["gf"] || !node["gb"] ||
-      !node["Pi"] || !node["Pf"] || !node["momentum_conservation"] || !node["dirac_join"] ){
-    throw( std::invalid_argument("for 'OetMesonTwoPointFunction', the properties 'id', 'fwd_flav', "
-                                 "'bwd_flav', 'gi', 'gf', 'gb', 'Pi', 'Pf', 'momentum_conservation' and "
-                                 "'dirac_join' must be defined!\n") );
-  }
-  
-  for( const std::string name : {"id", "fwd_flav", "bwd_flav", "momentum_conservation", 
-                                 "dirac_join", "Pi", "Pf"} ){
-    validate_nodetype(node[name],
-                      std::vector<YAML::NodeType::value>{YAML::NodeType::Scalar}, 
-                      name);
+  validate_nodetype(node, YAML::NodeType::Map, "OetMesonTwoPointFunction" );
+
+  static const std::vector<std::string> required_nodes{
+    "id", "fwd_flav", "bwd_flav", "gi", "gf", "gb", "Pi", "Pf",
+    "momentum_conservation", "dirac_join" };
+  static const std::vector<std::string> scalar_nodes{
+    "id", "fwd_flav", "bwd_flav", "Pi", "Pf",
+    "momentum_conservation", "dirac_join" };
+  static const std::vector<std::string> sequence_nodes{
+    "gi", "gf", "gb" };
+
+  check_missing_nodes(node, required_nodes, 
+      "construct_oet_meson_two_point_function", "OetMesonTwoPointFunction");
+ 
+  for( auto const & name : scalar_nodes ){ 
+    validate_nodetype(node[name], YAML::NodeType::Scalar, name);
     if( name == "momentum_conservation" ){
       validate_bool(node[name].as<std::string>(), name);
     } else if ( name == "dirac_join" ){
       validate_join(node[name].as<std::string>(), name);
     }
   }
-  for( const auto & name : {"gi", "gf", "gb"} ){
-    validate_nodetype(node[name], 
-                      std::vector<YAML::NodeType::value>{YAML::NodeType::Sequence}, 
-                      name);
+  for( const auto & name : sequence_nodes ){
+    validate_nodetype(node[name], YAML::NodeType::Sequence, name);
   }
   for( const auto & name : {"Pi", "Pf"} ){
     validate_mom_lists_key(mom_lists, node[name].as<std::string>(), name,
@@ -85,7 +83,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
       {
         std::vector<int> pivec{ pi.x, pi.y, pi.z };
         std::vector<int> pfvec{ pf.x, pf.y, pf.z };
-        logger << "Momentum: (" << pivec[0];
+        logger << "# [construct_oet_meson_two_point_function] Momentum: (" << pivec[0];
         for( size_t i_pi = 1; i_pi < pivec.size(); ++i_pi ){
           if( i_pi < 3 ) logger << ",";
           logger << pivec[i_pi];
@@ -111,7 +109,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
         for( size_t i_gf = 0; i_gf < gf.size(); ++i_gf ){
           for( size_t i_gb = 0; i_gb < gb.size(); ++i_gb ){
             {
-              logger << "Dirac: (" << gf[i_gf].as<int>() << 
+              logger << "# [construct_oet_meson_two_point_function] Dirac: (" << gf[i_gf].as<int>() << 
                 "," << gi[i_gi].as<int>() << ")  ";
               logger << "BwdDirac: " << gb[i_gb].as<int>() << std::endl;
             }
@@ -148,12 +146,15 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
             path_list.push_back(subpath);
 
             Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
+            // for the two point function, both propagators are stored in the same
+            // map
             g[corrvertex].resolve.reset( new 
                 CorrResolve(fwd_prop_key,
                             bwd_prop_key,
                             pf, 
                             gf[i_gf].as<int>(),
                             path_list,
+                            props_data,
                             props_data,
                             corrs_data,
                             ::cvc::complex{1.0, 0.0} ) );

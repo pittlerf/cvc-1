@@ -32,37 +32,42 @@ void construct_time_slice_propagator(const YAML::Node &node,
   MPI_Barrier(g_cart_grid);
 #endif
   ::cvc::Logger logger(0, verbosity::input_relay, std::cout);
+  ::cvc::Logger all_logger(0, 0, std::cout);
 
   validate_nodetype(node, YAML::NodeType::Map, "TimeSlicePropagator");
+
+  static const std::vector<std::string> required_nodes {
+    "id", "solver_id", "solver_driver", "g", "P" };
+  static const std::vector<std::string> scalar_nodes {
+    "id", "solver_id", "solver_driver", "P" };
+  static const std::vector<std::string> sequence_nodes {
+    "g" };
   
-  if( !(node["id"]) || !(node["solver_id"]) || !(node["solver_driver"]) ||
-      !(node["g_src"]) || !(node["P_src"]) ){
-    throw( std::invalid_argument("for TimeSlicePropagator, the properties 'id', 'solver_id',"
-                                 " 'solver_driver', 'g_src' and 'P_src' must be defined!\n") );
-  }
-  for( const std::string name : {"id", "solver_id", "solver_driver", "P_src"} ){
+  check_missing_nodes(node, required_nodes, "construct_time_slice_propagator", "TimeSlicePropagator");
+  
+  for( const std::string name : {"id", "solver_id", "solver_driver", "P"} ){
     validate_nodetype(node[name], YAML::NodeType::Scalar, name);
   }
-  validate_nodetype(node["g_src"], YAML::NodeType::Sequence, "g_src");
+  validate_nodetype(node["g"], YAML::NodeType::Sequence, "g");
 
   {
     for(YAML::const_iterator it = node.begin(); it != node.end(); ++it){
       logger << "\n  " << it->first << ": " << it->second;
     }
   }
-  if( !mom_lists.count( node["P_src"].as<std::string>() ) ){
+  if( !mom_lists.count( node["P"].as<std::string>() ) ){
     char msg[200];
     snprintf(msg, 200,
              "The momentum list '%s' does not seem to exist!\n",
-             node["P_src"].as<std::string>().c_str() );
+             node["P"].as<std::string>().c_str() );
     throw( std::invalid_argument(msg) );
   }
-  const std::string momlist_key = node["P_src"].as<std::string>();
+  const std::string momlist_key = node["P"].as<std::string>();
   for( auto & mom : mom_lists[ momlist_key ] ){
-    for(size_t i = 0; i < node["g_src"].size(); ++i){
-      int g_src = node["g_src"][i].as<int>();
+    for(size_t i = 0; i < node["g"].size(); ++i){
+      int g = node["g"][i].as<int>();
 
-      ts_stoch_src_meta_t src_meta(mom, g_src, src_ts);
+      ts_stoch_src_meta_t src_meta(mom, g, src_ts);
       srcs_meta[src_meta.key()] = src_meta;
 
       // vertex for the source. Because of the way that we deal with the 
@@ -70,10 +75,10 @@ void construct_time_slice_propagator(const YAML::Node &node,
       // vertex will leave the graph unmodified
       // Vertex src_vertex = boost::add_vertex(src_meta.key(),  props_graph);
       // props_graph[src_vertex].resolve.reset( 
-      //     new TimeSliceSourceResolve(src_ts, g_src, mom, src_meta.key(), ranspinor, src) ); 
+      //     new TimeSliceSourceResolve(src_ts, g, mom, src_meta.key(), ranspinor, src) ); 
 
       ::cvc::stoch_prop_meta_t prop_meta(mom, 
-                                         node["g_src"][i].as<int>(),
+                                         node["g"][i].as<int>(),
                                          src_ts,
                                          node["id"].as<std::string>(),
                                          node["solver_driver"].as<std::string>(),
@@ -89,7 +94,7 @@ void construct_time_slice_propagator(const YAML::Node &node,
             props_data,
             new CreateGammaTimeSliceSource(
               src_ts,
-              node["g_src"][i].as<int>(),
+              node["g"][i].as<int>(),
               mom,
               src_meta.key(),
               ranspinor)

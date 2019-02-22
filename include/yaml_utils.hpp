@@ -26,6 +26,11 @@ namespace yaml {
                          const std::string & key,
                          const std::string & quarkline_name,
                          const std::string & object_name);
+
+  void check_missing_nodes(const YAML::Node & node,
+                           const std::vector<std::string> & required_nodes,
+                           const std::string & function_name,
+                           const std::string & object_name );
   
   void validate_bool(const std::string & str, const std::string & name);
   void validate_join(const std::string & str, const std::string & name);

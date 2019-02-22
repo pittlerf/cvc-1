@@ -122,7 +122,7 @@ typedef struct seq_stoch_prop_meta_t
   {
     return key(p, gamma, seq_src_ts, flav);
   }
-
+  
   std::string key(const mom_t & p_in,
                   const int gamma_in,
                   const int seq_src_ts_in,
@@ -130,7 +130,7 @@ typedef struct seq_stoch_prop_meta_t
   {
     char temp[100];
     snprintf(temp, 100,
-             "f%s_g%d_px%dpy%dpz%d::ts%d_",
+             "f%s_g%d_px%dpy%dpz%d::ts%d::",
              flav_in.c_str(), gamma_in, p_in.x, p_in.y, p_in.z, seq_src_ts_in);
     return( (std::string(temp)+src_prop.key()) );
   }
@@ -282,6 +282,7 @@ typedef struct MetaCollection {
 
   int src_ts;
   std::map<std::string, stoch_prop_meta_t> props_meta;
+  std::map<std::string, seq_stoch_prop_meta_t> seq_props_data;
   std::map<std::string, ts_stoch_src_meta_t> srcs_meta;
   DepGraph props_graph;
   
@@ -290,6 +291,8 @@ typedef struct MetaCollection {
 
 typedef struct DataCollection {
   std::map<std::string, std::vector<double> > props_data;
+  std::map<std::string, std::vector<double> > seq_props_data;
+  std::map<std::string, std::vector<double> > deriv_props_data;
 } DataCollection;
 
 typedef struct OutputCollection {

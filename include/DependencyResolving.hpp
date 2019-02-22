@@ -218,6 +218,7 @@ struct CorrResolve : public ResolveDependency {
   const std::string dagpropkey;
   const std::list<std::string> path_list;
   std::map< std::string, std::vector<double> > & props_data;
+  std::map< std::string, std::vector<double> > & dag_props_data;
   std::map< std::string, H5Correlator > & corrs_data; 
   const mom_t p;
   const int gamma;
@@ -228,6 +229,7 @@ struct CorrResolve : public ResolveDependency {
               const int gamma_in, 
               const std::list<std::string> & path_list_in,
               std::map< std::string, std::vector<double> > & props_data_in,
+              std::map< std::string, std::vector<double> > & dag_props_data_in,
               std::map< std::string, H5Correlator > & corrs_data_in, 
               const ::cvc::complex & normalisation_in) :
     propkey(propkey_in),
@@ -236,6 +238,7 @@ struct CorrResolve : public ResolveDependency {
     gamma(gamma_in),
     path_list(path_list_in),
     props_data(props_data_in),
+    dag_props_data(dag_props_data_in),
     corrs_data(corrs_data_in),
     normalisation(normalisation_in) {}
 
@@ -247,18 +250,23 @@ struct CorrResolve : public ResolveDependency {
     const std::string key = h5::path_list_to_key(path_list);
 
     debug_printf(0, verbosity::resolve, 
-        "# [CorrFullfill] Contracting %s\n", key.c_str() );
+        "# [CorrFullfill] Contracting [(%s)+ | g%d px%dpy%dpz%d | %s] to form %s\n",
+        dagpropkey.c_str(), 
+        gamma, p.x, p.y, p.z,
+        propkey.c_str(), key.c_str() );
 
-    std::vector<int> mom = {p.x, p.y, p.z};
     if( !corrs_data.count(key) ){
       corrs_data.emplace( std::make_pair(key,
                                          H5Correlator(path_list, 2*T) ) );
     }
 
     Stopwatch sw(g_cart_grid);
+    const std::vector<int> mom = {p.x, p.y, p.z};
     contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
         corrs_data[key].storage.data(), 
-        gamma, mom.data(), props_data[ dagpropkey ].data(),
+        gamma,
+        mom.data(),
+        dag_props_data[ dagpropkey ].data(),
         props_data[ propkey ].data());
     scale_cplx( corrs_data[key].storage.data(), T, normalisation );
     if(g_verbose >= verbosity::resolve){

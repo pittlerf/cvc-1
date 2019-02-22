@@ -107,8 +107,9 @@ int main(int argc, char ** argv){
     logger << std::endl;
 
     debug_printf(0,verbosity::memory_info,
-                 "# [correlators] [MEMORY_INFO] Memory required for %d basic propagators, %.2f GB\n",
-                 metas.props_meta.size(), 
+                 "# [correlators] [MEMORY_INFO] Memory required for %d basic propagator%s: %.2f GB\n",
+                 metas.props_meta.size(),
+                 metas.props_meta.size() > 1 ? "s" : "",
                  (double)metas.props_meta.size()*sizeof(double)*_GSI(g_nproc*VOLUME)*1.0e-9);
 
     boost::property_map<DepGraph, std::string VertexProperties::*>::type name_map = 
@@ -136,6 +137,12 @@ int main(int argc, char ** argv){
           descend_and_resolve<DepGraph>(v, metas.corrs_graph);
       }
       sw.reset();
+      // the sequential propagators that were generated for this connected set are
+      // no longer required
+      data.seq_props_data.clear();
+      // the covariantly shifted propagators that were generated for this connected set are
+      // no longer required
+      data.deriv_props_data.clear();
       // write the correlators in this group to file and clear the temporary storage
       h5::write_correlators(corr_h5_filename, odefs.corrs_data);
       sw.elapsed_print("Correlator I/O");

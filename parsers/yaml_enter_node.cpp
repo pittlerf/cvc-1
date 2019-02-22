@@ -53,18 +53,35 @@ void enter_node(const YAML::Node &node,
         if( it->first.as<std::string>() == "MomentumList" ){
           construct_momentum_list(it->second, metas.mom_lists );
         } else if ( it->first.as<std::string>() == "TimeSlicePropagator" ){
-          construct_time_slice_propagator(it->second, metas.src_ts, metas.mom_lists, 
-                                          metas.srcs_meta, metas.props_meta, metas.props_graph,
-                                          data.props_data,
-                                          *(metas.ranspinor));
+          construct_time_slice_propagator(
+              it->second,
+              metas.src_ts,
+              metas.mom_lists, 
+              metas.srcs_meta,
+              metas.props_meta,
+              metas.props_graph,
+              data.props_data,
+              *(metas.ranspinor));
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
-          construct_oet_meson_two_point_function(it->second,
-                                                 metas.mom_lists,
-                                                 metas.src_ts,
-                                                 metas.props_meta,
-                                                 data.props_data,
-                                                 odefs.corrs_data,
-                                                 metas.corrs_graph); 
+          construct_oet_meson_two_point_function(
+              it->second,
+              metas.mom_lists,
+              metas.src_ts,
+              metas.props_meta,
+              data.props_data,
+              odefs.corrs_data,
+              metas.corrs_graph);
+        } else if ( it->first.as<std::string>() == "OetMesonThreePointFunction" ){
+          construct_oet_meson_three_point_function(
+              it->second,
+              metas.mom_lists,
+              metas.src_ts,
+              metas.props_meta,
+              data.props_data,
+              odefs.corrs_data,
+              data.seq_props_data,
+              metas.corrs_graph
+              );
         } else {
           char msg[200];
           snprintf(msg, 200,
