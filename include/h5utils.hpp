@@ -47,7 +47,7 @@ namespace h5 {
       // and we will not create a group with this name
       if( !file.exist(path) && subpath != *(--path_list.end()) ){
         debug_printf(0, verbosity::detailed_progress,
-            "Creating H5 path %s\n", path.c_str());
+            "# [cvc::h5::recursive_path_create] Creating H5 path %s\n", path.c_str());
 
         file.createGroup(path);
       }
@@ -123,7 +123,7 @@ namespace h5 {
           buffer.resize( elem_size * (T_global/T) );
           path = recursive_path_create( *(file_ptr), elem.second.path_list);
           if( g_verbose >= verbosity::detailed_progress ){
-            std::cout << "# [write_correlators] Dataset path : " << path << std::endl;
+            std::cout << "# [cvc::h5::write_correlators] Dataset path : " << path << std::endl;
           }
         }
 
@@ -181,7 +181,7 @@ namespace h5 {
       char message[500];
       snprintf(message, 
                500, 
-               "[h5_check_key_exists] length of key exceeds %d characters. %s line %d", 
+               "[cvc::h5::check_key_exists] length of key exceeds %d characters. %s line %d", 
                H5UTILS_MAX_KEY_LENGTH, __FILE__, __LINE__);
       EXIT_WITH_MSG(CVC_EXIT_H5_KEY_LENGTH, message);
     }
