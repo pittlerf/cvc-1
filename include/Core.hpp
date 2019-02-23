@@ -183,7 +183,7 @@ class Core {
         // tmLQCD initialises either QMP or MPI and chooses the thread level
         // which is requested at initialisation
         #ifdef HAVE_TMLQCD_LIBWRAPPER
-        status = tmLQCD_init_parallel_and_read_input(argc, argv, 1, "tmLQCD.input");
+        status = tmLQCD_init_parallel_and_read_input(argc, argv, 1, "invert.input");
         if(status == 0){
           core_tmLQCD_initialised = true;
           core_mpi_initialised = true;
@@ -213,7 +213,6 @@ class Core {
 
     void init(int argc, char ** argv){
       int status;
-      read_input_parser( cmd_options["input_filename"].as<std::string>().c_str() );
       
 #ifdef HAVE_TMLQCD_LIBWRAPPER
       status = tmLQCD_invert_init(argc, argv, 1, 0);
@@ -234,6 +233,8 @@ class Core {
         return;
       }
 #endif
+      read_input_parser( cmd_options["input_filename"].as<std::string>().c_str() );
+      
       mpi_init(argc, argv);
       mpi_initialised = true;
 

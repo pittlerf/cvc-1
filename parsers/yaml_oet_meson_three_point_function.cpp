@@ -93,7 +93,10 @@ void construct_oet_meson_three_point_function(
 
     for( const auto & pi : mom_lists[ node["Pi"].as<std::string>() ] ){
       for( const auto & pf : mom_lists[ node["Pf"].as<std::string>() ] ){
-        mom_t mom_xchange{ -(pi.x+pf.x), -(pi.y+pf.y), -(pi.z+pf.z) };
+        const mom_t mom_xchange{ -(pi.x+pf.x), -(pi.y+pf.y), -(pi.z+pf.z) };
+        // we have to be careful, the sequential propagator is daggered as a whole and so
+        // the momentum that is actually injected must be supplied with a minus sign
+        const mom_t pseq{ -pf.x, -pf.y, -pf.z };
         if( node["momentum_exchange"].as<std::string>() == "false" ){
           if( mom_xchange.x != 0 || mom_xchange.y != 0 || mom_xchange.z != 0 ){
             continue;
@@ -165,7 +168,10 @@ void construct_oet_meson_three_point_function(
                     validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
                     validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
 
-                    ::cvc::seq_stoch_prop_meta_t seq_prop(mom_xchange,
+                    // we have to be careful here too as the Dirac structure will be implicitly daggered
+                    // when the sequential propagator is contracted with the forward propagator
+                    // -> there may be additional signs or phase changes
+                    ::cvc::seq_stoch_prop_meta_t seq_prop(pseq,
                                                           gf[i_gf].as<int>(),
                                                           (src_ts + dt + T_global) % T_global,
                                                           src_ts,
@@ -177,9 +183,12 @@ void construct_oet_meson_three_point_function(
 
                     const std::string seq_prop_key = seq_prop.key();
 
+                    // we have to be careful, the sequential propagator is daggered as a whole and so
+                    // the momentum that is actually injected must be supplied with a minus sign
+                    // -> pseq = -pf
                     char seq_src_string[200];
                     snprintf(seq_src_string, 200, "g%d_px%dpy%dpz%d::ts%d::%s",
-                        gf[i_gf].as<int>(), pf.x, pf.y, pf.z,
+                        gf[i_gf].as<int>(), pseq.x, pseq.y, pseq.z,
                         seq_src_ts,
                         bwd_prop_key.c_str());
                     const std::string seq_src_key(seq_src_string);
@@ -193,7 +202,7 @@ void construct_oet_meson_three_point_function(
                             src_ts,
                             seq_src_ts,
                             gf[i_gf].as<int>(),
-                            pf,
+                            pseq,
                             seq_src_key,
                             bwd_prop_key,
                             props_data) ) );
@@ -227,6 +236,9 @@ void construct_oet_meson_three_point_function(
 
                     // for the three point function, the forward and daggered propagator
                     // are in separate maps
+                    // note that when the sequentail and forward propagators are contracted
+                    // the gamma5 from gamma5-hermiticity is explicitly included
+                    // in the contraction routine contract_twopoint_gamma5_gamma_snk_only_snk_momentum 
                     g[corrvertex].resolve.reset( new 
                         CorrResolve(fwd_prop_key,
                                     seq_prop_key,
@@ -254,7 +266,10 @@ void construct_oet_meson_three_point_function(
                       validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
                       validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
 
-                      ::cvc::seq_stoch_prop_meta_t seq_prop(mom_xchange,
+                      // we have to be careful here too as the Dirac structure will be implicitly daggered
+                      // when the sequential propagator is contracted with the forward propagator
+                      // -> there may be additional signs or phase changes
+                      ::cvc::seq_stoch_prop_meta_t seq_prop(pseq,
                                                             gf[i_gf].as<int>(),
                                                             (src_ts + dt + T_global) % T_global,
                                                             src_ts,
@@ -266,9 +281,12 @@ void construct_oet_meson_three_point_function(
 
                       const std::string seq_prop_key = seq_prop.key();
 
+                      // we have to be careful, the sequential propagator is daggered as a whole and so
+                      // the momentum that is actually injected must be supplied with a minus sign
+                      // -> pseq = -pf
                       char seq_src_string[200];
                       snprintf(seq_src_string, 200, "g%d_px%dpy%dpz%d::ts%d::%s",
-                          gf[i_gf].as<int>(), pf.x, pf.y, pf.z,
+                          gf[i_gf].as<int>(), pseq.x, pseq.y, pseq.z,
                           seq_src_ts,
                           bwd_prop_key.c_str());
                       const std::string seq_src_key(seq_src_string);
@@ -282,7 +300,7 @@ void construct_oet_meson_three_point_function(
                               src_ts,
                               seq_src_ts,
                               gf[i_gf].as<int>(),
-                              pf,
+                              pseq,
                               seq_src_key,
                               bwd_prop_key,
                               props_data) ) );
@@ -351,6 +369,9 @@ void construct_oet_meson_three_point_function(
 
                       // for the three point function, the forward and daggered propagator
                       // are in separate maps
+                      // note that when the sequentail and forward propagators are contracted
+                      // the gamma5 from gamma5-hermiticity is explicitly included
+                      // in the contraction routine contract_twopoint_gamma5_gamma_snk_only_snk_momentum 
                       g[corrvertex].resolve.reset( new 
                           CorrResolve(deriv_prop_key,
                                       seq_prop_key,
@@ -363,12 +384,6 @@ void construct_oet_meson_three_point_function(
                                       ::cvc::complex{1.0, 0.0} ) );
                     } // end of for( deriv_chain in deriv_chains )
                   } // end of if( deriv_chains.size() > 0 ) 
-                  
-
-        //          // adding a vertex for the correlator type allows correlators to be
-        //          // processed in bunches for efficient I/O
-        //          Vertex corrtypevertex = boost::add_vertex(std::string(corrtype), g);
-        //          ::cvc::add_unique_edge(corrvertex, corrtypevertex, g);
                 } // Dc
               } // gc
             } // gb

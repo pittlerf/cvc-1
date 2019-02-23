@@ -52,8 +52,12 @@ struct TimeSliceSourceResolve : public ResolveDependency {
                          const std::string & src_key_in,
                          const std::vector<double> & ranspinor_in,
                          std::vector<double> & src_in) :
-    src_ts(src_ts_in), gamma(gamma_in), p(p_in), src_key(src_key_in),
-    ranspinor(ranspinor_in), src(src_in) {}
+    src_ts(src_ts_in),
+    gamma(gamma_in),
+    p(p_in),
+    src_key(src_key_in),
+    ranspinor(ranspinor_in),
+    src(src_in) {}
 
   void operator ()() const
   {
@@ -91,6 +95,8 @@ struct TimeSliceSourceResolve : public ResolveDependency {
       const unsigned int vol3 = LX * LY * LZ;
       const unsigned int src_index = _GSI((src_ts % T)*vol3);
       
+      // no process will ever have proc_id == -1, so we can limit output to the appropriate
+      // subset as follows:
       Logger logger(have_source ? g_proc_id : -1, verbosity::detailed_progress, std::cout);
       logger << "# [TimeSliceSourceResolve] process " << g_proc_id <<
         " elements 0-24" << std::endl;
@@ -132,14 +138,18 @@ struct PropResolve : public ResolveDependency {
   const int solver_id;
   const std::string prop_key;
   std::map< std::string, std::vector<double> > & props_data;
+
+  // source creation functor for this propagator
   std::shared_ptr<CreateSource> create_source;
 
   PropResolve(const std::string & prop_key_in,
               const int solver_id_in,
               std::map< std::string, std::vector<double> > & props_data_in,
               CreateSource * create_source_in) : 
-    prop_key(prop_key_in), solver_id(solver_id_in), 
-    props_data(props_data_in), create_source(create_source_in) {}
+    prop_key(prop_key_in),
+    solver_id(solver_id_in), 
+    props_data(props_data_in),
+    create_source(create_source_in) {}
 
   void operator()() const
   {
@@ -154,6 +164,7 @@ struct PropResolve : public ResolveDependency {
     std::vector<double> workspinorA(_GSI(VOLUMEPLUSRAND), 0.0);
     std::vector<double> workspinorB(_GSI(VOLUMEPLUSRAND), 0.0);
 
+    // call the source creation functor
     (*create_source)(workspinorA);
 
     int exitstatus = 0;
@@ -319,11 +330,11 @@ static inline void descend_and_resolve(typename boost::graph_traits<Graph>::vert
   debug_printf(0,verbosity::resolve,"# [descend_and_resolve] Came up the hierarchy, ready to resolve depedency!\n");
 
   // in any case, when we come back here, we are ready to resolve
-  //if( g[v].resolved == false ){
+  if( g[v].resolved == false ){
     debug_printf(0,verbosity::resolve,"# [descend_and_resolve] Calling resolve of %s\n",g[v].name.c_str());
     (*(g[v].resolve))();
     g[v].resolved = true;
-  //}
+  }
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
 #endif

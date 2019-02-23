@@ -85,21 +85,47 @@ int main(int argc, char ** argv){
   }
   fprintf(stdout, "# [correlators] proc%.4d has io proc id %d\n", g_cart_id, io_proc );
 
-  std::vector<int> src_time_slices{12};
+  all_logger << "# [correlators] Number of source locations: " << g_source_location_number << std::endl;
 
-  for(int src_ts : src_time_slices){
+  for( int isource_location = 0; isource_location < g_source_location_number; isource_location++ ) {
+
+    /***************************************************************************
+     * local source timeslice and source process ids
+     ***************************************************************************/
+
+    int local_src_ts = -1;
+    int src_proc_id  = -1;
+    int src_ts       = ( g_source_coords_list[isource_location][0] +  T_global ) %  T_global;
+
+    exitstatus = get_timeslice_source_info ( src_ts, &local_src_ts, &src_proc_id );
+    if( exitstatus != 0 ) {
+      fprintf(stderr, "[correlators] Error from get_timeslice_source_info status was %d %s %d\n", exitstatus, __FILE__, __LINE__);
+      EXIT(123);
+    }
+   
+    // generate a new z2 volume source for each time slice (when the inversions are done,
+    // this will be reduced down to a time slice source) 
     rng.gen_z2(ranspinor->data(), 24);
 
+    // the correlation functions will be written to this h5 file
     char corr_h5_filename[100];
     snprintf(corr_h5_filename, 100, "corr.%04d.t%d.h5", Nconf, src_ts);
+
+    // struct for output purposes
     OutputCollection odefs;
-    odefs.corr_h5_filename = corr_h5_filename; 
+    odefs.corr_h5_filename = corr_h5_filename;
     
+    // struct for data storage purposes (also temporary)
     DataCollection data;
+
+    // struct for holding meta-information about propagators and correlators
+    // as well input data (such as the random vector and source time slice)
     MetaCollection metas;
     metas.ranspinor = ranspinor;
     metas.src_ts = src_ts;
 
+    // now parse the definitions file and build the dependency graphs for basic propagators
+    // and the correlation functions
     logger << "# [correlators] Parsing " << core.get_cmd_options()["definitions_yaml"].as<std::string>() <<
       std::endl;
     YAML::Node input_node = YAML::LoadFile( core.get_cmd_options()["definitions_yaml"].as<std::string>() ); 
@@ -112,9 +138,9 @@ int main(int argc, char ** argv){
                  metas.props_meta.size() > 1 ? "s" : "",
                  (double)metas.props_meta.size()*sizeof(double)*_GSI(g_nproc*VOLUME)*1.0e-9);
 
-    boost::property_map<DepGraph, std::string VertexProperties::*>::type name_map = 
-      boost::get(&VertexProperties::name, metas.corrs_graph);
-    
+
+    // first we generate the basic propagators which have their own dependency graph
+    // which is organised by "id" (flavour) to make the inversions efficient
     std::vector<ComponentGraph> 
       independent_srcs_and_props(connected_components_subgraphs(metas.props_graph));
     for( size_t i_component = 0; i_component < independent_srcs_and_props.size(); ++i_component){
@@ -127,6 +153,9 @@ int main(int argc, char ** argv){
       }
     }
 
+    // now we perform all contractions, which also includes generating sequential propagators
+    // if three point functions have been defined and performing covariant shifts
+    // if any derivative operators are considered
     std::vector<ComponentGraph>
       independent_obs(connected_components_subgraphs(metas.corrs_graph));
     for( size_t i_component = 0; i_component < independent_obs.size(); ++i_component){
@@ -137,21 +166,34 @@ int main(int argc, char ** argv){
           descend_and_resolve<DepGraph>(v, metas.corrs_graph);
       }
       sw.reset();
+
       // the sequential propagators that were generated for this connected set are
       // no longer required
       data.seq_props_data.clear();
+
       // the covariantly shifted propagators that were generated for this connected set are
       // no longer required
       data.deriv_props_data.clear();
+
       // write the correlators in this group to file and clear the temporary storage
       h5::write_correlators(corr_h5_filename, odefs.corrs_data);
       sw.elapsed_print("Correlator I/O");
 #ifdef HAVE_MPI
       MPI_Barrier(g_cart_grid);
 #endif
+      // now we can clear the temporary correlator storage
       odefs.corrs_data.clear();
+
+      debug_printf(0, 0, "# [correlators] [MEMORY INFO]: props_data.size(): %d seq_props_data.size(): %d,"
+         " deriv_props_data.size(): %d, corrs_data.size() %d\n",
+         data.props_data.size(), data.seq_props_data.size(), 
+         data.deriv_props_data.size(), odefs.corrs_data.size() );
+
+#ifdef HAVE_MPI
+      MPI_Barrier(g_cart_grid);
+#endif
     }
-  }
+  } // loop over source locations
 
 	free(gauge_field_with_phase);
   mpi_fini_xchange_contraction();

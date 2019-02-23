@@ -148,6 +148,10 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
             Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
             // for the two point function, both propagators are stored in the same
             // map
+            // when the contraction is performed, the bwd_prop is daggered and
+            // a gamma5 is explicitly added to account for gamma5 hermiticity
+            // -> contract_twopoint_gamma5_gamma_snk_only_snk_momentum
+            // -> we need the full gamma structure at the sink
             g[corrvertex].resolve.reset( new 
                 CorrResolve(fwd_prop_key,
                             bwd_prop_key,
