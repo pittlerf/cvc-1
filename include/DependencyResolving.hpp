@@ -265,7 +265,7 @@ struct CorrResolve : public ResolveDependency {
     const std::string key = h5::path_list_to_key(path_list);
 
     debug_printf(0, verbosity::resolve, 
-        "# [CorrFullfill] Contracting [(%s)+ | g%d px%dpy%dpz%d | %s] to form %s\n",
+        "# [CorrResolve] Contracting [(%s)+ g5 | g%d px%dpy%dpz%d | %s] to form %s\n",
         dagpropkey.c_str(), 
         gamma, p.x, p.y, p.z,
         propkey.c_str(), key.c_str() );
