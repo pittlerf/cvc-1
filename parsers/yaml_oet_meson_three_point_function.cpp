@@ -153,13 +153,17 @@ void construct_oet_meson_three_point_function(
 
                   std::vector< std::vector<deriv_t> > deriv_chains;
                   deriv_chains = create_derivatives(0, Dc[i_Dc].as<int>(), deriv_chains);
-                  
+                 
+                  // TODO: the two logic paths here share a ton of code an can certainly be
+                  // combined into a single function 
                   if( deriv_chains.size() == 0 ){
                     std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
                                                                     gi[i_gi].as<int>(),
                                                                     src_ts,
                                                                     node["fwd_flav"].as<std::string>()));
 
+                    // the backward propagator for the sequential propagator is
+                    // always a zero momentum one
                     std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
                                                                     gb[i_gb].as<int>(),
                                                                     src_ts,
@@ -176,7 +180,8 @@ void construct_oet_meson_three_point_function(
                                                           (src_ts + dt + T_global) % T_global,
                                                           src_ts,
                                                           node["seq_flav"].as<std::string>(),
-                                                          pi,
+                                                          zero_mom, // this is the momentum carried by the backward
+                                                                    // propagator
                                                           gb[i_gb].as<int>(),
                                                           node["bwd_flav"].as<std::string>()
                                                           );
@@ -236,8 +241,8 @@ void construct_oet_meson_three_point_function(
 
                     // for the three point function, the forward and daggered propagator
                     // are in separate maps
-                    // note that when the sequentail and forward propagators are contracted
-                    // the gamma5 from gamma5-hermiticity is explicitly included
+                    // note that when the sequential and forward propagators are contracted
+                    // the gamma5 from employing gamma5-hermiticity is explicitly included
                     // in the contraction routine contract_twopoint_gamma5_gamma_snk_only_snk_momentum 
                     g[corrvertex].resolve.reset( new 
                         CorrResolve(fwd_prop_key,
@@ -258,6 +263,8 @@ void construct_oet_meson_three_point_function(
                                                                       src_ts,
                                                                       node["fwd_flav"].as<std::string>()));
 
+                      // the backward propagator for the sequential propagator is
+                      // always a zero momentum one
                       std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
                                                                       gb[i_gb].as<int>(),
                                                                       src_ts,
@@ -274,7 +281,8 @@ void construct_oet_meson_three_point_function(
                                                             (src_ts + dt + T_global) % T_global,
                                                             src_ts,
                                                             node["seq_flav"].as<std::string>(),
-                                                            pi,
+                                                            zero_mom, // this is the momentum carried by
+                                                                      // the backward propagator
                                                             gb[i_gb].as<int>(),
                                                             node["bwd_flav"].as<std::string>()
                                                             );
@@ -370,7 +378,7 @@ void construct_oet_meson_three_point_function(
                       // for the three point function, the forward and daggered propagator
                       // are in separate maps
                       // note that when the sequentail and forward propagators are contracted
-                      // the gamma5 from gamma5-hermiticity is explicitly included
+                      // the gamma5 from employing gamma5-hermiticity is explicitly included
                       // in the contraction routine contract_twopoint_gamma5_gamma_snk_only_snk_momentum 
                       g[corrvertex].resolve.reset( new 
                           CorrResolve(deriv_prop_key,
