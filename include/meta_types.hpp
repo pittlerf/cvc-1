@@ -91,7 +91,7 @@ typedef struct stoch_prop_meta_t
   {
     char temp[100];
     snprintf(temp, 100, 
-             "f%s_g%d_px%dpy%dpz%d_t%d",
+             "S%s_g%d_px%dpy%dpz%d_t%d",
              flav_in.c_str(), gamma_in, p_in.x, p_in.y, p_in.z, src_ts_in);
     return std::string(temp);
   }
@@ -130,7 +130,7 @@ typedef struct seq_stoch_prop_meta_t
   {
     char temp[100];
     snprintf(temp, 100,
-             "f%s_g%d_px%dpy%dpz%d::ts%d::",
+             "S%s_g%d_px%dpy%dpz%d::ts%d::",
              flav_in.c_str(), gamma_in, p_in.x, p_in.y, p_in.z, seq_src_ts_in);
     return( (std::string(temp)+src_prop.key()) );
   }
