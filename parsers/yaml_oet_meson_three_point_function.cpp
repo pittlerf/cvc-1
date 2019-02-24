@@ -28,7 +28,8 @@ void construct_oet_meson_three_point_function(
     std::map< std::string, std::vector<double> > & props_data,
     std::map< std::string, ::cvc::H5Correlator > & corrs_data,
     std::map< std::string, std::vector<double> > & seq_props_data,
-    std::map< std::string, std::vector<double> > & deriv_props_data,
+    std::map< std::string, std::vector<double> > & cov_displ_props_data,
+    double * const gauge_field_with_phases,
     DepGraph & g)
 {
 #ifdef HAVE_MPI
@@ -81,7 +82,7 @@ void construct_oet_meson_three_point_function(
   }
 
   // loop over the source-sink-separation as well as the momentum combinations at this level
-  // further below over all gamma and derivative combinations
+  // further below over all gamma and cov_displative combinations
   // to construct all instances of this correlation function
   for( size_t i_dt = 0; i_dt < node["dt"].size(); ++i_dt ){
     const int dt = node["dt"][i_dt].as<int>();
@@ -147,16 +148,16 @@ void construct_oet_meson_three_point_function(
                       gc[i_gc].as<int>() <<
                       "," << gi[i_gi].as<int>() << ")  " <<
                       "BwdDirac: " << gb[i_gb].as<int>() << "  " <<
-                      "Derivative: " << Dc[i_Dc].as<int>() <<
+                      "Covariant Displacements: " << Dc[i_Dc].as<int>() <<
                       std::endl;
                   }
 
-                  std::vector< std::vector<deriv_t> > deriv_chains;
-                  deriv_chains = create_derivatives(0, Dc[i_Dc].as<int>(), deriv_chains);
+                  std::vector< std::vector<deriv_t> > cov_displ_chains;
+                  cov_displ_chains = create_derivative_chains(0, Dc[i_Dc].as<int>(), cov_displ_chains);
                  
                   // TODO: the two logic paths here share a ton of code an can certainly be
                   // combined into a single function 
-                  if( deriv_chains.size() == 0 ){
+                  if( cov_displ_chains.size() == 0 ){
                     std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
                                                                     gi[i_gi].as<int>(),
                                                                     src_ts,
@@ -255,9 +256,9 @@ void construct_oet_meson_three_point_function(
                                     corrs_data,
                                     ::cvc::complex{1.0, 0.0} ) );
                   
-                  } else { // if( deriv_chains.size() > 0 )
+                  } else { // if( cov_displ_chains.size() > 0 )
                   
-                    for( auto const & deriv_chain : deriv_chains ){
+                    for( auto const & cov_displ_chain : cov_displ_chains ){
                       std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
                                                                       gi[i_gi].as<int>(),
                                                                       src_ts,
@@ -332,8 +333,8 @@ void construct_oet_meson_three_point_function(
                       path_list.push_back(subpath);
                       snprintf(subpath, 100, "gc%d", gc[i_gc].as<int>());
                       path_list.push_back(subpath);
-                      for( auto const & deriv : deriv_chain ){
-                        snprintf(subpath, 100, "Ddim%d:dir%d", deriv.dim, deriv.dir);
+                      for( auto const & cov_displ : cov_displ_chain ){
+                        snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ.dim, cov_displ.dir);
                         path_list.push_back(subpath);
                       }
                       snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
@@ -344,54 +345,82 @@ void construct_oet_meson_three_point_function(
                       Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
                       ::cvc::add_unique_edge(corrvertex, seq_prop_vertex, g);
 
-                      // add the various derivative vertices
-                      std::vector<Vertex> deriv_vertices;
-                      std::string deriv_prop_key = fwd_prop_key;
-                      for( auto const & deriv : deriv_chain ){
-                        char deriv_prop_string[200];
-                        snprintf(deriv_prop_string, 200,
-                            "Ddim%d:dir%d::%s", deriv.dim, deriv.dir, deriv_prop_key.c_str());
+                      // add the various covariantly displaced vertices
+                      std::vector<Vertex> cov_displ_vertices;
 
-                        std::string new_deriv_prop_key(deriv_prop_string);
-                        Vertex deriv_vertex = boost::add_vertex(new_deriv_prop_key, g);
-                        g[deriv_vertex].resolve.reset( new CovDevResolve(
-                              deriv_prop_key, deriv.dir, deriv.dim) );
-                        deriv_vertices.push_back( deriv_vertex );
-                        deriv_prop_key = new_deriv_prop_key;
-                      }
-                      // now connect the correlator and the derivatives 
-                      for(std::vector<Vertex>::reverse_iterator rit = deriv_vertices.rbegin();
-                          rit != deriv_vertices.rend(); ++rit  ){
-                        // only the very highest derivative is directly connected to the correlator
-                        if( rit == deriv_vertices.rbegin() ){
-                          ::cvc::add_unique_edge(corrvertex, *rit, g);
+                      // the covariant displacement of highest order will end up in
+                      // this key, built below
+                      std::string cov_displ_prop_key = fwd_prop_key;
+                      for( size_t i_cov_displ = 0; i_cov_displ < cov_displ_chain.size(); ++i_cov_displ ){
+                        const deriv_t & cov_displ = cov_displ_chain[i_cov_displ];
+
+                        char cov_displ_prop_string[200];
+                        snprintf(cov_displ_prop_string, 200,
+                            "Ddim%d_dir%d::%s", cov_displ.dim, cov_displ.dir, cov_displ_prop_key.c_str());
+
+                        std::string new_cov_displ_prop_key(cov_displ_prop_string);
+                        Vertex cov_displ_vertex = boost::add_vertex(new_cov_displ_prop_key, g);
+                        g[cov_displ_vertex].resolve.reset( new CovDisplResolve(
+                              cov_displ_prop_key, // src key, in the first iteration, this
+                                                  // is sequal to fwd_prop_key
+                              new_cov_displ_prop_key, // displaced prop key
+                              props_data,
+                              cov_displ_props_data,
+                              i_cov_displ == 0,
+                              cov_displ.dir,
+                              cov_displ.dim,
+                              gauge_field_with_phases) );
+                        if( i_cov_displ == 0 ){
+                          g[cov_displ_vertex].independent = true;
                         }
-                        // while all derivatives are connected to each other up until the lowest derivative
-                        if( rit+1 != deriv_vertices.rend() ){
+                        cov_displ_vertices.push_back( cov_displ_vertex );
+
+                        // replace the key with the next one in line
+                        cov_displ_prop_key = new_cov_displ_prop_key;
+                      }
+
+                      // now connect the correlator and the covariantly displaced propagators 
+                      for(std::vector<Vertex>::reverse_iterator rit = cov_displ_vertices.rbegin();
+                          rit != cov_displ_vertices.rend(); ++rit  ){
+                        // all displacement are connected to each other up until the lowest one
+                        // which is not connected because the basic propagators are assumed
+                        // to exist
+                        if( rit+1 != cov_displ_vertices.rend() ){
+                          debug_printf(0,verbosity::graph_connections,"Connecting %s to %s\n",
+                              g[(*rit)].name.c_str(), g[*(rit+1)].name.c_str() );
                           ::cvc::add_unique_edge(*rit, *(rit+1), g);
                         }
-                        // note that if other correlators get connected to some of the lower derivatives
+                        // only the very highest displacement is directly connected to the correlator
+                        // note that it's important to connect the correlator AFTER connecting the
+                        // displacement vertices, such that that the correlator ends up
+                        // a level higher in the hierarchy
+                        if( rit == cov_displ_vertices.rbegin() ){
+                          debug_printf(0,verbosity::graph_connections,"Connecting %s to %s\n",
+                              g[corrvertex].name.c_str(), g[(*rit)].name.c_str() );
+                          ::cvc::add_unique_edge(corrvertex, *rit, g);
+                        }
+                        // note that if other correlators get connected to some of the lower displacements
                         // from here, the graph will be correctly connected and the processing order will
                         // be correct
                       }
 
                       // for the three point function, the forward and daggered propagator
                       // are in separate maps
-                      // note that when the sequentail and forward propagators are contracted
+                      // note that when the sequential and forward propagators are contracted
                       // the gamma5 from employing gamma5-hermiticity is explicitly included
                       // in the contraction routine contract_twopoint_gamma5_gamma_snk_only_snk_momentum 
                       g[corrvertex].resolve.reset( new 
-                          CorrResolve(deriv_prop_key,
+                          CorrResolve(cov_displ_prop_key,
                                       seq_prop_key,
                                       mom_xchange, 
                                       gc[i_gc].as<int>(),
                                       path_list,
-                                      deriv_props_data,
+                                      cov_displ_props_data,
                                       seq_props_data,
                                       corrs_data,
                                       ::cvc::complex{1.0, 0.0} ) );
-                    } // end of for( deriv_chain in deriv_chains )
-                  } // end of if( deriv_chains.size() > 0 ) 
+                    } // end of for( cov_displ_chain in cov_displ_chains )
+                  } // end of if( cov_displ_chains.size() > 0 ) 
                 } // Dc
               } // gc
             } // gb

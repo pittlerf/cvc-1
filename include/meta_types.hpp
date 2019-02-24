@@ -279,6 +279,7 @@ typedef struct MetaCollection {
   mom_lists_t mom_lists;
 
   std::shared_ptr< const std::vector<double> > ranspinor;
+  double * gauge_field_with_phases;
 
   int src_ts;
   std::map<std::string, stoch_prop_meta_t> props_meta;
@@ -292,7 +293,7 @@ typedef struct MetaCollection {
 typedef struct DataCollection {
   std::map<std::string, std::vector<double> > props_data;
   std::map<std::string, std::vector<double> > seq_props_data;
-  std::map<std::string, std::vector<double> > deriv_props_data;
+  std::map<std::string, std::vector<double> > cov_displ_props_data;
 } DataCollection;
 
 typedef struct OutputCollection {

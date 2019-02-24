@@ -80,7 +80,8 @@ void enter_node(const YAML::Node &node,
               data.props_data,
               odefs.corrs_data,
               data.seq_props_data,
-              data.deriv_props_data,
+              data.cov_displ_props_data,
+              metas.gauge_field_with_phases,
               metas.corrs_graph
               );
         } else {

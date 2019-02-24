@@ -121,6 +121,7 @@ int main(int argc, char ** argv){
     // struct for holding meta-information about propagators and correlators
     // as well input data (such as the random vector and source time slice)
     MetaCollection metas;
+    metas.gauge_field_with_phases = gauge_field_with_phase;
     metas.ranspinor = ranspinor;
     metas.src_ts = src_ts;
 
@@ -155,7 +156,7 @@ int main(int argc, char ** argv){
 
     // now we perform all contractions, which also includes generating sequential propagators
     // if three point functions have been defined and performing covariant shifts
-    // if any derivative operators are considered
+    // if any cov_displative operators are considered
     std::vector<ComponentGraph>
       independent_obs(connected_components_subgraphs(metas.corrs_graph));
     for( size_t i_component = 0; i_component < independent_obs.size(); ++i_component){
@@ -167,13 +168,18 @@ int main(int argc, char ** argv){
       }
       sw.reset();
 
+      debug_printf(0, 0, "# [correlators] [MEMORY INFO]: Before clearing, props_data.size(): %d seq_props_data.size(): %d,"
+         " cov_displ_props_data.size(): %d, corrs_data.size() %d\n",
+         data.props_data.size(), data.seq_props_data.size(), 
+         data.cov_displ_props_data.size(), odefs.corrs_data.size() );
+      
       // the sequential propagators that were generated for this connected set are
       // no longer required
       data.seq_props_data.clear();
 
       // the covariantly shifted propagators that were generated for this connected set are
       // no longer required
-      data.deriv_props_data.clear();
+      data.cov_displ_props_data.clear();
 
       // write the correlators in this group to file and clear the temporary storage
       h5::write_correlators(corr_h5_filename, odefs.corrs_data);
@@ -184,10 +190,10 @@ int main(int argc, char ** argv){
       // now we can clear the temporary correlator storage
       odefs.corrs_data.clear();
 
-      debug_printf(0, 0, "# [correlators] [MEMORY INFO]: props_data.size(): %d seq_props_data.size(): %d,"
-         " deriv_props_data.size(): %d, corrs_data.size() %d\n",
+      debug_printf(0, 0, "# [correlators] [MEMORY INFO]: After clearing, props_data.size(): %d seq_props_data.size(): %d,"
+         " cov_displ_props_data.size(): %d, corrs_data.size() %d\n",
          data.props_data.size(), data.seq_props_data.size(), 
-         data.deriv_props_data.size(), odefs.corrs_data.size() );
+         data.cov_displ_props_data.size(), odefs.corrs_data.size() );
 
 #ifdef HAVE_MPI
       MPI_Barrier(g_cart_grid);

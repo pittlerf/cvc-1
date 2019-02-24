@@ -18,6 +18,7 @@ void construct_oet_meson_three_point_function(
     std::map< std::string, ::cvc::H5Correlator > & corrs_data,
     std::map< std::string, std::vector<double> > & seq_props_data,
     std::map< std::string, std::vector<double> > & deriv_props_data,
+    double * const gauge_field_with_phases,
     DepGraph & g);
 
 } // namespace(yaml)

@@ -12,6 +12,8 @@
 #include "cvc_complex.h"
 #include "propagator_io.h"
 #include "SourceCreators.hpp"
+#include "Q_phi.h"
+
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -198,28 +200,62 @@ struct PropResolve : public ResolveDependency {
   }
 };
 
-struct CovDevResolve : public ResolveDependency {
-  std::string spinor_key;
-  int dir;
-  int dim;
+struct CovDisplResolve : public ResolveDependency {
+  const std::string cov_displ_prop_key;
+  const std::string source_prop_key;
+  std::map< std::string, std::vector<double> > & props_data;
+  std::map< std::string, std::vector<double> > & cov_displ_props_data;
+  const bool src_in_props_data;
+  const int dir;
+  const int dim;
+  double * const gauge_field;
 
-  CovDevResolve(const std::string& spinor_key_in, 
-                const int dir_in,
-                const int dim_in) :
-    spinor_key(spinor_key_in),
+  CovDisplResolve(const std::string& source_prop_key_in, 
+                  const std::string& cov_displ_prop_key_in,
+                  std::map< std::string, std::vector<double> > & props_data_in,
+                  std::map< std::string, std::vector<double> > & cov_displ_props_data_in, 
+                  const bool src_in_props_data_in,
+                  const int dir_in,
+                  const int dim_in,
+                  double * const gauge_field_in) :
+    source_prop_key(source_prop_key_in),
+    cov_displ_prop_key(cov_displ_prop_key_in),
+    props_data(props_data_in),
+    cov_displ_props_data(cov_displ_props_data_in),
+    src_in_props_data(src_in_props_data_in),
     dir(dir_in),
-    dim(dim_in) {}
+    dim(dim_in),
+    gauge_field(gauge_field_in) {}
 
   void operator()() const
   {
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
 #endif
+
+    Stopwatch sw(g_cart_grid);
     debug_printf(0,verbosity::resolve,
-        "# [CovDevResolve] Applying CovDev in dir %c, dim %c on %s\n", 
+        "# [CovDisplResolve] Applying covariant displacement in dir %c, dim %c on %s\n", 
         shift_dir_names[dir],
         latDim_names[dim], 
-        spinor_key.c_str());
+        source_prop_key.c_str());
+
+    if( !cov_displ_props_data.count( cov_displ_prop_key ) ){
+      cov_displ_props_data.emplace( std::make_pair(cov_displ_prop_key,
+                                                   std::vector<double>(_GSI(VOLUME) ) ) );
+    }
+    // either the source is a basic propagator or has already been displaced
+    double * const src = src_in_props_data ? props_data[ source_prop_key ].data() :
+                                             cov_displ_props_data[ source_prop_key ].data();
+                                             
+    spinor_field_eq_cov_displ_spinor_field(cov_displ_props_data[ cov_displ_prop_key ].data(),
+                                           src,
+                                           dim,
+                                           dir,
+                                           gauge_field);
+
+    if( g_verbose >= verbosity::resolve ) sw.elapsed_print("covariant displacement");
+
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
 #endif
