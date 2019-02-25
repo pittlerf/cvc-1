@@ -156,7 +156,7 @@ int main(int argc, char ** argv){
 
     // now we perform all contractions, which also includes generating sequential propagators
     // if three point functions have been defined and performing covariant shifts
-    // if any cov_displative operators are considered
+    // if any covariantly displaced operators are considered
     std::vector<ComponentGraph>
       independent_obs(connected_components_subgraphs(metas.corrs_graph));
     for( size_t i_component = 0; i_component < independent_obs.size(); ++i_component){
