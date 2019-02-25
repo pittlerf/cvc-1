@@ -49,7 +49,11 @@ typedef struct {
 typedef std::map<std::string, std::vector< mom_t > > mom_lists_t;
 
 typedef struct H5Correlator {
+  // exists and does nothing to make this default-constructible, but
+  // in practice the other constructor should be used
   H5Correlator() {}
+  
+  // note that 'storage', being a vector, will be zero-initialised
   H5Correlator(const std::list<std::string> & path_list_in,
                const size_t nelem) :
     path_list(path_list_in), storage(nelem) {}

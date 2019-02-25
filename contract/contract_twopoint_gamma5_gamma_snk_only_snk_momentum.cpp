@@ -21,6 +21,9 @@ void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
   double const phase_offset = (double)( g_proc_coords[1] * LX ) * px + 
                               (double)( g_proc_coords[2] * LY ) * py + 
                               (double)( g_proc_coords[3] * LZ ) * pz;
+ 
+  // for safety, we can set 'contr' to zero
+  memset((void*)contr, 0, sizeof(double)*2*T);
   
   // we pre-generate the vector of phases
   std::vector<::cvc::complex> phases(VOL3);
