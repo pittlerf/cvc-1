@@ -178,7 +178,7 @@ void construct_oet_meson_three_point_function(
                     // -> there may be additional signs or phase changes
                     ::cvc::seq_stoch_prop_meta_t seq_prop(pseq,
                                                           gf[i_gf].as<int>(),
-                                                          (src_ts + dt + T_global) % T_global,
+                                                          seq_src_ts,
                                                           src_ts,
                                                           node["seq_flav"].as<std::string>(),
                                                           zero_mom, // this is the momentum carried by the backward
@@ -279,7 +279,7 @@ void construct_oet_meson_three_point_function(
                       // -> there may be additional signs or phase changes
                       ::cvc::seq_stoch_prop_meta_t seq_prop(pseq,
                                                             gf[i_gf].as<int>(),
-                                                            (src_ts + dt + T_global) % T_global,
+                                                            seq_src_ts,
                                                             src_ts,
                                                             node["seq_flav"].as<std::string>(),
                                                             zero_mom, // this is the momentum carried by
