@@ -25,7 +25,9 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                                             std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
                                             std::map< std::string, std::vector<double> > & props_data,
                                             std::map< std::string, ::cvc::H5Correlator > & corrs_data, 
-                                            DepGraph & g)
+                                            DepGraph & corrs_graph,
+                                            std::map< std::string, std::vector<::cvc::complex> > & phases_data,
+                                            DepGraph & phases_graph)
 {
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
@@ -95,7 +97,14 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
         }
         logger << ")" << std::endl;
       }
-
+      
+      char phase_name[100];
+      snprintf(phase_name, 100, "px%dpy%dpz%d", pf.x, pf.y. pf.z);
+      Vertex phase_vertex = boost::add_vertex(std::string(phase_name), phases_graph);
+      phases_graph[phase_vertex].resolve.reset( new MomentumPhaseResolve(
+            std::string(phase_name),
+            phases_data,
+            pf) );
 
       YAML::Node gb = node["gb"];
       YAML::Node gi = node["gi"];
@@ -145,7 +154,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
             snprintf(subpath, 100, "pix%dpiy%dpiz%d", pi.x, pi.y, pi.z);
             path_list.push_back(subpath);
 
-            Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
+            Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), corrs_graph);
             // for the two point function, both propagators are stored in the same
             // map
             // when the contraction is performed, the bwd_prop is daggered and
@@ -161,13 +170,14 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                             props_data,
                             props_data,
                             corrs_data,
+                            phases_data,
                             ::cvc::complex{1.0, 0.0} ) );
             
 
             // adding a vertex for the correlator type allows correlators to be
             // processed in bunches for efficient I/O
-            Vertex corrtypevertex = boost::add_vertex(std::string(corrtype), g);
-            ::cvc::add_unique_edge(corrvertex, corrtypevertex, g);
+            Vertex corrtypevertex = boost::add_vertex(std::string(corrtype), corrs_graph);
+            ::cvc::add_unique_edge(corrvertex, corrtypevertex, corrs_graph);
 
           } // gb
         } // gf

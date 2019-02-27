@@ -285,15 +285,19 @@ typedef struct MetaCollection {
   std::map<std::string, stoch_prop_meta_t> props_meta;
   std::map<std::string, seq_stoch_prop_meta_t> seq_props_data;
   std::map<std::string, ts_stoch_src_meta_t> srcs_meta;
-  DepGraph props_graph;
   
+  DepGraph phases_graph;
+  DepGraph props_graph;
   DepGraph corrs_graph;
+
+
 } MetaCollection;
 
 typedef struct DataCollection {
   std::map<std::string, std::vector<double> > props_data;
   std::map<std::string, std::vector<double> > seq_props_data;
   std::map<std::string, std::vector<double> > cov_displ_props_data;
+  std::map<std::string, std::vector<::cvc::complex> > phases_data;
 } DataCollection;
 
 typedef struct OutputCollection {

@@ -27,10 +27,12 @@ void construct_oet_meson_three_point_function(
     std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
     std::map< std::string, std::vector<double> > & props_data,
     std::map< std::string, ::cvc::H5Correlator > & corrs_data,
+    DepGraph & corrs_graph,
+    std::map< std::string, std::vector<::cvc::complex> > & phases_data,
+    DepGraph & phases_graph,
     std::map< std::string, std::vector<double> > & seq_props_data,
     std::map< std::string, std::vector<double> > & cov_displ_props_data,
     double * const gauge_field_with_phases,
-    DepGraph & g)
 {
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
@@ -103,6 +105,23 @@ void construct_oet_meson_three_point_function(
             continue;
           }
         }
+
+        char[100] phase_string;
+        snprintf(phase_string, 100, "px%dpy%dpz%d", mom_xchange.x, mom_xchange.y, mom_xchange.z);
+        const std::string mom_xchange_key(phase_string);
+        Vertex mom_xchange_vertex = boost::add_vertex(mom_xchange_key, phases_graph);
+        phases_graph[mom_xchange_vertex].resolve.reset( new MomentumPhaseResolve(
+              mom_xchange_key,
+              phases_data,
+              mom_xchange);
+        
+        snprintf(phase_string, 100, "px%dpy%dpz%d", pseq.x, pseq.y, pseq.z);
+        const std::string pseq_key(phase_string);
+        Vertex pseq_vertex = boost::add_vertex(pseq_key, phases_graph);
+        phases_graph[pseq_vertex].resolve.reset( new MomentumPhaseResolve(
+              pseq_key,
+              phases_data,
+              pseq);
 
         {
           std::vector<int> pivec{ pi.x, pi.y, pi.z };
@@ -199,7 +218,7 @@ void construct_oet_meson_three_point_function(
                         bwd_prop_key.c_str());
                     const std::string seq_src_key(seq_src_string);
 
-                    Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, g);
+                    Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, corrs_graph);
                     g[seq_prop_vertex].resolve.reset( new PropResolve(
                           seq_prop_key,
                           node["seq_solver_id"].as<int>(),
@@ -209,6 +228,7 @@ void construct_oet_meson_three_point_function(
                             seq_src_ts,
                             gf[i_gf].as<int>(),
                             pseq,
+                            phases_data,
                             seq_src_key,
                             bwd_prop_key,
                             props_data) ) );
@@ -237,7 +257,7 @@ void construct_oet_meson_three_point_function(
                     snprintf(subpath, 100, "pix%dpiy%dpiz%d", pi.x, pi.y, pi.z);
                     path_list.push_back(subpath);
 
-                    Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
+                    Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), corrs_graph);
                     ::cvc::add_unique_edge(corrvertex, seq_prop_vertex, g);
 
                     // for the three point function, the forward and daggered propagator
@@ -300,7 +320,7 @@ void construct_oet_meson_three_point_function(
                           bwd_prop_key.c_str());
                       const std::string seq_src_key(seq_src_string);
 
-                      Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, g);
+                      Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, corrs_graph);
                       g[seq_prop_vertex].resolve.reset( new PropResolve(
                             seq_prop_key,
                             node["seq_solver_id"].as<int>(),
@@ -342,7 +362,7 @@ void construct_oet_meson_three_point_function(
                       snprintf(subpath, 100, "pix%dpiy%dpiz%d", pi.x, pi.y, pi.z);
                       path_list.push_back(subpath);
 
-                      Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), g);
+                      Vertex corrvertex = boost::add_vertex(h5::path_list_to_key(path_list), corrs_graph);
                       ::cvc::add_unique_edge(corrvertex, seq_prop_vertex, g);
 
                       // add the various covariantly displaced vertices
@@ -359,7 +379,7 @@ void construct_oet_meson_three_point_function(
                             "Ddim%d_dir%d::%s", cov_displ.dim, cov_displ.dir, cov_displ_prop_key.c_str());
 
                         std::string new_cov_displ_prop_key(cov_displ_prop_string);
-                        Vertex cov_displ_vertex = boost::add_vertex(new_cov_displ_prop_key, g);
+                        Vertex cov_displ_vertex = boost::add_vertex(new_cov_displ_prop_key, corrs_graph);
                         g[cov_displ_vertex].resolve.reset( new CovDisplResolve(
                               cov_displ_prop_key, // src key, in the first iteration, this
                                                   // is sequal to fwd_prop_key

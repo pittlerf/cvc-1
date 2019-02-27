@@ -26,6 +26,8 @@ void construct_time_slice_propagator(const YAML::Node &node,
                                      std::map< std::string, stoch_prop_meta_t > & props_meta,
                                      DepGraph & props_graph,
                                      std::map< std::string, std::vector<double> > & props_data,
+                                     DepGraph & phases_graph,
+                                     std::map< std::string, std::vector<::cvc::complex> > & phases_data,
                                      const std::vector<double> & ranspinor)
 {
 #ifdef HAVE_MPI
@@ -64,6 +66,15 @@ void construct_time_slice_propagator(const YAML::Node &node,
   }
   const std::string momlist_key = node["P"].as<std::string>();
   for( auto & mom : mom_lists[ momlist_key ] ){
+    char phase_string[100];
+    snprintf(phase_string, 100, "px%dpy%dpz%d", mom.x, mom.y. mom.z);
+    const std::string phase_key(phase_string);
+    boost::add_vertex(phase_string, phases_graph);
+    phases_graph[phase_vertex].resolve.reset( new MomentumPhaseResolve(
+          phase_key,
+          phases_data,
+          mom) );
+
     for(size_t i = 0; i < node["g"].size(); ++i){
       int g = node["g"][i].as<int>();
 
@@ -97,6 +108,8 @@ void construct_time_slice_propagator(const YAML::Node &node,
               node["g"][i].as<int>(),
               mom,
               src_meta.key(),
+              phases_data,
+              phase_key,
               ranspinor)
           ) );
       
