@@ -67,9 +67,9 @@ void construct_time_slice_propagator(const YAML::Node &node,
   const std::string momlist_key = node["P"].as<std::string>();
   for( auto & mom : mom_lists[ momlist_key ] ){
     char phase_string[100];
-    snprintf(phase_string, 100, "px%dpy%dpz%d", mom.x, mom.y. mom.z);
+    snprintf(phase_string, 100, "px%dpy%dpz%d", mom.x, mom.y, mom.z);
     const std::string phase_key(phase_string);
-    boost::add_vertex(phase_string, phases_graph);
+    Vertex phase_vertex = boost::add_vertex(phase_key, phases_graph);
     phases_graph[phase_vertex].resolve.reset( new MomentumPhaseResolve(
           phase_key,
           phases_data,

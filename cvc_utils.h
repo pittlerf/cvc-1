@@ -117,6 +117,10 @@ void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
     double * const contr, const int idsink, int const snk_mom[3],
     double const * chi, double const * psi);
 
+void contract_twopoint_gamma5_gamma_only_ext_momentum(
+    double * const contr, const int idsink, ::cvc::complex const * const phases,
+    double const * chi, double const * psi);
+
 /**
  * @brief Scale correlation function
  *

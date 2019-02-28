@@ -99,7 +99,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
       }
       
       char phase_name[100];
-      snprintf(phase_name, 100, "px%dpy%dpz%d", pf.x, pf.y. pf.z);
+      snprintf(phase_name, 100, "px%dpy%dpz%d", pf.x, pf.y, pf.z);
       Vertex phase_vertex = boost::add_vertex(std::string(phase_name), phases_graph);
       phases_graph[phase_vertex].resolve.reset( new MomentumPhaseResolve(
             std::string(phase_name),
@@ -161,7 +161,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
             // a gamma5 is explicitly added to account for gamma5 hermiticity
             // -> contract_twopoint_gamma5_gamma_snk_only_snk_momentum
             // -> we need the full gamma structure at the sink
-            g[corrvertex].resolve.reset( new 
+            corrs_graph[corrvertex].resolve.reset( new 
                 CorrResolve(fwd_prop_key,
                             bwd_prop_key,
                             pf, 

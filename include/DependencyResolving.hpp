@@ -1,5 +1,6 @@
 #pragma once
 
+#include "global.h"
 #include "debug_printf.hpp"
 #include "enums.hpp"
 #include "types.h"
@@ -13,7 +14,6 @@
 #include "propagator_io.h"
 #include "SourceCreators.hpp"
 #include "Q_phi.h"
-
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -39,6 +39,67 @@ struct NullResolve : public ResolveDependency {
 #endif
   }
 };
+
+struct MomentumPhaseResolve : public ResolveDependency {
+  const std::string mom_key;
+  std::map< std::string, std::vector<::cvc::complex> > & phases_data;
+  const mom_t p;
+
+  MomentumPhaseResolve(
+      const std::string & mom_key_in,
+      std::map< std::string, std::vector<::cvc::complex> > & phases_data_in,
+      const mom_t & p_in) :
+    mom_key(mom_key_in),
+    phases_data(phases_data_in),
+    p(p_in) {}
+  
+  void operator()() const 
+  {
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
+    if( !phases_data.count(mom_key) ){
+      size_t const VOL3 = LX*LY*LZ;
+      double const TWO_MPI = 2.0 * M_PI;
+      double const px = TWO_MPI * (double)p.x / (double)LX_global;
+      double const py = TWO_MPI * (double)p.y / (double)LY_global;
+      double const pz = TWO_MPI * (double)p.z / (double)LZ_global;
+
+      double const phase_offset = (double)( g_proc_coords[1] * LX ) * px + 
+                                  (double)( g_proc_coords[2] * LY ) * py + 
+                                  (double)( g_proc_coords[3] * LZ ) * pz;
+
+      phases_data.emplace( std::make_pair(mom_key,
+                                          std::vector<::cvc::complex>(VOL3) ) );
+
+      ::cvc::complex * phases = phases_data[mom_key].data();
+
+#ifdef HAVE_OPENMP
+#pragma omp parallel
+#endif
+      {
+        double phase;
+        unsigned int x, y, z;
+
+        ::cvc::complex w1, w2;
+
+        // generate sink phase field
+        FOR_IN_PARALLEL(ix, 0, VOL3){
+           x = g_lexic2coords[ix][1];
+           y = g_lexic2coords[ix][2];
+           z = g_lexic2coords[ix][3];
+
+           phase = phase_offset + x*px + y*py + z*pz;
+           phases[ix].re = cos(phase);
+           phases[ix].im = sin(phase);
+        }
+      }
+    }
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
+  }
+}; // MomentumPhaseResolve
 
 struct TimeSliceSourceResolve : public ResolveDependency {
   const int src_ts;
@@ -270,7 +331,8 @@ struct CorrResolve : public ResolveDependency {
   const std::list<std::string> path_list;
   std::map< std::string, std::vector<double> > & props_data;
   std::map< std::string, std::vector<double> > & dag_props_data;
-  std::map< std::string, H5Correlator > & corrs_data; 
+  std::map< std::string, H5Correlator > & corrs_data;
+  std::map< std::string, std::vector<::cvc::complex> > & phases_data; 
   const mom_t p;
   const int gamma;
 
@@ -281,7 +343,8 @@ struct CorrResolve : public ResolveDependency {
               const std::list<std::string> & path_list_in,
               std::map< std::string, std::vector<double> > & props_data_in,
               std::map< std::string, std::vector<double> > & dag_props_data_in,
-              std::map< std::string, H5Correlator > & corrs_data_in, 
+              std::map< std::string, H5Correlator > & corrs_data_in,
+              std::map< std::string, std::vector<::cvc::complex> > & phases_data_in, 
               const ::cvc::complex & normalisation_in) :
     propkey(propkey_in),
     dagpropkey(dagpropkey_in), 
@@ -291,6 +354,7 @@ struct CorrResolve : public ResolveDependency {
     props_data(props_data_in),
     dag_props_data(dag_props_data_in),
     corrs_data(corrs_data_in),
+    phases_data(phases_data_in),
     normalisation(normalisation_in) {}
 
   void operator()() const
@@ -311,14 +375,17 @@ struct CorrResolve : public ResolveDependency {
                                          H5Correlator(path_list, 2*T) ) );
     }
 
+    char mom_key[30];
+    snprintf(mom_key, 30, "px%dpy%dpz%d", p.x, p.y, p.z);
+    const int mom_vec[3]={p.x, p.y, p.z}; 
+
     Stopwatch sw(g_cart_grid);
-    const std::vector<int> mom = {p.x, p.y, p.z};
-    contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
+    contract_twopoint_gamma5_gamma_only_ext_momentum(
         corrs_data[key].storage.data(), 
         gamma,
-        mom.data(),
+        phases_data[std::string(mom_key)].data(),
         dag_props_data[ dagpropkey ].data(),
-        props_data[ propkey ].data());
+        props_data[ propkey ].data() );
     scale_cplx( corrs_data[key].storage.data(), T, normalisation );
     if(g_verbose >= verbosity::resolve){
       sw.elapsed_print_and_reset("contract_twopoint_gamma5_gamma_snk_only_snk_momentum local current and normalisation");

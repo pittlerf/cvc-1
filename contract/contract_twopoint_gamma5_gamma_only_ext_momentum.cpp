@@ -9,24 +9,12 @@
 namespace cvc {
 
 void contract_twopoint_gamma5_gamma_only_ext_momentum(
-    double * const contr, const int idsink, double const * phases,
+    double * const contr, const int gamma_id, ::cvc::complex const * const phases,
     double const * chi, double const * psi) 
 {
   size_t const VOL3 = LX*LY*LZ;
-  double const TWO_MPI = 2.0 * M_PI;
-  double const px = TWO_MPI * (double)snk_mom[0] / (double)LX_global;
-  double const py = TWO_MPI * (double)snk_mom[1] / (double)LY_global;
-  double const pz = TWO_MPI * (double)snk_mom[2] / (double)LZ_global;
-
-  double const phase_offset = (double)( g_proc_coords[1] * LX ) * px + 
-                              (double)( g_proc_coords[2] * LY ) * py + 
-                              (double)( g_proc_coords[3] * LZ ) * pz;
- 
   // for safety, we can set 'contr' to zero
   memset((void*)contr, 0, sizeof(double)*2*T);
-  
-  // we pre-generate the vector of phases
-  std::vector<::cvc::complex> phases(VOL3);
 
 #ifdef HAVE_OPENMP
 #pragma omp parallel
@@ -40,25 +28,11 @@ void contract_twopoint_gamma5_gamma_only_ext_momentum(
     // it's even neessary
     double * contr_tmp_ptr = contr_tmp.data();
 
-    double phase;
-    unsigned int x, y, z;
-    double spinor1[24], spinor2[24];
-
     size_t iix, ix3d;
     unsigned int x0;
+    double spinor1[24], spinor2[24];
 
     ::cvc::complex w1, w2;
-
-    // generate sink phase field
-    FOR_IN_PARALLEL(ix, 0, VOL3){
-       x = g_lexic2coords[ix][1];
-       y = g_lexic2coords[ix][2];
-       z = g_lexic2coords[ix][3];
-
-       phase = phase_offset + x*px + y*py + z*pz;
-       phases[ix].re = cos(phase);
-       phases[ix].im = sin(phase);
-    }
 
     // perform sink gamma multiplication, contraction and momentum projection
     FOR_IN_PARALLEL(ix, 0, VOLUME)
@@ -67,7 +41,7 @@ void contract_twopoint_gamma5_gamma_only_ext_momentum(
       ix3d = ix % VOL3;
       x0 = g_lexic2coords[ix][0];
 
-      _fv_eq_gamma_ti_fv(spinor1, idsink, psi+iix);
+      _fv_eq_gamma_ti_fv(spinor1, gamma_id, psi+iix);
       _fv_eq_gamma_ti_fv(spinor2, 5, spinor1);
       _co_eq_fv_dag_ti_fv(&w1, chi+iix, spinor2);
       w2.re = w1.re * phases[ix3d].re - w1.im * phases[ix3d].im;
@@ -93,7 +67,7 @@ void contract_twopoint_gamma5_gamma_only_ext_momentum(
   std::vector<double> mpi_buffer(2*T);
   memcpy(mpi_buffer.data(), contr, 2*T*sizeof(double) );
   if( MPI_Reduce(mpi_buffer.data(), contr, 2*T, MPI_DOUBLE, MPI_SUM, 0, g_ts_comm ) != MPI_SUCCESS ) {
-    fprintf( stderr, "[contract_twopoint_gamma5_gamma_snk_only_snk_momentum] Error from MPI_Reduce %s %d\n", __FILE__, __LINE__);
+    fprintf( stderr, "[contract_twopoint_gamma5_gamma_only_ext_momentum] Error from MPI_Reduce %s %d\n", __FILE__, __LINE__);
   }
 #endif 
 #endif

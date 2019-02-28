@@ -61,6 +61,8 @@ void enter_node(const YAML::Node &node,
               metas.props_meta,
               metas.props_graph,
               data.props_data,
+              metas.phases_graph,
+              data.phases_data,
               *(metas.ranspinor));
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
           construct_oet_meson_two_point_function(
@@ -70,7 +72,9 @@ void enter_node(const YAML::Node &node,
               metas.props_meta,
               data.props_data,
               odefs.corrs_data,
-              metas.corrs_graph);
+              metas.corrs_graph,
+              data.phases_data,
+              metas.phases_graph);
         } else if ( it->first.as<std::string>() == "OetMesonThreePointFunction" ){
           construct_oet_meson_three_point_function(
               it->second,
@@ -79,10 +83,12 @@ void enter_node(const YAML::Node &node,
               metas.props_meta,
               data.props_data,
               odefs.corrs_data,
+              metas.corrs_graph,
+              data.phases_data,
+              metas.phases_graph,
               data.seq_props_data,
               data.cov_displ_props_data,
-              metas.gauge_field_with_phases,
-              metas.corrs_graph
+              metas.gauge_field_with_phases
               );
         } else {
           char msg[200];

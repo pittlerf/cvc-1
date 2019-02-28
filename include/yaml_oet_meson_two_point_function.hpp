@@ -15,7 +15,9 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
                                             std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
                                             std::map< std::string, std::vector<double> > & props_data,
                                             std::map< std::string, ::cvc::H5Correlator > & corrs_data, 
-                                            DepGraph & g);
+                                            DepGraph & corrs_graph,
+                                            std::map< std::string, std::vector<::cvc::complex> > & phases_data,
+                                            DepGraph & phases_graph);
 
 } //namespace(yaml)
 } //namespace(cvc)

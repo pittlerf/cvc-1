@@ -139,8 +139,20 @@ int main(int argc, char ** argv){
                  metas.props_meta.size() > 1 ? "s" : "",
                  (double)metas.props_meta.size()*sizeof(double)*_GSI(g_nproc*VOLUME)*1.0e-9);
 
+    // we begin by generating all momentum projection phases that we require
+    std::vector<ComponentGraph>
+      independent_mom_projections(connected_components_subgraphs(metas.phases_graph));
+    for( size_t i_component = 0; i_component < independent_mom_projections.size(); ++i_component ){
+      logger << std::endl << "# [correlators] Generating momentum projection phases " <<
+        i_component+1 << " of " << independent_mom_projections.size() << std::endl;
+      for( auto v : boost::make_iterator_range(boost::vertices(independent_mom_projections[i_component]))) {
+        if( !metas.phases_graph[v].resolved ){
+          descend_and_resolve<DepGraph>(v, metas.phases_graph);
+        }
+      }
+    }
 
-    // first we generate the basic propagators which have their own dependency graph
+    // now we generate the basic propagators which have their own dependency graph
     // which is organised by "id" (flavour) to make the inversions efficient
     std::vector<ComponentGraph> 
       independent_srcs_and_props(connected_components_subgraphs(metas.props_graph));

@@ -46,6 +46,14 @@ int prepare_gamma_timeslice_oet(double * const s,
       int const gamma_id,
       int const t_src,
       const mom_t & momentum);
+  
+  int prepare_gamma_timeslice_oet_ext_momentum(
+      double * const s,
+      double const * const ran,
+      int const gamma_id,
+      int const t_src,
+      ::cvc::complex const * const phases,
+      const mom_t & momentum);
 
 }  /* end of namespace cvc */
 

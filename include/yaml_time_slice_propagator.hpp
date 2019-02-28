@@ -18,6 +18,8 @@ void construct_time_slice_propagator(const YAML::Node &node,
                                      std::map< std::string, stoch_prop_meta_t > & props_meta,
                                      DepGraph & props_graph,
                                      std::map< std::string, std::vector<double> > & props_data,
+                                     DepGraph & phases_graph,
+                                     std::map< std::string, std::vector<::cvc::complex> > & phases_data,
                                      const std::vector<double> & ranspinor);
 
 } //namespace(yaml)

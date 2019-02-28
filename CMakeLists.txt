@@ -377,6 +377,7 @@ add_library(cvc
   make_x_orbits.cpp
   rng/ParallelMT19937_64.cpp
   contract/contract_twopoint_gamma5_gamma_snk_only_snk_momentum.cpp
+  contract/contract_twopoint_gamma5_gamma_only_ext_momentum.cpp
   contract_loop.cpp
 )
 add_library(cvc_bare

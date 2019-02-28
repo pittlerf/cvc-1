@@ -30,6 +30,8 @@ namespace cvc {
     const std::string seq_src_key;
     const std::string bwd_prop_key;
     std::map< std::string, std::vector<double> > & props_data;
+    const std::string phase_key;
+    std::map< std::string, std::vector<::cvc::complex> > & phases_data;
   
   	CreateSequentialGammaTimeSliceSource(const int src_ts_in,
                                          const int seq_src_ts_in,
@@ -37,14 +39,18 @@ namespace cvc {
                                          const mom_t & seq_p_in,
                                          const std::string & seq_src_key_in,
                                          const std::string & bwd_prop_key_in,
-                                         std::map <std::string, std::vector<double> > & props_data_in) :
+                                         std::map<std::string, std::vector<double> > & props_data_in,
+                                         const std::string & phase_key_in,
+                                         std::map<std::string, std::vector<::cvc::complex> > & phases_data_in) :
       seq_src_ts(seq_src_ts_in),
       src_ts(src_ts_in),
       seq_gamma(seq_gamma_in),
       seq_p(seq_p_in), 
       seq_src_key(seq_src_key_in),
       bwd_prop_key(bwd_prop_key_in),
-      props_data(props_data_in) {}
+      props_data(props_data_in),
+      phases_data(phases_data_in),
+      phase_key(phase_key_in) {}
   
     void operator()(std::vector<double> & src) const 
     {
@@ -91,16 +97,22 @@ namespace cvc {
     const mom_t p;
     const std::string src_key;
     const std::vector<double> & ranspinor;
+    const std::string phase_key;
+    std::map< std::string, std::vector<::cvc::complex> > & phases_data;
   
   	CreateGammaTimeSliceSource(const int src_ts_in,
   												     const int gamma_in,
                                const mom_t & p_in,
                                const std::string & src_key_in,
+                               std::map< std::string, std::vector<::cvc::complex> > & phases_data_in,
+                               const std::string & phase_key_in,
                                const std::vector<double> & ranspinor_in) :
       src_ts(src_ts_in),
       gamma(gamma_in),
       p(p_in), 
       src_key(src_key_in),
+      phase_key(phase_key_in),
+      phases_data(phases_data_in),
       ranspinor(ranspinor_in) {}
   
     void operator()(std::vector<double> & src) const 
