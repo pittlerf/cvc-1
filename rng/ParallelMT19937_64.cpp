@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <cstdio>
 #include <cmath>
+#include <exception>
+#include <stdexcept>
 
 namespace cvc {
   // 311ULL is just an offset, we could use any other
@@ -52,6 +54,41 @@ namespace cvc {
   }
 
   void
+  ParallelMT19937_64::gen_gauss(double * const buffer, const unsigned int n_per_site)
+  {
+    if( n_per_site % 2 != 0 ){
+      throw( std::invalid_argument("[ParallelMT19937_64::gen_gauss] n_per_site must be even!") );
+    }
+    const double TWO_MPI = 2.0 * M_PI;
+    const unsigned int half_n_per_site = n_per_site / 2;
+
+#ifdef HAVE_OPENMP
+#pragma omp parallel
+#endif
+    {
+      double x1, x2, norm;
+      FOR_IN_PARALLEL(li, 0, VOLUME)
+      {
+        for(unsigned int i_per_site = 0; i_per_site < half_n_per_site; ++i_per_site){
+          x1 = sqrt( -log(1.0 - local_rngs[li].gen_real()) );
+          x2 = TWO_MPI * local_rngs[li].gen_real();
+
+          // real and imaginary components are in consecutive elements
+          buffer[n_per_site*li + 2*i_per_site  ] = x1 * sin(x2);
+          buffer[n_per_site*li + 2*i_per_site+1] = x1 * cos(x2);
+ 
+          // our aim is to generate RNs such that v[i]*conj(v[i]) = 1.0 -> need to normalise
+          norm = 1.0 / sqrt( buffer[n_per_site*li + 2*i_per_site  ]*buffer[n_per_site*li + 2*i_per_site  ] +
+                             buffer[n_per_site*li + 2*i_per_site+1]*buffer[n_per_site*li + 2*i_per_site+1] );
+
+          buffer[n_per_site*li + 2*i_per_site  ] *= norm;
+          buffer[n_per_site*li + 2*i_per_site+1] *= norm;
+        }
+      }
+    } // omp parallel closing brace
+  }
+
+  void
   ParallelMT19937_64::gen_test(double * const buffer, const unsigned int n_per_site)
   {
     PARALLEL_AND_FOR(li, 0, VOLUME)
@@ -65,8 +102,8 @@ namespace cvc {
   void
   ParallelMT19937_64::gen_real(double * const buffer, const unsigned int n_per_site) 
   {
-#pragma omp parallel for
-    for(unsigned int li = 0; li < VOLUME; ++li){
+    PARALLEL_AND_FOR(li, 0, VOLUME)
+    {
       for(unsigned int i_per_site = 0; i_per_site < n_per_site; ++i_per_site){
         buffer[n_per_site*li + i_per_site] = local_rngs[li].gen_real();
       }
