@@ -10,6 +10,7 @@
 #include "Core.hpp"
 #include "debug_printf.hpp"
 #include "loop_tools.h"
+#include "propagator_io.h"
 
 #ifdef HAVE_MPI
 #include <mpi.h>
@@ -19,6 +20,7 @@
 #include <vector>
 #include <array>
 #include <fstream>
+#include <unistd.h>
 
 
 constexpr unsigned int startsite = 0;
@@ -47,78 +49,47 @@ int main(int argc, char** argv)
   ParallelMT19937_64 rangen(982932ULL);
   sw.elapsed_print("ParallelMT19937_64 initialisation");
 
-  ParallelMT19937_64 rangen2(982932ULL);
+  std::vector< double > ranspinor(24*VOLUME);
+  // we we also convert the seeds into double and write these out
+  std::vector< double > local_seeds(24*VOLUME);
 
-  ParallelMT19937_64 rangen3(982932ULL);
-
-  MT19937_64 sitegen(877123ULL);
-
-  debug_printf(0, 0, "Generatign RNs for statistical tests\n");
-  // output for statistical tests
-  std::vector< std::vector<double> > ordered(no_testsites);
-  std::vector< std::vector<double> > random(no_testsites);
-  std::vector< double > z2(24*VOLUME);
-
-  for(unsigned int li = 0; li < no_testsites; ++li){
-    ordered[li].resize(no_testvals);
-    random[li].resize(no_testvals);
+  for(unsigned long long i = 0; i < VOLUME; ++i){
+    local_seeds[24*i] = static_cast<double>(local_to_global_site_index(i));
   }
 
-  // generate a random sequence of test sites 
-  std::array<size_t, no_testsites> testsites;
-  for(unsigned int li = 0; li < no_testsites; ++li){
-    testsites[li] = static_cast<size_t>(sitegen.gen_int64() % VOLUME);
-  }
-
-  // generate sequences of random numbers using generators sitting at
-  // consecutive lattice sites
-  #pragma omp parallel for
-  for(unsigned int li = startsite; li < no_testsites+startsite; ++li){
-    for(unsigned int ri = 0; ri < no_testvals; ++ri){
-      ordered[li][ri] = rangen.gen_real_at_site(li);
-    }
-  }
-
-  // generate sequences of random numbers using generators randomly
-  // chosen on the lattice
-  #pragma omp parallel for
-  for(unsigned int li = 0; li < no_testsites; ++li){
-    for(unsigned int ri = 0; ri < no_testvals; ++ri){
-      random[li][ri] = rangen2.gen_real_at_site( testsites[li] );
-    }
-  }
-
-  // generate some z2 cross z2 random numbers
-  rangen3.gen_z2(z2.data(),
-                 24);
-
-  debug_printf(0,0, "Writing data for statistical tests\n");
-  std::ofstream random_outfile("random.dat",
-                               std::ios::out | std::ios::binary);
-  std::ofstream ordered_outfile("ordered.dat",
-                                std::ios::out | std::ios::binary);
-  std::ofstream z2_outfile("z2.dat",
-                           std::ios::out | std::ios::binary);
-
-  for(unsigned int li = 0; li < no_testsites; ++li){
-    random_outfile.write((char*)random[li].data(), no_testvals*sizeof(double));
-    ordered_outfile.write((char*)ordered[li].data(), no_testvals*sizeof(double));
-  }
-  z2_outfile.write((char*)z2.data(), 24*VOLUME*sizeof(double));
-
-  random_outfile.close();
-  ordered_outfile.close();
-  z2_outfile.close();
-  
-  debug_printf(0, 0, "Timing generation of 50*24*VOLUME RNs\n");
-  std::vector<double> testvec(24*VOLUME);
+  //// generate some z2 cross z2 random numbers
   sw.reset();
-  // generate 24*VOLUME random numbers 50 times
-  for(int irun = 0; irun < 50; irun++){
-    rangen.gen_real(testvec.data(), 24);
-    std::cout << testvec[989] << std::endl;
-  }
-  sw.elapsed_print("ParallelMT19937_64 test generation");
+  rangen.gen_z2(ranspinor.data(),
+                24);
+  sw.elapsed_print("gen_z2");
+
+#ifdef HAVE_MPI
+  MPI_Barrier(g_cart_grid);
+#endif
+
+  char filename[100];
+  snprintf(filename, 100,
+           "local_seeds.npt%d_npx%d_npy%d_npz%d.lime",
+           g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z);
+  
+  int exitstatus = 0;
+  CHECK_EXITSTATUS_NONZERO(
+      exitstatus,
+      write_propagator(local_seeds.data(), filename, 0, 64),
+      "error in write_propagator",
+      true,
+      1);
+  
+  snprintf(filename, 100,
+           "ranspinor.npt%d_npx%d_npy%d_npz%d.lime",
+           g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z);
+  
+  CHECK_EXITSTATUS_NONZERO(
+      exitstatus,
+      write_propagator(ranspinor.data(), filename, 0, 64),
+      "error in write_propagator",
+      true,
+      1);
   
   return 0;
 }

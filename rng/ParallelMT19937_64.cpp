@@ -26,18 +26,22 @@ namespace cvc {
     const unsigned long long global_volume = VOLUME*g_nproc;
     local_seeds.resize( VOLUME );
     local_rngs.resize( VOLUME );
-
+    
+    unsigned long long ran64;
     for(unsigned long long gi = 0; gi < global_volume; ++gi){
       // use the sequence generator to produce our seeds for the global lattice
-      unsigned long long ran64 = seed_gen.next();
+      ran64 = seed_gen.next();
       if( is_local(gi) ){
-        local_seeds[ gi % VOLUME ] = ran64;
+        local_seeds[ global_to_local_site_index(gi) ] = ran64;
       }
     }
     #pragma omp parallel for
     for(unsigned int li = 0; li < VOLUME; ++li){
       local_rngs[li].init(local_seeds[li]);
     }
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
   }
 
   void
@@ -51,6 +55,9 @@ namespace cvc {
           one_ov_sqrt_2 : -one_ov_sqrt_2;
       }
     }
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
   }
 
   void
@@ -86,6 +93,9 @@ namespace cvc {
         }
       }
     } // omp parallel closing brace
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
   }
 
   void
@@ -97,6 +107,9 @@ namespace cvc {
         buffer[n_per_site*li + i_per_site] = (double)li;
       }
     }
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
   }
 
   void
@@ -108,11 +121,19 @@ namespace cvc {
         buffer[n_per_site*li + i_per_site] = local_rngs[li].gen_real();
       }
     }
+#ifdef HAVE_MPI
+    MPI_Barrier(g_cart_grid);
+#endif
   }
 
   double
-  ParallelMT19937_64::gen_real_at_site(size_t local_site_idx){
+  ParallelMT19937_64::gen_real_at_site(const size_t local_site_idx){
     return(local_rngs[local_site_idx].gen_real());
+  }
+
+  unsigned long long
+  ParallelMT19937_64::get_local_seed(const size_t local_site_idx){
+    return(local_seeds[local_site_idx]);
   }
 
 } // namespace(cvc)
