@@ -32,6 +32,13 @@ typedef enum ExitCode_t {
   CVC_EXIT_NCODES
 } ExitCode_t;
 
+typedef enum NoiseType_t {
+  GAUSSIAN_NOISE = 1,
+  Z2_NOISE,
+  N_NOISE_TYPES
+} NoiseType_t;
+
+
 }
 
 #endif

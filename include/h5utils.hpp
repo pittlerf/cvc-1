@@ -109,6 +109,8 @@ namespace h5 {
     const int io_proc = get_io_proc();
 
     if(io_proc > 0){
+      // we use a shared ptr to the file such that we only have to open it once on io_proc==2, 
+      // rather than opening it again and again in the loop below
       std::shared_ptr<HighFive::File> file_ptr;
       std::string path;
       std::vector<double> buffer;
@@ -125,6 +127,10 @@ namespace h5 {
           if( g_verbose >= verbosity::detailed_progress ){
             std::cout << "# [cvc::h5::write_correlators] Dataset path : " << path << std::endl;
           }
+        } else {
+          // on all other processes, make sure that buffer.data() points to a valid
+          // address, even if it is not used
+          buffer.resize(1);
         }
 
         std::vector<double> & local_data = elem.second.storage;
@@ -150,6 +156,92 @@ namespace h5 {
       if( io_proc == 2 ){
         file_ptr->flush();
       }
+    } // if(io_proc > 0)
+  }
+
+  static inline void write_loops(const std::string & filename,
+      const std::vector<double> & local_loops,
+      const std::vector< std::list<std::string> > & path_lists,
+      const unsigned int n_gamma, const unsigned int n_mom)
+  {
+    const int io_proc = get_io_proc();
+
+    // only the accumulator processes in T perform any operations here
+    if( io_proc > 0 ){
+      std::vector<double> buffer;
+      std::vector<double> reorder_buffer;
+      const size_t n_elem = 2*T_global*path_lists.size();
+      
+      // on the true origin process, we need to accumulate the loops and reshuffle them
+      // so we need some storage
+      if(io_proc == 2){
+        buffer.resize( n_elem );
+        reorder_buffer.resize( n_elem );
+      } else {
+        // on all other processes, make sure that buffer.data() points to a valid
+        // address, even if it is not used
+        buffer.resize(1);
+      }
+
+      // gather the loops from all accumulator processes on the I/O process
+#ifdef HAVE_MPI
+      int existatus;
+      CHECK_EXITSTATUS_NOT(
+          existatus,
+          MPI_SUCCESS,
+          MPI_Gather(local_loops.data(), n_elem*T/T_global, MPI_DOUBLE, 
+                     buffer.data(), n_elem*T/T_global, MPI_DOUBLE, 0, g_tr_comm),
+          "[cvc::h5::write_loops] Failure in MPI_Gather\n",
+          true,
+          CVC_EXIT_MPI_FAILURE);
+#else
+      buffer = local_loops;
+#endif
+
+      if(io_proc == 2){
+#ifdef HAVE_OPENMP
+#pragma omp parallel
+#endif
+        {
+          // now that we have the data from all T processes, we can reorder
+          // appropriately for writeout
+          size_t in_idx;
+          size_t out_idx; 
+#ifdef HAVE_OPENMP
+#pragma omp for collapse(3)
+#endif
+          for(unsigned int t = 0; t < T_global; ++t){
+            for(unsigned int i_mom = 0; i_mom < n_mom; ++i_mom){
+              for(unsigned int i_gamma = 0; i_gamma < n_gamma; ++i_gamma){
+                // in slowest to fastest: t, mom, gamma, complex
+                in_idx = 2*(i_gamma + 16*(i_mom + n_mom*t));
+                // out slowest to fastest: gamma, mom, T, complex
+                out_idx = 2*(t + T_global*(i_mom + n_mom*i_gamma));
+                reorder_buffer[out_idx  ] = buffer[in_idx];
+                reorder_buffer[out_idx+1] = buffer[in_idx+1];
+              }
+            }
+          }
+        } // OpenMP parallel closing brace
+
+        std::string path;
+        HighFive::File loop_file(filename, HighFive::File::ReadWrite | HighFive::File::Create );
+        // each loop that we are about to write is 2*T_global in size
+        for( size_t i_elem = 0; i_elem < path_lists.size(); ++i_elem ){
+          path = recursive_path_create(loop_file, path_lists[i_elem]);
+          if( g_verbose >= verbosity::detailed_progress ){
+            std::cout << "# [cvc::h5::write_loops] Dataset path : " << path << std::endl;
+          }
+          
+          // currently we make a copy but there must be a better way for doing this
+          // using HigFive, couldn't figure it out though...
+          std::vector<double> temp(reorder_buffer.begin() + i_elem*2*T_global, 
+                                   reorder_buffer.begin() + (i_elem+1)*2*T_global); 
+          HighFive::DataSet dataset = loop_file.createDataSet<double>(path, HighFive::DataSpace::From(temp));
+          dataset.write(temp);
+        }
+        loop_file.flush();
+      } // if(io_proc == 2)
     } // if(io_proc > 0)
   }
 

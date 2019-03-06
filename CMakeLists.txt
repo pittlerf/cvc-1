@@ -378,7 +378,9 @@ add_library(cvc
   rng/ParallelMT19937_64.cpp
   contract/contract_twopoint_gamma5_gamma_snk_only_snk_momentum.cpp
   contract/contract_twopoint_gamma5_gamma_only_ext_momentum.cpp
+  contract/contract_twopoint_all_gammas_ext_momentum_list.cpp
   contract_loop.cpp
+  fourier_transform/make_phase_field.cpp
 )
 add_library(cvc_bare
   ${CMAKE_CURRENT_BINARY_DIR}/gitversion.cpp
@@ -418,6 +420,13 @@ target_link_libraries(correlators
   yaml_parsers
   const_arrays
   cvc
+  ${cvc_libraries})
+
+add_executable(naive_loops
+  naive_loops.cpp)
+target_link_libraries(naive_loops
+  cvc
+  const_arrays
   ${cvc_libraries})
 
 add_executable(cpff_tbc_invert_contract
