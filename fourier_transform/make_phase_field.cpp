@@ -8,7 +8,7 @@
 
 namespace cvc {
 
-  void make_phase_field(std::vector<::cvc::complex> & phases, const mom_t & p)
+  void make_phase_field(std::vector<::cvc::complex> & phase_field, const mom_t & p)
   {
     size_t const VOL3 = LX*LY*LZ;
     double const TWO_MPI = 2.0 * M_PI;
@@ -20,9 +20,10 @@ namespace cvc {
                                 (double)( g_proc_coords[2] * LY ) * py +
                                 (double)( g_proc_coords[3] * LZ ) * pz;
 
-    if( phases.size() != VOL3 ){
-      phases.resize(VOL3);
+    if( phase_field.size() != VOL3 ){
+      phase_field.resize(VOL3);
     }
+
 #ifdef HAVE_OPENMP
 #pragma omp parallel
 #endif
@@ -36,8 +37,8 @@ namespace cvc {
         z = g_lexic2coords[ix][3];
 
         phase = phase_offset + x*px + y*py + z*pz;
-        phases[ix].re = cos(phase);
-        phases[ix].im = sin(phase);
+        phase_field[ix].re = cos(phase);
+        phase_field[ix].im = sin(phase);
       }
     } // omp parallel region closing brace
   }
