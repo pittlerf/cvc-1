@@ -85,7 +85,17 @@ class ParallelMT19937_64 {
      * @return random number in range [0,1]
      */
     double
-    gen_real_at_site(size_t local_site_idx);
+    gen_real_at_site(const size_t local_site_idx);
+
+    /**
+     * @brief Get seed for local rng at given local lattice site
+     *
+     * @param local_site_idx
+     *
+     * @return 
+     */
+    unsigned long long
+    get_local_seed(const size_t local_site_idx);
 
   private:
     SequenceOfUnique seed_gen;
