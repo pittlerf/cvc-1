@@ -54,7 +54,7 @@ int main(int argc, char** argv)
   std::vector< double > local_seeds(24*VOLUME);
 
   for(unsigned long long i = 0; i < VOLUME; ++i){
-    local_seeds[24*i] = static_cast<double>(local_to_global_site_index(i));
+    local_seeds[24*i] = static_cast<double>(rangen.get_local_seed(i));
   }
 
   //// generate some z2 cross z2 random numbers
