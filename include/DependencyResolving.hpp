@@ -14,6 +14,7 @@
 #include "propagator_io.h"
 #include "SourceCreators.hpp"
 #include "Q_phi.h"
+#include "make_phase_field.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
@@ -55,45 +56,15 @@ struct MomentumPhaseResolve : public ResolveDependency {
   
   void operator()() const 
   {
-#ifdef HAVE_MPI
-    MPI_Barrier(g_cart_grid);
-#endif
+    debug_printf(0,verbosity::resolve,
+        "[MomentumPhaseResolve] Making phase field for px:%d py:%d pz:%d\n",
+        p.x, p.y, p.z);
+
     if( !phases_data.count(mom_key) ){
       size_t const VOL3 = LX*LY*LZ;
-      double const TWO_MPI = 2.0 * M_PI;
-      double const px = TWO_MPI * (double)p.x / (double)LX_global;
-      double const py = TWO_MPI * (double)p.y / (double)LY_global;
-      double const pz = TWO_MPI * (double)p.z / (double)LZ_global;
-
-      double const phase_offset = (double)( g_proc_coords[1] * LX ) * px + 
-                                  (double)( g_proc_coords[2] * LY ) * py + 
-                                  (double)( g_proc_coords[3] * LZ ) * pz;
-
       phases_data.emplace( std::make_pair(mom_key,
                                           std::vector<::cvc::complex>(VOL3) ) );
-
-      ::cvc::complex * phases = phases_data[mom_key].data();
-
-#ifdef HAVE_OPENMP
-#pragma omp parallel
-#endif
-      {
-        double phase;
-        unsigned int x, y, z;
-
-        ::cvc::complex w1, w2;
-
-        // generate sink phase field
-        FOR_IN_PARALLEL(ix, 0, VOL3){
-           x = g_lexic2coords[ix][1];
-           y = g_lexic2coords[ix][2];
-           z = g_lexic2coords[ix][3];
-
-           phase = phase_offset + x*px + y*py + z*pz;
-           phases[ix].re = cos(phase);
-           phases[ix].im = sin(phase);
-        }
-      }
+      make_phase_field(phases_data[mom_key], p);
     }
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
@@ -388,7 +359,7 @@ struct CorrResolve : public ResolveDependency {
         props_data[ propkey ].data() );
     scale_cplx( corrs_data[key].storage.data(), T, normalisation );
     if(g_verbose >= verbosity::resolve){
-      sw.elapsed_print_and_reset("contract_twopoint_gamma5_gamma_snk_only_snk_momentum local current and normalisation");
+      sw.elapsed_print_and_reset("contract_twopoint_gamma5_gamma_only_ext_momentum local current and normalisation");
     }
 
 #ifdef HAVE_MPI
