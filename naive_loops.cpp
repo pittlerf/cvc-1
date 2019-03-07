@@ -57,10 +57,14 @@ int main(int argc, char ** argv){
 
   // handy stopwatch
   Stopwatch sw(g_cart_grid);
-  // console logger on proc_id 0
+
+  // console logger on proc_id 0 for verbosity level higher or equal to verbosity::basic_progress
   Logger logger(0,verbosity::basic_progress,std::cout);
+
+  // console logger on proc_id 0 for all verbosity levels
   Logger all_logger(0,0,std::cout);
 
+  // technically we don't need these, I think...
   mpi_init_xchange_contraction(2);
   mpi_init_xchange_eo_spinor ();
 
@@ -112,7 +116,9 @@ int main(int argc, char ** argv){
   char istoch_cstring[20];
   char gamma_cstring[10];
   char p_cstring[100];
+  const char * loop_type_cstring = "naive";
   for( int i_sample = 0; i_sample < g_nsample; i_sample++ ) {
+    all_logger << "Running sample " << i_sample+1 << " of " << g_nsample << std::endl;
 
     // build h5 path lists for the output
     std::vector< std::list<std::string> > path_lists(16*g_source_momentum_number);
@@ -125,6 +131,7 @@ int main(int argc, char ** argv){
                                  g_source_momentum_list[i_mom][1],
                                  g_source_momentum_list[i_mom][2]);
 
+        path_lists[g_source_momentum_number*i_gamma + i_mom].push_back(loop_type_cstring);
         path_lists[g_source_momentum_number*i_gamma + i_mom].push_back(istoch_cstring);
         path_lists[g_source_momentum_number*i_gamma + i_mom].push_back(gamma_cstring);
         path_lists[g_source_momentum_number*i_gamma + i_mom].push_back(p_cstring);
