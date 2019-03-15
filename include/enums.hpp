@@ -24,6 +24,12 @@ typedef enum ExitCode_t {
   CVC_EXIT_MALLOC_FAILURE = 5
 } ExitCode_t;
 
+typedef enum NoiseType_t {
+  GAUSSIAN_NOISE = 1,
+  Z2_NOISE,
+  N_NOISE_TYPES
+} NoiseType_t;
+
 typedef enum cvc_GammaBasis {
   UKQCD = 0,
   CHIRAL_TMLQCD,

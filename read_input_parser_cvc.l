@@ -661,6 +661,7 @@ static inline double fltlist_next_token(int * const list_end){
   char error_message[200];
   int list_end = 0;
   int index = 0;
+  printf("I am in spin projection loop type %s\n",yytext);
   cvc::strlist_tokenize(yytext, paramname, 100);
   snprintf(token,100,"%s",yytext);
   while( list_end != 1 ){
@@ -668,23 +669,27 @@ static inline double fltlist_next_token(int * const list_end){
       snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of saving loops (%d) parsing !\n",MAX_LOOPTYPE_NUMBER);
       yy_fatal_error(error_message);
       }
-    if( strcmp(token, "Scalar") == 0 ){
+    printf("Token=%s\n",token);
+    if( strcmp(token, "Naive") == 0 ){
       cvc::g_spinprojection_loop_type[index]=0;
     }
-    else if( strcmp(token, "dOp") == 0 ){
+    else if( strcmp(token, "Scalar") == 0 ){
       cvc::g_spinprojection_loop_type[index]=1;
     }
-    else if( strcmp(token, "Loops") == 0){
+    else if( strcmp(token, "dOp") == 0 ){
       cvc::g_spinprojection_loop_type[index]=2;
     }
-    else if( strcmp(token, "LpsDw") == 0){
+    else if( strcmp(token, "Loops") == 0){
       cvc::g_spinprojection_loop_type[index]=3;
     }
-    else if( strcmp(token, "LoopsCV") == 0){
+    else if( strcmp(token, "LpsDw") == 0){
       cvc::g_spinprojection_loop_type[index]=4;
     }
-    else if( strcmp(token, "LpsDwCv") == 0){
+    else if( strcmp(token, "LoopsCV") == 0){
       cvc::g_spinprojection_loop_type[index]=5;
+    }
+    else if( strcmp(token, "LpsDwCv") == 0){
+      cvc::g_spinprojection_loop_type[index]=6;
     }
     else {
       snprintf(error_message, 200, "# [read_input_parser] Unknown loop type %s passed in the parsing of %s!\n", yytext, paramname);

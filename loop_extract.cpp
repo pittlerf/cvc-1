@@ -174,17 +174,19 @@ int main(int argc, char **argv) {
    fprintf(stdout, "# [loop_extract] Following loops will be filtered\n");
   for (int i=0; i<g_spinprojection_loop_number; ++i){
     switch( g_spinprojection_loop_type[i] ){
-     case 0: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar\n");
+     case 0: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive\n");
              break;
-     case 1: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
+     case 1: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar\n");
              break;
-     case 2: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
+     case 2: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
              break;
-     case 3: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
+     case 3: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
              break;
-     case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
+     case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
              break;
-     case 5: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
+     case 5: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
+             break;
+     case 6: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
              break;
     }
   }
@@ -192,7 +194,7 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * loop data filename
    ***************************************************************************/
-  char prefix[]="/scratch/snx3000/gasbarro/cypruscode/production/cB211a.072.64/scratch/loop/light";
+  char prefix[]="/scratch/snx3000/gasbarro/cypruscode/production/cA211a.53.24_naive/scratch/loop/light";
   snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", prefix,filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
@@ -309,6 +311,7 @@ int main(int argc, char **argv) {
    * loop on different loop types
    ***************************************************************************/
 
+  printf("# [loop_extract] Loop number %d\n", g_spinprojection_loop_number);
   for ( int iloop_type=0; iloop_type < g_spinprojection_loop_number ; ++iloop_type){
 
   /***************************************************************************
@@ -324,28 +327,33 @@ int main(int argc, char **argv) {
       int inner_loop_length;
 
       switch( g_spinprojection_loop_type[iloop_type] ){
-       case 0: snprintf ( loop_type, 100, "%s", "Scalar" );
+
+       case 0: snprintf ( loop_type, 100, "%s", "Naive" );
                inner_loop_length=1;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Processing Scalar\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive loops\n");
                break;
-       case 1: snprintf ( loop_type, 100, "%s", "dOp" );
+       case 1: snprintf ( loop_type, 100, "%s", "Scalar" );
                inner_loop_length=1;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar loops\n");
                break;
-       case 2: snprintf ( loop_type, 100, "%s", "Loops" );
+       case 2: snprintf ( loop_type, 100, "%s", "dOp" );
+               inner_loop_length=1;
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp loops\n");
+               break;
+       case 3: snprintf ( loop_type, 100, "%s", "Loops" );
                inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops loops\n");
                break;
-       case 3: snprintf ( loop_type, 100, "%s", "LpsDw" );
+       case 4: snprintf ( loop_type, 100, "%s", "LpsDw" );
                inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw loops\n");
                break;
-       case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
+       case 5: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV loops\n");
                EXIT(1); 
                break;
-       case 5: snprintf ( loop_type, 100, "%s", "LpsDwCv" );
+       case 6: snprintf ( loop_type, 100, "%s", "LpsDwCv" );
                inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv loops\n");
                break;
       }
 
@@ -357,9 +365,9 @@ int main(int argc, char **argv) {
         snprintf(direction_part, 100, "dir_%02d", loop_direction);
      
         if (inner_loop_length > 1)
-          snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s/%s/%s", conf_traj, Nstoch, loop_type, direction_part, loop_name );
+          snprintf ( data_tag, 400, "/conf_%.4d/nstoch_%.4d/%s/%s/%s", Nconf, Nstoch, loop_type, direction_part, loop_name );
         else
-          snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s/%s", conf_traj, Nstoch, loop_type, loop_name );
+          snprintf ( data_tag, 400, "/conf_%.4d/nstoch_%.4d/%s/%s", Nconf, Nstoch, loop_type, loop_name );
 
         if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
