@@ -1,0 +1,42 @@
+nput parameters for cvc-code
+# *******************************************************
+
+T =  64
+LX = 32
+LY = 32
+LZ = 32
+mu = 0.0030
+kappa = 0.1400645
+Nconf = 1240
+csw = 1.740000
+format = 0
+BCangleT = 1.
+BCangleX = 0
+BCangleY = 0
+BCangleZ = 0
+
+# prefix of source and propagator fiels,
+# in case  of source / propagator io
+spinprojectionfname_prefix = /p/scratch/chbn28/hbn28d/loop/cA211a.030.32
+filename_prefix = MG_loop_lightquark_conf_conf
+filename_prefix2 = runtype_probD8_part1_stoch_NeV0
+gaugefilename_prefix = conf
+
+
+outfile_prefix =./
+
+# taken from tmLQCD if wrapper is used
+#NrTProcs = 1
+#NrXProcs = 1
+#NrYProcs = 1
+#NrZProcs = 1
+
+# taken from tmLQCD if wrapper is used
+num_threads = 1
+sourceid2 = 128
+
+verbosity_level = 5
+samples = 128
+SpinProjectionSpinTrace = no
+SpinProjectionFilterQsq = 4.
+SpinProjectionFilterLoopType = Scalar, dOp
