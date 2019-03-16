@@ -186,7 +186,7 @@ EXTERN int g_spinprojection_loop_type[MAX_LOOPTYPE_NUMBER];
 EXTERN double g_spinprojection_filtered_qsq;
 EXTERN int g_gaugeid, g_gaugeid2, g_gauge_step;
 
-EXTERN char filename_prefix[200], filename_prefix2[200], filename_prefix3[200], gaugefilename_prefix[200], g_outfile_prefix[200], g_path_prefix[200];
+EXTERN char spinprojectionfname_prefix[200], filename_prefix[200], filename_prefix2[200], filename_prefix3[200], gaugefilename_prefix[200], g_outfile_prefix[200], g_path_prefix[200];
 EXTERN char g_sequential_filename_prefix[200], g_sequential_filename_prefix2[200];
 EXTERN int format, rotate;
 EXTERN double BCangle[4];

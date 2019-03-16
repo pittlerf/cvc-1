@@ -25,6 +25,7 @@ namespace cvc {
 #define _default_BCangleX (0.)
 #define _default_BCangleY (0.)
 #define _default_BCangleZ (0.)
+#define _default_spinprojectionfname_prefix ""
 #define _default_filename_prefix "prop."
 #define _default_filename_prefix2 "prop."
 #define _default_filename_prefix3 "prop."

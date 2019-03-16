@@ -68,6 +68,7 @@ void set_default_input_values(void) {
   g_resume    = _default_resume;
   g_subtract  = _default_subtract;
   g_source_location = _default_source_location;
+  strcpy(spinprojectionfname_prefix,  _default_spinprojectionfname_prefix);
   strcpy(filename_prefix,      _default_filename_prefix);
   strcpy(filename_prefix2,     _default_filename_prefix2);
   strcpy(filename_prefix3,     _default_filename_prefix3);

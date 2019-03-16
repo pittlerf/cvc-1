@@ -139,6 +139,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x BCX
 %x BCY
 %x BCZ
+%x SPINPROJECTIONPREFIX
 %x PREFIX
 %x PREFIX2
 %x PREFIX3
@@ -296,6 +297,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^BCangleX{SPC}*={SPC}*                     BEGIN(BCX);
 ^BCangleY{SPC}*={SPC}*                     BEGIN(BCY);
 ^BCangleZ{SPC}*={SPC}*                     BEGIN(BCZ);
+^spinprojectionfname_prefix{SPC}*={SPC}*   BEGIN(SPINPROJECTIONPREFIX);
 ^filename_prefix{SPC}*={SPC}*              BEGIN(PREFIX);
 ^filename_prefix2{SPC}*={SPC}*             BEGIN(PREFIX2);
 ^filename_prefix3{SPC}*={SPC}*             BEGIN(PREFIX3);
@@ -547,6 +549,10 @@ static inline double fltlist_next_token(int * const list_end){
 <GAUGESTEP>{DIGIT}+ {
   cvc::g_gauge_step = atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] gauge step size set to %s\n", yytext);
+}
+<SPINPROJECTIONPREFIX>{FILENAME} {
+  strcpy(cvc::spinprojectionfname_prefix,yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
 }
 <PREFIX>{FILENAME} {
   strcpy(cvc::filename_prefix,yytext);

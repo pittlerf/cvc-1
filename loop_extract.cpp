@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
   fprintf(stdout, "# [loop_extract] proc%.4d has io proc id %d\n", g_cart_id, io_proc );
   if (g_spinprojection_filtered_qsq > Qsq){
     if (g_proc_id == 0){
-     fprintf(stderr, "# [loop_extract] We do not have momenta till %f\n",g_spinprojection_filtered_qsq);
+     fprintf(stderr, "# [loop_extract] We do not have momenta  <=%f\n",g_spinprojection_filtered_qsq);
      EXIT(1);
     }
   }
@@ -194,8 +194,7 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * loop data filename
    ***************************************************************************/
-  char prefix[]="/scratch/snx3000/gasbarro/cypruscode/production/cA211a.53.24_naive/scratch/loop/light";
-  snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", prefix,filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
+  snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", spinprojectionfname_prefix,filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
   /***************************************************************************
@@ -235,7 +234,7 @@ int main(int argc, char **argv) {
   for (int i=0;i<g_sink_momentum_number; ++i)
   {
     int momentum = g_sink_momentum_list[i][0]*g_sink_momentum_list[i][0]+g_sink_momentum_list[i][1]*g_sink_momentum_list[i][1]+g_sink_momentum_list[i][2]*g_sink_momentum_list[i][2];
-    if (momentum< g_spinprojection_filtered_qsq){
+    if (momentum<= g_spinprojection_filtered_qsq){
       filtered_sink_momentum_list[index][0]=g_sink_momentum_list[i][0];
       filtered_sink_momentum_list[index][1]=g_sink_momentum_list[i][1];
       filtered_sink_momentum_list[index][2]=g_sink_momentum_list[i][2];
@@ -371,7 +370,7 @@ int main(int argc, char **argv) {
 
         if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
-        snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", prefix, filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
+        snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", spinprojectionfname_prefix, filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
 
         exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
         if ( exitstatus != 0 ) {
