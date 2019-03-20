@@ -88,6 +88,7 @@ class Core {
         std::cerr << ex.what() << std::endl;
       }
 
+
       // if usage information is requested, we display it and finalise
       if( cmd_options.count("help") ){
         if(world_rank == 0){
@@ -100,6 +101,9 @@ class Core {
         init(argc,argv);
       }
       initialised = true;
+#ifdef HAVE_MPI
+      MPI_Barrier(MPI_COMM_WORLD);
+#endif
     }
 
     // we don't want a default constructor because initialisation is non-trivial
@@ -146,7 +150,7 @@ class Core {
     std::string application_name;
     po::options_description cmd_desc;
     po::variables_map cmd_options;
-    
+   
     /**
      * @brief Pointer to external function to populate cmd_desc.
      * If command line arguments beyond the default are required,
@@ -209,7 +213,6 @@ class Core {
 
     void init(int argc, char ** argv){
       int status;
-      read_input_parser( cmd_options["input_filename"].as<std::string>().c_str() );
       
 #ifdef HAVE_TMLQCD_LIBWRAPPER
       status = tmLQCD_invert_init(argc, argv, 1, 0);
@@ -230,6 +233,8 @@ class Core {
         return;
       }
 #endif
+      read_input_parser( cmd_options["input_filename"].as<std::string>().c_str() );
+      
       mpi_init(argc, argv);
       mpi_initialised = true;
 
@@ -251,6 +256,9 @@ class Core {
         ("input_filename,f",
          po::value<std::string>()->default_value( std::string("cvc.input") ),
          "CVC input file name")
+        ("definitions_yaml,y",
+         po::value<std::string>()->default_value( std::string("definitions.yaml") ),
+         "YAML input file for object definitions")
         ("verbose,v", "verbose core output");
     }
 };

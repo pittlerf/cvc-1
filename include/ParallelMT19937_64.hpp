@@ -49,6 +49,21 @@ class ParallelMT19937_64 {
     gen_z2(double * const buffer, const unsigned int n_per_site);
 
     /**
+     * @brief Generate gaussian noise vector
+     *
+     * Vector elements are normal distributed random numbers
+     * normalised such that for all elements of the complex vector
+     * v[i]*conj(v[i]) = 1.0 is satisfied.
+     *
+     * @param buffer Pointer to target memory. Assumption that this is
+     * allocated and has n_per_site*VOLUME elements. Consecutive elements
+     * are interpreted as real and imaginary parts.
+     * @param n_per_site Number of elements per site.
+     */
+    void
+    gen_gauss(double * const buffer, const unsigned int n_per_site);
+
+    /**
      * @brief Fill buffer elements with local index
      * All elements of the target buffer are filled with the local
      * lattice site index.
@@ -70,7 +85,17 @@ class ParallelMT19937_64 {
      * @return random number in range [0,1]
      */
     double
-    gen_real_at_site(size_t local_site_idx);
+    gen_real_at_site(const size_t local_site_idx);
+
+    /**
+     * @brief Get seed for local rng at given local lattice site
+     *
+     * @param local_site_idx
+     *
+     * @return 
+     */
+    unsigned long long
+    get_local_seed(const size_t local_site_idx);
 
   private:
     SequenceOfUnique seed_gen;

@@ -50,7 +50,7 @@
 #include "Q_clover_phi.h"
 #include "contract_cvc_tensor.h"
 #include "scalar_products.h"
-#include "h5utils.h"
+#include "h5utils.hpp"
 
 #define MAX_SUBGROUP_NUMBER 20
 
@@ -1123,7 +1123,7 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
   
         hid_t dataset_id;
         std::string fail_path;
-        if( h5_check_key_exists(loc_id, name, fail_path, false) ){
+        if( h5::check_key_exists(loc_id, name, fail_path, false) ){
           dataset_id = H5Dopen(loc_id, name, dapl_id);
         } else {
         /***************************************************************************
