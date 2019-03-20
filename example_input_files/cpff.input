@@ -1,5 +1,6 @@
 # *******************************************************
 # * input parameters for cvc-code
+# * produce connected diagrams for charged pion form factor
 # *******************************************************
 
 T =  16

@@ -1,6 +1,10 @@
-# Input parameters for cvc-code
 # *******************************************************
-
+# Input parameters for cvc-code
+# Filters the existing loops in 1;) loop types
+#                               2;) Momentum transfer
+# Optionally perform spin projection as well
+# for loop_extract executable
+# *******************************************************
 T =  64
 LX = 32
 LY = 32
