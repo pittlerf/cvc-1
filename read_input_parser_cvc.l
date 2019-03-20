@@ -242,6 +242,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x SEQSRCMOMX
 %x SEQSRCMOMY
 %x SEQSRCMOMZ
+%x SPINPROJECTIONLOOPACCUMULATE
 %x SPINPROJECTIONSPINTRACE
 %x SPINPROJECTIONGAMMAS
 %x SPINPROJECTIONGAMMABASIS
@@ -413,6 +414,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_y{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMY);
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
+^SpinProjectionLoopAccumulate{SPC}*={SPC}* BEGIN(SPINPROJECTIONLOOPACCUMULATE);
 ^SpinProjectionSpinTrace{SPC}*={SPC}*      BEGIN(SPINPROJECTIONSPINTRACE);
 ^SpinProjectionGammaStructure{SPC}*={SPC}* BEGIN(SPINPROJECTIONGAMMAS);
 ^SpinProjectionGammaBasis{EQL}             BEGIN(SPINPROJECTIONGAMMABASIS);
@@ -551,7 +553,12 @@ static inline double fltlist_next_token(int * const list_end){
   if(cvc::myverbose!=0) printf("# [read_input_parser] gauge step size set to %s\n", yytext);
 }
 <SPINPROJECTIONPREFIX>{FILENAME} {
-  strcpy(cvc::spinprojectionfname_prefix,yytext);
+  int count=snprintf(cvc::spinprojectionfname_prefix,200,"%s",yytext);
+  char error_message[200];
+  if ((count>=200) || (count<0)){
+    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in spin projection prefix parsing !\n",count);
+    yy_fatal_error(error_message);
+  }
   if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
 }
 <PREFIX>{FILENAME} {
@@ -638,6 +645,16 @@ static inline double fltlist_next_token(int * const list_end){
 <SPINPROJECTIONFILTERQSQ>{FLT} {
   cvc::g_spinprojection_filtered_qsq = atof(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_spinprojection_filtered_qsq);
+}
+<SPINPROJECTIONLOOPACCUMULATE>{FILENAME} {
+  if (strcmp(yytext,"yes")==0){
+    cvc::g_spinprojection_loopaccumulate = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spinprojection_loopaccumulate is on\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_spinprojection_loopaccumulate = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spinprojection_loopaccumulate is off\n");
+  }
 }
 <SPINPROJECTIONSPINTRACE>{FILENAME} {
   if (strcmp(yytext,"yes")==0){

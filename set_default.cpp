@@ -240,6 +240,7 @@ void set_default_input_values(void) {
 
   g_sequential_source_gamma_id_number = _default_seq_source_gamma_id_number;
   g_spinprojection_spintrace = _default_spinprojection_spintrace;
+  g_spinprojection_loopaccumulate = _default_spinprojection_loopaccumulate;
   g_spinprojection_filtered_qsq = _default_spinprojection_filtered_qsq ;
   g_spinprojection_gammas = _default_spinprojection_gammas  ;
   g_spinprojection_gamma_basis = cvc::UKQCD ;

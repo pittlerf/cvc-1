@@ -196,6 +196,7 @@ namespace cvc {
 #define _default_spinprojection_filtered_qsq 4.
 #define _default_spinprojection_gammas 4
 #define _default_spinprojection_spintrace 1
+#define _default_spinprojection_loopaccumulate 0
 
 #define _default_csw 0
 

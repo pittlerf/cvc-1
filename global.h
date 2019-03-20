@@ -179,6 +179,7 @@ EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
 EXTERN int g_spinprojection_spintrace;
+EXTERN int g_spinprojection_loopaccumulate;
 EXTERN int g_spinprojection_gammas;
 EXTERN cvc_GammaBasis g_spinprojection_gamma_basis;
 EXTERN int g_spinprojection_loop_number;
