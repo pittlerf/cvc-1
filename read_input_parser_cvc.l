@@ -684,7 +684,6 @@ static inline double fltlist_next_token(int * const list_end){
   char error_message[200];
   int list_end = 0;
   int index = 0;
-  printf("I am in spin projection loop type %s\n",yytext);
   cvc::strlist_tokenize(yytext, paramname, 100);
   snprintf(token,100,"%s",yytext);
   while( list_end != 1 ){
