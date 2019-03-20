@@ -329,7 +329,7 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * loop on stochastic oet samples
    ***************************************************************************/
-    for ( int isample = g_sourceid; isample < g_sourceid2; isample += g_sourceid_step )
+    for ( int isample = g_sourceid; isample < g_nsample; isample += g_sourceid_step )
     {
 
       int const Nstoch = isample * Nsave + 1;

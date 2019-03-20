@@ -37,8 +37,6 @@ outfile_prefix =./
 
 # taken from tmLQCD if wrapper is used
 num_threads = 1
-# number of stochastic samples 
-sourceid2 = 128
 
 verbosity_level = 5
 samples = 128
