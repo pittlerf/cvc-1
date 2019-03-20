@@ -38,6 +38,7 @@ outfile_prefix =./
 # taken from tmLQCD if wrapper is used
 num_threads = 1
 
+# With verbosity_level>4 we also produce ascii output
 verbosity_level = 5
 samples = 128
 SpinProjectionFilterQsq = 4.
