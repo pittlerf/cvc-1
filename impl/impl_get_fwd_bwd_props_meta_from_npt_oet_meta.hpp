@@ -16,7 +16,7 @@ void get_fwd_bwd_props_meta_from_npt_oet_meta(const std::vector<T> & correls,
   // we use maps to avoid duplicates
   for( int icor = 0; icor < correls.size(); ++icor ){
     debug_printf(0, 0,
-                 "parsing 2pt function [ g%d %s^dag g5 g%d %s g%d ] with src_mom on %s prop\n",
+                 "# [get_fwd_bwd_props_meta_from_npt_oet_meta] parsing 2pt function [ g%d %s^dag g5 g%d %s g%d ] with src_mom on %s prop\n",
                  correls[icor].gb,
                  correls[icor].bprop_flav.c_str(),
                  correls[icor].gf,

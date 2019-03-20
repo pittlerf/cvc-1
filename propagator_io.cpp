@@ -48,15 +48,15 @@ extern "C"
 namespace cvc {
 
 /* write a one flavour propagator to file */
-int write_propagator(double * const s, char * filename, 
+int write_propagator(double * const s, char const * const filename, 
 		     const int append, const int prec) {
   int err = 0;
 
   write_propagator_format(filename, prec, 1);
 #ifdef HAVE_LIBLEMON
-  err = write_lemon_spinor(s, filename, 1, prec);
+  err = write_lemon_spinor(s, filename, append, prec);
 #else
-  err = write_lime_spinor(s, filename, 1, prec);
+  err = write_lime_spinor(s, filename, append, prec);
 #endif
   return(err);
 }  /* end of write_propagator */
@@ -440,7 +440,7 @@ int read_binary_spinor_data(double * const s, LimeReader * limereader,
 /************************************************************
  *
  ************************************************************/
-int write_checksum(char * filename, DML_Checksum * checksum) {
+int write_checksum(char const * const filename, DML_Checksum * checksum) {
   FILE * ofs = NULL;
   LimeWriter * limewriter = NULL;
   LimeRecordHeader * limeheader = NULL;
@@ -498,7 +498,7 @@ int write_checksum(char * filename, DML_Checksum * checksum) {
 }
 
 
-int write_propagator_type(const int type, char * filename) {
+int write_propagator_type(const int type, char const * const filename) {
 
   FILE * ofs = NULL;
   LimeWriter * limewriter = NULL;
@@ -552,7 +552,7 @@ int write_propagator_type(const int type, char * filename) {
   return(0);
 }
 
-int write_propagator_format(char * filename, const int prec, const int no_flavours) {
+int write_propagator_format(char const * const filename, const int prec, const int no_flavours) {
   FILE * ofs = NULL;
   LimeWriter * limewriter = NULL;
   LimeRecordHeader * limeheader = NULL;
@@ -608,7 +608,7 @@ int write_propagator_format(char * filename, const int prec, const int no_flavou
 
 
 #ifdef HAVE_LIBLEMON
-int write_lemon_spinor(double * const s, char * filename, const int append, const int prec) {
+int write_lemon_spinor(double * const s, char const * const filename, const int append, const int prec) {
 
   MPI_File * ofs = NULL;
   LemonWriter * writer = NULL;
@@ -698,7 +698,7 @@ int write_lemon_spinor(double * const s, char * filename, const int append, cons
   return(0);
 }
 #else
-int write_lime_spinor(double * const s, char * filename, 
+int write_lime_spinor(double * const s, char const * const filename, 
 		      const int append, const int prec) {
 
   FILE * ofs = NULL;
@@ -765,7 +765,7 @@ int write_lime_spinor(double * const s, char * filename,
 }
 #endif  // of if HAVE_LIBLEMON 
 
-int get_propagator_type(char * filename) {
+int get_propagator_type(char const * const filename) {
   FILE * ifs;
   int status=0, ret=-1;
   n_uint64_t bytes;
@@ -887,7 +887,7 @@ int read_lime_spinor(double * const s, char * filename, const int position) {
   return(0);
 }
 #else
-int read_lime_spinor(double * const s, char * filename, const int position) {
+int read_lime_spinor(double * const s, char const * const filename, const int position) {
   FILE * ifs;
   int status=0, getpos=-1;
   n_uint64_t bytes;
@@ -958,7 +958,7 @@ int read_lime_spinor(double * const s, char * filename, const int position) {
  * - What about the phase factor?
  *
  **************************************************/
-int read_cmi(double *v, const char * filename) {
+int read_cmi(double *v, char const * const filename) {
 
   int x, y, z, t, ix, idx, i;
   FILE * ifs;
@@ -1077,7 +1077,7 @@ int write_binary_spinor_data_timeslice(double * const s, LimeWriter * limewriter
 /****************************************************************
  *
  ****************************************************************/
-int write_lime_spinor_timeslice(double * const s, char * filename, 
+int write_lime_spinor_timeslice(double * const s, char const * const filename, 
    const int prec, int timeslice, DML_Checksum *checksum) {
 #ifndef HAVE_MPI
   FILE * ofs = NULL;
@@ -1159,7 +1159,7 @@ int write_lime_spinor_timeslice(double * const s, char * filename,
 #endif
 }
 
-int write_source_type(const int type, char * filename) {
+int write_source_type(const int type, char const * const filename) {
 
   FILE * ofs                    = NULL;
   LimeWriter * limewriter       = NULL;
@@ -1408,7 +1408,7 @@ int read_binary_spinor_data_single(float* const s, LimeReader * limereader,
   return(0);
 }
 
-int read_lime_spinor_single(float * const s, char * filename, const int position) {
+int read_lime_spinor_single(float * const s, char const * const filename, const int position) {
   FILE * ifs;
   int status=0, getpos=-1;
   n_uint64_t bytes;
@@ -1477,14 +1477,14 @@ int read_lime_spinor_single(float * const s, char * filename, const int position
  * read a timeslice from a spinor field
  ******************************************************************/
 #ifdef HAVE_LIBLEMON
-int read_lime_spinor_timeslice(double * const s, int timeslice, char * filename, const int position, DML_Checksum*checksum) {
+int read_lime_spinor_timeslice(double * const s, int timeslice, char const * const filename, const int position, DML_Checksum*checksum) {
   if (g_cart_id == 0) fprintf(stderr, "[read_lime_spinor_timeslice] Error, no version for lemon so far\n");
   MPI_Abort(MPI_COMM_WORLD, 1);
   MPI_Finalize();
   return(1);
 }
 #else
-int read_lime_spinor_timeslice(double * const s, int timeslice, char * filename, const int position, DML_Checksum*checksum) {
+int read_lime_spinor_timeslice(double * const s, int timeslice, char const * const filename, const int position, DML_Checksum*checksum) {
 #ifdef HAVE_MPI
   if (g_cart_id == 0) fprintf(stderr, "[read_lime_spinor_timeslice] Error, no version for MPI so far\n");
   MPI_Abort(MPI_COMM_WORLD, 2);

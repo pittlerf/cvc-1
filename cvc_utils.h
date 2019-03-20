@@ -117,6 +117,25 @@ void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
     double * const contr, const int idsink, int const snk_mom[3],
     double const * chi, double const * psi);
 
+void contract_twopoint_gamma5_gamma_only_ext_momentum(
+    double * const contr, const int idsink, ::cvc::complex const * const phases,
+    double const * chi, double const * psi);
+
+/**
+ * @brief compute < chi^dagger gamma psi > for all 16 gamma structures
+ *
+ * @param contr Memory for 2*T*phase_fields.size()*16 doubles
+ * @param phase_fields Vector containing all the phase fields that should
+ * be used for the momentum projections.
+ * @param chi Memory holding doubles of length _GSI(VOLUME), representing a spinor.
+ * @param psi Memory holding doubles of length _GSI(VOUME), representing another spinor.
+ */
+void 
+contract_twopoint_all_gammas_ext_momentum_list(
+    double * const contr, 
+    const std::vector< std::vector<::cvc::complex> > & phase_fields,
+    double const * const chi, double const * const psi); 
+
 /**
  * @brief Scale correlation function
  *

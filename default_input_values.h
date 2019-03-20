@@ -142,7 +142,7 @@ namespace cvc {
 #define _default_read_source 0
 
 #define _default_write_propagator 0
-#define _default_read_propagator 1
+#define _default_read_propagator 0
 #define _default_read_sequential_propagator 0
 #define _default_write_sequential_source 0
 #define _default_write_sequential_propagator 0

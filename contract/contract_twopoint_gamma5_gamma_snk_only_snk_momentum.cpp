@@ -21,6 +21,9 @@ void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
   double const phase_offset = (double)( g_proc_coords[1] * LX ) * px + 
                               (double)( g_proc_coords[2] * LY ) * py + 
                               (double)( g_proc_coords[3] * LZ ) * pz;
+ 
+  // for safety, we can set 'contr' to zero
+  memset((void*)contr, 0, sizeof(double)*2*T);
   
   // we pre-generate the vector of phases
   std::vector<::cvc::complex> phases(VOL3);
@@ -29,9 +32,11 @@ void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
 #pragma omp parallel
 #endif
   {
+    // thread-local temporary for accumulation of momentum projected correlator
     std::vector<double> contr_tmp(2*T, 0.0);
-    // pointer to make sure that accumulation into "contr" below
-    // can be done atomically, although I'm not sure
+
+    // pointer into data of contr_tmp to make sure that accumulation
+    // into "contr" below can be done atomically, although I'm not sure
     // it's even neessary
     double * contr_tmp_ptr = contr_tmp.data();
 
@@ -44,6 +49,7 @@ void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
 
     ::cvc::complex w1, w2;
 
+    // generate sink phase field
     FOR_IN_PARALLEL(ix, 0, VOL3){
        x = g_lexic2coords[ix][1];
        y = g_lexic2coords[ix][2];
@@ -54,6 +60,7 @@ void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
        phases[ix].im = sin(phase);
     }
 
+    // perform sink gamma multiplication, contraction and momentum projection
     FOR_IN_PARALLEL(ix, 0, VOLUME)
     {
       iix = _GSI(ix);
@@ -65,11 +72,13 @@ void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
       _co_eq_fv_dag_ti_fv(&w1, chi+iix, spinor2);
       w2.re = w1.re * phases[ix3d].re - w1.im * phases[ix3d].im;
       w2.im = w1.re * phases[ix3d].im + w1.im * phases[ix3d].re;
-
+      
+      // no locking or atomicity required here, contr_tmp is thread-local
       contr_tmp[2*x0  ] += w2.re;
       contr_tmp[2*x0+1] += w2.im;
     }
 
+    // accumulate results from all threads 
     // atomic write should be faster than having a lock
     for(int t = 0; t < 2*T; t++){
 #ifdef HAVE_OPENMP

@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.8)
-project (cvc LANGUAGES C CXX Fortran)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+
+project (cvc LANGUAGES C CXX Fortran)
 
 include(FortranCInterface)
 FortranCInterface_HEADER(fortran_name_mangling.h MACRO_NAMESPACE "F_")
@@ -10,6 +12,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -ggdb")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -g -ggdb")
 
 # we will collect any libraries that we want to link against to compile
 # CVC main programs in this list which we grow below with list(APPEND cvc_libraries [...])
@@ -114,7 +122,15 @@ if(HDF5_FOUND)
   message(STATUS "  HDF5_INCLUDE_DIRS=${HDF5_INCLUDE_DIRS}")
   message(STATUS "  HDF5_LIBRARIES=${HDF5_LIBRARIES}")
 else()
-  message(STATUS "HDF5 could not be found!")
+  message(FATAL_ERROR "HDF5 could not be found!")
+endif()
+
+find_package(HighFive REQUIRED)
+if(HighFive_FOUND)
+  include_directories($<TARGET_PROPERTY:HighFive,INTERFACE_INCLUDE_DIRECTORIES>)
+  list(APPEND cvc_librarires $<TARGET_PROPERTY:HighFive,INTERFACE_LINK_LIBRARIES>)
+else()
+  message(FATAL_ERROR "HighFive could nto be found!")
 endif()
 
 # attempt to find lhpc-aff-config
@@ -186,11 +202,12 @@ endif()
 #  message(FATAL_ERROR "FFTW_HOME must be defined!" )
 #endif()
 
-# maybe we might want to use yaml in CVC at some point
-#find_package(yaml-cpp REQUIRED)
-#message("Found yaml-cpp: ${YAML_CPP_LIBRARIES}")
-#include_directories(${YAML_CPP_INCLUDE_DIR})
-#link_libraries(${YAML_CPP_LIBRARIES})
+## we use YAML for our advanced input file as we can't be arsed to write FLEX parsing
+## routines for all this stuff
+find_package(yaml-cpp REQUIRED)
+message("Found yaml-cpp: ${YAML_CPP_LIBRARIES}")
+include_directories(${YAML_CPP_INCLUDE_DIR})
+link_libraries(${YAML_CPP_LIBRARIES})
 
 set(LAPACK_HOME CACHE PATH "Path to custom LAPACK library")
 if(NOT LAPACK_HOME)
@@ -261,7 +278,8 @@ list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/gitversion.cpp")
 
 find_package(Boost
              REQUIRED
-             program_options)
+             program_options
+             graph)
 if( NOT Boost_FOUND )
   message( FATAL_ERROR "Unable to find Boost. Did you try specifying -DBOOST_ROOT?")
 else()
@@ -359,7 +377,10 @@ add_library(cvc
   make_x_orbits.cpp
   rng/ParallelMT19937_64.cpp
   contract/contract_twopoint_gamma5_gamma_snk_only_snk_momentum.cpp
+  contract/contract_twopoint_gamma5_gamma_only_ext_momentum.cpp
+  contract/contract_twopoint_all_gammas_ext_momentum_list.cpp
   contract_loop.cpp
+  fourier_transform/make_phase_field.cpp
 )
 add_library(cvc_bare
   ${CMAKE_CURRENT_BINARY_DIR}/gitversion.cpp
@@ -377,6 +398,9 @@ add_library(cvc_bare
   matrix_init.cpp
   project.cpp
 )
+add_library(const_arrays
+  const_arrays.cpp
+)
 
 add_executable(cpff_invert_contract
   cpff_invert_contract.cpp)
@@ -389,7 +413,21 @@ add_executable(loop_extract
 target_link_libraries(loop_extract
   cvc_bare
   ${cvc_libraries})
-  
+
+add_executable(correlators
+  correlators.cpp)
+target_link_libraries(correlators
+  yaml_parsers
+  const_arrays
+  cvc
+  ${cvc_libraries})
+
+add_executable(naive_loops
+  naive_loops.cpp)
+target_link_libraries(naive_loops
+  cvc
+  const_arrays
+  ${cvc_libraries})
 
 add_executable(cpff_tbc_invert_contract
   cpff_tbc_invert_contract.cpp)
@@ -402,3 +440,4 @@ target_link_libraries(cpff_invert_contract_no_spin_dilution
 
 add_subdirectory(external/googletest)
 add_subdirectory(tests)
+add_subdirectory(parsers)
