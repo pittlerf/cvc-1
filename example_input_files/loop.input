@@ -43,4 +43,5 @@ verbosity_level = 5
 samples = 128
 SpinProjectionSpinTrace = no
 SpinProjectionFilterQsq = 4.
+SpinProjectionLoopAccumulate = yes
 SpinProjectionFilterLoopType = Scalar, dOp
