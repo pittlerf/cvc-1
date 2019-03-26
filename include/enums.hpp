@@ -38,7 +38,11 @@ typedef enum NoiseType_t {
   N_NOISE_TYPES
 } NoiseType_t;
 
-
+typedef enum cvc_GammaBasis {
+  UKQCD = 0,
+  CHIRAL_TMLQCD,
+} cvc_GammaBasis;
+  
 }
 
 #endif

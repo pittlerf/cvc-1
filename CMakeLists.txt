@@ -408,9 +408,9 @@ target_link_libraries(cpff_invert_contract
   cvc
   ${cvc_libraries})
 
-add_executable(loop_analyse
-  loop_analyse.cpp)
-target_link_libraries(loop_analyse
+add_executable(loop_extract
+  loop_extract.cpp)
+target_link_libraries(loop_extract
   cvc_bare
   ${cvc_libraries})
 

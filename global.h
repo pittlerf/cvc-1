@@ -9,6 +9,7 @@
 #endif
 #include <math.h>
 #include "types.h"
+#include "enums.hpp"
 // FIXME: build system must be extended to differentiate between FFTW and FFTW3
 //#include "ifftw.h"
 #ifdef HAVE_TMLQCD_LIBWRAPPER
@@ -127,7 +128,7 @@
 #define MAX_SEQUENTIAL_SOURCE_TIMESLICE_NUMBER 128
 
 #define MAX_PARAM_NUMBER 100
-
+#define MAX_LOOPTYPE_NUMBER 10
 namespace cvc {
 
 typedef struct momentum_info_struct {
@@ -187,9 +188,16 @@ EXTERN int g_ts_nb_z_up, g_ts_nb_z_dn;
 EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
+EXTERN int g_spinprojection_spintrace;
+EXTERN int g_spinprojection_loopaccumulate;
+EXTERN int g_spinprojection_gammas;
+EXTERN cvc_GammaBasis g_spinprojection_gamma_basis;
+EXTERN int g_spinprojection_loop_number;
+EXTERN int g_spinprojection_loop_type[MAX_LOOPTYPE_NUMBER];
+EXTERN double g_spinprojection_filtered_qsq;
 EXTERN int g_gaugeid, g_gaugeid2, g_gauge_step;
 
-EXTERN char filename_prefix[200], filename_prefix2[200], filename_prefix3[200], gaugefilename_prefix[200], g_outfile_prefix[200], g_path_prefix[200];
+EXTERN char spinprojectionfname_prefix[200], filename_prefix[200], filename_prefix2[200], filename_prefix3[200], gaugefilename_prefix[200], g_outfile_prefix[200], g_path_prefix[200];
 EXTERN char g_sequential_filename_prefix[200], g_sequential_filename_prefix2[200];
 EXTERN int format, rotate;
 EXTERN double BCangle[4];
@@ -202,6 +210,7 @@ EXTERN double g_tbc_phase_list[MAX_PARAM_NUMBER][4];
 EXTERN int g_tbc_phase_number;
 
 EXTERN int gamma_permutation[16][24], gamma_sign[16][24];
+EXTERN int gamma_matrix_permutation[2][16][32], gamma_matrix_sign[2][16][32];
 EXTERN int perm_tab_3[6][3], perm_tab_4[24][4], perm_tab_3e[3][3], perm_tab_3o[3][3], perm_tab_4e[12][4], perm_tab_4o[12][4];
 EXTERN double perm_tab_3_sign[6];
 
@@ -269,7 +278,7 @@ EXTERN int g_cpu_prec, g_gpu_prec, g_gpu_prec_sloppy;
 EXTERN int g_inverter_type;
 EXTERN char g_inverter_type_name[200];
 EXTERN int g_space_dilution_depth;
-EXTERN int g_mms_id;
+EXTERN int g_mms_id; 
 EXTERN int g_check_inversion;
 
 EXTERN int g_src_snk_time_separation, g_sequential_source_gamma_id, g_sequential_source_gamma_id_list[16], g_sequential_source_gamma_id_number;

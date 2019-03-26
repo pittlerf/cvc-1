@@ -68,6 +68,13 @@ void set_default_input_values(void) {
   g_resume    = _default_resume;
   g_subtract  = _default_subtract;
   g_source_location = _default_source_location;
+  int count=snprintf(spinprojectionfname_prefix,200, "%s",  _default_spinprojectionfname_prefix);
+  if ((count >=200) || (count<0)){
+    if (g_proc_id == 0){
+      fprintf(stderr,"[[set_default_input_values]] To large _default_spinprojectionfname_prefix\n");
+      exit(1);
+    }
+  }
   strcpy(filename_prefix,      _default_filename_prefix);
   strcpy(filename_prefix2,     _default_filename_prefix2);
   strcpy(filename_prefix3,     _default_filename_prefix3);
@@ -238,6 +245,11 @@ void set_default_input_values(void) {
   g_sequential_source_gamma_id_list[15] = _default_seq_source_gamma_id;
 
   g_sequential_source_gamma_id_number = _default_seq_source_gamma_id_number;
+  g_spinprojection_spintrace = _default_spinprojection_spintrace;
+  g_spinprojection_loopaccumulate = _default_spinprojection_loopaccumulate;
+  g_spinprojection_filtered_qsq = _default_spinprojection_filtered_qsq ;
+  g_spinprojection_gammas = _default_spinprojection_gammas  ;
+  g_spinprojection_gamma_basis = cvc::UKQCD ;
 
   g_source_gamma_id_number = _default_source_gamma_id_number;
   g_source_gamma_id_list[ 0] = _default_source_gamma_id;
