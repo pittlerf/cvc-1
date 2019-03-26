@@ -19,6 +19,9 @@ BCangleX = 0
 BCangleY = 0
 BCangleZ = 0
 
+# spinprojectionfname_prefix : Directory containing the loop
+# filename_prefix: name of the loop file before confindex
+# filename_prefix2: name of the loop file after the confindex
 # prefix of source and propagator fiels,
 # in case  of source / propagator io
 spinprojectionfname_prefix = /p/scratch/chbn28/hbn28d/loop/cA211a.030.32
