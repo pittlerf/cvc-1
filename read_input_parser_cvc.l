@@ -18,6 +18,9 @@ NAME [a-zA-Z0-9_]+
 TYPE [0-9A-Z]+
 SDIGIT {SIGN}?[[:digit:]]
 STRING [a-zA-Z0-9"."_"-""/"","]+
+STRLIST [0-9"."","" "a-zA-Z]*
+EQL {SPC}*={SPC}*
+
 
 %{
 #include <stdlib.h>
@@ -30,6 +33,60 @@ STRING [a-zA-Z0-9"."_"-""/"","]+
 #include "cvc_utils.h"
 
 namespace cvc {
+
+/* Routines from tmLQCD
+   tokenize the comma-delimited list 'str' and return the first token,
+   which is the name of the list 'list = token1, token2, token3, ..',
+   via the 'paramname' parameter 
+   the length of the array holding 'paramname' parameter must be passed as well */
+static inline void strlist_tokenize(const char * const str, char * const paramname, const int paramname_length){
+  char error_message[200];
+  char * token = (char*)NULL;
+  // the first token is the parameter name, we will return it, 
+  // but first check if tokenization was successful
+  token = strtok((char *)str, (const char*)"\n\t =,\\");
+  if( (void*)token == NULL ){
+    snprintf(error_message, 200, "Unable to parse '%s' in strlist_tokenize!\n", paramname);
+    yy_fatal_error(error_message);
+  } else {
+    // return what we parsed
+    snprintf(paramname, paramname_length, "%s", token);
+  }
+}
+
+/* obtain the next token in the list of comma-separated strings
+   'list_end' is a parameter which is set to 1 if the end of the list is reached
+   'token' will hold the value of the token
+   'token_length' is the length of the array to which the token should be written */
+static inline void strlist_next_token(int * const list_end, char * const token_out, const int token_length){
+  char * token = (char*)NULL;
+  token = strtok(NULL," =,\t");
+  if( (void*)token == NULL ){
+    *list_end = 1;
+  } else {
+    *list_end = 0;
+    snprintf(token_out, token_length, "%s", token);
+  }
+}
+
+/* when the list of tokens is a list of doubles or integers, this function
+   can be used to obtain the next token in the list directly as a double
+   'list_end' is a parameter which is set to 1 if the end of the list 
+   has been reached */
+static inline double fltlist_next_token(int * const list_end){
+  double retval;
+  char * token = (char*)NULL;
+  token = strtok(NULL," =,\t");
+  if( (void*)token == NULL ){
+    *list_end = 1;
+    return(0.0);
+  } else {
+    *list_end = 0;
+    sscanf(token,"%lf",&retval);
+    return(retval);
+  }
+}
+
 
   /* Name of the parsing routine */
 #define YY_DECL         int parse_config()
@@ -82,6 +139,7 @@ namespace cvc {
 %x BCX
 %x BCY
 %x BCZ
+%x SPINPROJECTIONPREFIX
 %x PREFIX
 %x PREFIX2
 %x PREFIX3
@@ -184,6 +242,12 @@ namespace cvc {
 %x SEQSRCMOMX
 %x SEQSRCMOMY
 %x SEQSRCMOMZ
+%x SPINPROJECTIONLOOPACCUMULATE
+%x SPINPROJECTIONSPINTRACE
+%x SPINPROJECTIONGAMMAS
+%x SPINPROJECTIONGAMMABASIS
+%x SPINPROJECTIONLOOPTYPE
+%x SPINPROJECTIONFILTERQSQ
 %x SEQ2SRCMOM
 %x SEQ2SRCMOMX
 %x SEQ2SRCMOMY
@@ -234,6 +298,7 @@ namespace cvc {
 ^BCangleX{SPC}*={SPC}*                     BEGIN(BCX);
 ^BCangleY{SPC}*={SPC}*                     BEGIN(BCY);
 ^BCangleZ{SPC}*={SPC}*                     BEGIN(BCZ);
+^spinprojectionfname_prefix{SPC}*={SPC}*   BEGIN(SPINPROJECTIONPREFIX);
 ^filename_prefix{SPC}*={SPC}*              BEGIN(PREFIX);
 ^filename_prefix2{SPC}*={SPC}*             BEGIN(PREFIX2);
 ^filename_prefix3{SPC}*={SPC}*             BEGIN(PREFIX3);
@@ -349,6 +414,13 @@ namespace cvc {
 ^seq2_source_momentum_y{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMY);
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
+^SpinProjectionLoopAccumulate{SPC}*={SPC}* BEGIN(SPINPROJECTIONLOOPACCUMULATE);
+^SpinProjectionSpinTrace{SPC}*={SPC}*      BEGIN(SPINPROJECTIONSPINTRACE);
+^SpinProjectionGammaStructure{SPC}*={SPC}* BEGIN(SPINPROJECTIONGAMMAS);
+^SpinProjectionGammaBasis{EQL}             BEGIN(SPINPROJECTIONGAMMABASIS);
+^SpinProjectionFilterQsq{SPC}*={SPC}*      BEGIN(SPINPROJECTIONFILTERQSQ);
+^SpinProjectionFilterLoopType{SPC}*={SPC}* BEGIN(SPINPROJECTIONLOOPTYPE);
+
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
 ^gpu_precision{SPC}*={SPC}*                BEGIN(GPUPREC);
 ^gpu_precision_sloppy{SPC}*={SPC}*         BEGIN(GPUPRECSLOPPY);
@@ -480,6 +552,15 @@ namespace cvc {
   cvc::g_gauge_step = atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] gauge step size set to %s\n", yytext);
 }
+<SPINPROJECTIONPREFIX>{FILENAME} {
+  int count=snprintf(cvc::spinprojectionfname_prefix,200,"%s",yytext);
+  char error_message[200];
+  if ((count>=200) || (count<0)){
+    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in spin projection prefix parsing !\n",count);
+    yy_fatal_error(error_message);
+  }
+  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
+}
 <PREFIX>{FILENAME} {
   strcpy(cvc::filename_prefix,yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
@@ -560,6 +641,87 @@ namespace cvc {
     cvc::g_source_type = -1;
   } 
   if(cvc::myverbose!=0) printf("# [read_input_parser] source type set to %s\n",yytext);
+}
+<SPINPROJECTIONFILTERQSQ>{FLT} {
+  cvc::g_spinprojection_filtered_qsq = atof(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_spinprojection_filtered_qsq);
+}
+<SPINPROJECTIONLOOPACCUMULATE>{FILENAME} {
+  if (strcmp(yytext,"yes")==0){
+    cvc::g_spinprojection_loopaccumulate = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spinprojection_loopaccumulate is on\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_spinprojection_loopaccumulate = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spinprojection_loopaccumulate is off\n");
+  }
+}
+<SPINPROJECTIONSPINTRACE>{FILENAME} {
+  if (strcmp(yytext,"yes")==0){
+    cvc::g_spinprojection_spintrace = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is on\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_spinprojection_spintrace = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is off\n");
+  }
+}
+<SPINPROJECTIONGAMMABASIS>ukqcd {
+  cvc::g_spinprojection_gamma_basis = cvc::UKQCD;
+  if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
+}
+<SPINPROJECTIONGAMMABASIS>chiral_tmlqcd {
+  cvc::g_spinprojection_gamma_basis = cvc::CHIRAL_TMLQCD;
+  if(cvc::myverbose!=0) printf("# [read_input_parser] CHIRAL gammabasis is choosen\n");
+}
+<SPINPROJECTIONGAMMAS>{DIGIT}+ {
+  cvc::g_spinprojection_gammas = atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] spin projection on loops with gamma id %d\n", cvc::g_spinprojection_gammas);
+}
+<SPINPROJECTIONLOOPTYPE>{STRLIST} {
+  char paramname[100];
+  char token[100];
+  char error_message[200];
+  int list_end = 0;
+  int index = 0;
+  cvc::strlist_tokenize(yytext, paramname, 100);
+  snprintf(token,100,"%s",yytext);
+  while( list_end != 1 ){
+    if( index > MAX_LOOPTYPE_NUMBER ){
+      snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of saving loops (%d) parsing !\n",MAX_LOOPTYPE_NUMBER);
+      yy_fatal_error(error_message);
+      }
+    printf("Token=%s\n",token);
+    if( strcmp(token, "Naive") == 0 ){
+      cvc::g_spinprojection_loop_type[index]=0;
+    }
+    else if( strcmp(token, "Scalar") == 0 ){
+      cvc::g_spinprojection_loop_type[index]=1;
+    }
+    else if( strcmp(token, "dOp") == 0 ){
+      cvc::g_spinprojection_loop_type[index]=2;
+    }
+    else if( strcmp(token, "Loops") == 0){
+      cvc::g_spinprojection_loop_type[index]=3;
+    }
+    else if( strcmp(token, "LpsDw") == 0){
+      cvc::g_spinprojection_loop_type[index]=4;
+    }
+    else if( strcmp(token, "LoopsCV") == 0){
+      cvc::g_spinprojection_loop_type[index]=5;
+    }
+    else if( strcmp(token, "LpsDwCv") == 0){
+      cvc::g_spinprojection_loop_type[index]=6;
+    }
+    else {
+      snprintf(error_message, 200, "# [read_input_parser] Unknown loop type %s passed in the parsing of %s!\n", yytext, paramname);
+      exit(1);
+    }
+    index++;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] loop type saved to %s\n",token);
+    cvc::strlist_next_token(&list_end, token, 100);
+  }
+  cvc::g_spinprojection_loop_number=index;
 }
 <SPREC>{FLT} {
   cvc::solver_precision = atof(yytext);
