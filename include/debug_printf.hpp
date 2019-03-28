@@ -11,6 +11,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <cstring>
 
 /* Function along the lines of printf which produces output on a single
  * or all MPI tasks (unordered) when g_debug_level is at or
@@ -42,10 +43,11 @@ static inline void debug_printf(int const proc_id,
 static inline void error_printf(char const * format, ...)
 {
   size_t fmtlen = strlen(format);
+  // restrict to 10000 characters in any case
   if( fmtlen > 10000 ){
     fmtlen = 10000;
   }
-  char * newformat = (char)malloc(fmtlen+100);
+  char * newformat = (char*)malloc(fmtlen+100);
   if( newformat == NULL ){
     EXIT_WITH_MSG(CVC_EXIT_MALLOC_FAILURE, "malloc failure in error_printf!\n");
   }
