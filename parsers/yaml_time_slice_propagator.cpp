@@ -5,8 +5,8 @@
 #include "constants.hpp"
 #include "DependencyGraph.hpp"
 #include "SourceCreators.hpp"
-#include "yaml_time_slice_propagator.hpp"
-#include "yaml_utils.hpp"
+#include "parsers/yaml_time_slice_propagator.hpp"
+#include "parsers/yaml_utils.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <vector>
