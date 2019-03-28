@@ -9,7 +9,7 @@
 namespace cvc {
 namespace yaml {
 
-void construct_oet_meson_three_point_function(
+void oet_meson_three_point_function(
     const YAML::Node &node,
     mom_lists_t & mom_lists,
     const int src_ts,

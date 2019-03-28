@@ -54,8 +54,8 @@ std::vector< mom_t > psq_to_momentum_list(const YAML::Node & node)
   return momenta; 
 }
 
-void construct_momentum_list(const YAML::Node & node,
-                             mom_lists_t & mom_lists )
+void momentum_list(const YAML::Node & node,
+                   mom_lists_t & mom_lists )
 {
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);

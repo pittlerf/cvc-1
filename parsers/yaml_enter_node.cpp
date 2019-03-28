@@ -12,8 +12,8 @@
 namespace cvc {
 namespace yaml {
 
-void enter_node(const YAML::Node &node, 
-                const unsigned int depth,
+void enter_node(YAML::Node const &node, 
+                unsigned int const depth,
                 OutputCollection & odefs,
                 MetaCollection & metas,
                 DataCollection & data)
@@ -51,9 +51,9 @@ void enter_node(const YAML::Node &node,
         }
         
         if( it->first.as<std::string>() == "MomentumList" ){
-          construct_momentum_list(it->second, metas.mom_lists );
+          momentum_list(it->second, metas.mom_lists );
         } else if ( it->first.as<std::string>() == "TimeSlicePropagator" ){
-          construct_time_slice_propagator(
+          time_slice_propagator(
               it->second,
               metas.src_ts,
               metas.mom_lists, 
@@ -65,7 +65,7 @@ void enter_node(const YAML::Node &node,
               data.phases_data,
               *(metas.ranspinor));
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
-          construct_oet_meson_two_point_function(
+          oet_meson_two_point_function(
               it->second,
               metas.mom_lists,
               metas.src_ts,
@@ -76,7 +76,7 @@ void enter_node(const YAML::Node &node,
               data.phases_data,
               metas.phases_graph);
         } else if ( it->first.as<std::string>() == "OetMesonThreePointFunction" ){
-          construct_oet_meson_three_point_function(
+          oet_meson_three_point_function(
               it->second,
               metas.mom_lists,
               metas.src_ts,
@@ -90,6 +90,8 @@ void enter_node(const YAML::Node &node,
               data.cov_displ_props_data,
               metas.gauge_field_with_phases
               );
+        } else if ( it->first.as<std::string>() == "JacobiSmearing" ){
+        } else if ( it->first.as<std::string>() == "MomentumJacobiSmearing" ){
         } else {
           char msg[200];
           snprintf(msg, 200,

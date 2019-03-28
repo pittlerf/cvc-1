@@ -20,7 +20,7 @@
 namespace cvc {
 namespace yaml {
 
-void construct_oet_meson_three_point_function(
+void oet_meson_three_point_function(
     const YAML::Node &node,
     mom_lists_t & mom_lists,
     const int src_ts,
@@ -61,7 +61,7 @@ void construct_oet_meson_three_point_function(
     "dt", "gi", "gf", "gb", "gc", "Dc" };
 
   check_missing_nodes(node, required_nodes,
-      "construct_oet_meson_three_point_function", "OetMesonThreePointFunction");
+      "oet_meson_three_point_function", "OetMesonThreePointFunction");
  
   for( const std::string name : scalar_nodes ){
     validate_nodetype(node[name],
@@ -89,7 +89,7 @@ void construct_oet_meson_three_point_function(
   for( size_t i_dt = 0; i_dt < node["dt"].size(); ++i_dt ){
     const int dt = node["dt"][i_dt].as<int>();
     {
-      logger << "# [construct_oet_meson_three_point_function] Source-sink-separation: " <<
+      logger << "# [yaml::oet_meson_three_point_function] Source-sink-separation: " <<
         dt << std::endl;
     }
     const int seq_src_ts = (src_ts + dt + T_global) % T_global;
@@ -127,7 +127,7 @@ void construct_oet_meson_three_point_function(
           std::vector<int> pivec{ pi.x, pi.y, pi.z };
           std::vector<int> pfvec{ pf.x, pf.y, pf.z };
           std::vector<int> pcvec{ mom_xchange.x, mom_xchange.y, mom_xchange.z };
-          logger << "# [construct_oet_meson_three_point_function] Momentum: (" << pivec[0];
+          logger << "# [yaml::oet_meson_three_point_function] Momentum: (" << pivec[0];
           for( size_t i_pi = 1; i_pi < pivec.size(); ++i_pi ){
             if( i_pi < 3 ) logger << ",";
             logger << pivec[i_pi];
@@ -162,7 +162,7 @@ void construct_oet_meson_three_point_function(
               for( size_t i_gc = 0; i_gc < gc.size(); ++i_gc ){
                 for( size_t i_Dc = 0; i_Dc < Dc.size(); ++i_Dc ){
                   {
-                    logger << "# [construct_oet_meson_three_point_function] Dirac: (" << 
+                    logger << "# [yaml::oet_meson_three_point_function] Dirac: (" << 
                       gf[i_gf].as<int>() << "," <<
                       gc[i_gc].as<int>() <<
                       "," << gi[i_gi].as<int>() << ")  " <<

@@ -19,15 +19,15 @@
 namespace cvc {
 namespace yaml {
 
-void construct_oet_meson_two_point_function(const YAML::Node &node, 
-                                            mom_lists_t & mom_lists,
-                                            const int src_ts,
-                                            std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
-                                            std::map< std::string, std::vector<double> > & props_data,
-                                            std::map< std::string, ::cvc::H5Correlator > & corrs_data, 
-                                            DepGraph & corrs_graph,
-                                            std::map< std::string, std::vector<::cvc::complex> > & phases_data,
-                                            DepGraph & phases_graph)
+void oet_meson_two_point_function(const YAML::Node &node, 
+                                  mom_lists_t & mom_lists,
+                                  const int src_ts,
+                                  std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
+                                  std::map< std::string, std::vector<double> > & props_data,
+                                  std::map< std::string, ::cvc::H5Correlator > & corrs_data, 
+                                  DepGraph & corrs_graph,
+                                  std::map< std::string, std::vector<::cvc::complex> > & phases_data,
+                                  DepGraph & phases_graph)
 {
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
@@ -53,7 +53,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
     "gi", "gf", "gb" };
 
   check_missing_nodes(node, required_nodes, 
-      "construct_oet_meson_two_point_function", "OetMesonTwoPointFunction");
+      "oet_meson_two_point_function", "OetMesonTwoPointFunction");
  
   for( auto const & name : scalar_nodes ){ 
     validate_nodetype(node[name], YAML::NodeType::Scalar, name);
@@ -85,7 +85,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
       {
         std::vector<int> pivec{ pi.x, pi.y, pi.z };
         std::vector<int> pfvec{ pf.x, pf.y, pf.z };
-        logger << "# [construct_oet_meson_two_point_function] Momentum: (" << pivec[0];
+        logger << "# [yaml::oet_meson_two_point_function] Momentum: (" << pivec[0];
         for( size_t i_pi = 1; i_pi < pivec.size(); ++i_pi ){
           if( i_pi < 3 ) logger << ",";
           logger << pivec[i_pi];
@@ -118,7 +118,7 @@ void construct_oet_meson_two_point_function(const YAML::Node &node,
         for( size_t i_gf = 0; i_gf < gf.size(); ++i_gf ){
           for( size_t i_gb = 0; i_gb < gb.size(); ++i_gb ){
             {
-              logger << "# [construct_oet_meson_two_point_function] Dirac: (" << gf[i_gf].as<int>() << 
+              logger << "# [yaml::oet_meson_two_point_function] Dirac: (" << gf[i_gf].as<int>() << 
                 "," << gi[i_gi].as<int>() << ")  ";
               logger << "BwdDirac: " << gb[i_gb].as<int>() << std::endl;
             }

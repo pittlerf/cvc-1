@@ -19,16 +19,16 @@
 namespace cvc {
 namespace yaml {
 
-void construct_time_slice_propagator(const YAML::Node &node, 
-                                     const int src_ts,
-                                     mom_lists_t & mom_lists,
-                                     std::map< std::string, ts_stoch_src_meta_t > & srcs_meta,
-                                     std::map< std::string, stoch_prop_meta_t > & props_meta,
-                                     DepGraph & props_graph,
-                                     std::map< std::string, std::vector<double> > & props_data,
-                                     DepGraph & phases_graph,
-                                     std::map< std::string, std::vector<::cvc::complex> > & phases_data,
-                                     const std::vector<double> & ranspinor)
+void time_slice_propagator(const YAML::Node &node, 
+                           const int src_ts,
+                           mom_lists_t & mom_lists,
+                           std::map< std::string, ts_stoch_src_meta_t > & srcs_meta,
+                           std::map< std::string, stoch_prop_meta_t > & props_meta,
+                           DepGraph & props_graph,
+                           std::map< std::string, std::vector<double> > & props_data,
+                           DepGraph & phases_graph,
+                           std::map< std::string, std::vector<::cvc::complex> > & phases_data,
+                           const std::vector<double> & ranspinor)
 {
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
@@ -45,7 +45,7 @@ void construct_time_slice_propagator(const YAML::Node &node,
   static const std::vector<std::string> sequence_nodes {
     "g" };
   
-  check_missing_nodes(node, required_nodes, "construct_time_slice_propagator", "TimeSlicePropagator");
+  check_missing_nodes(node, required_nodes, "time_slice_propagator", "TimeSlicePropagator");
   
   for( const std::string name : {"id", "solver_id", "solver_driver", "P"} ){
     validate_nodetype(node[name], YAML::NodeType::Scalar, name);
