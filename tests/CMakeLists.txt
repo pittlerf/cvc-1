@@ -49,7 +49,7 @@ target_link_libraries(test_HighFive ${cvc_libraries})
 add_executable(test_HighFive_MPI test_HighFive_MPI.cpp)
 target_link_libraries(test_HighFive_MPI cvc ${cvc_libraries})
 
-add_executable(test_create_derivatives test_create_derivatives.cpp)
+add_executable(test_create_derivative_chains test_create_derivative_chains.cpp)
 
 # copy over test file for test of h5utils
 configure_file(${CMAKE_SOURCE_DIR}/tests/test.h5
