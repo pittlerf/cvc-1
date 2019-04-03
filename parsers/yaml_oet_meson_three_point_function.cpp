@@ -357,8 +357,15 @@ void oet_meson_three_point_function(
                       path_list.push_back(subpath);
                       snprintf(subpath, 100, "gc%d", gc[i_gc].as<int>());
                       path_list.push_back(subpath);
-                      for( auto const & cov_displ : cov_displ_chain ){
-                        snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ.dim, cov_displ.dir);
+                      // in the creation of the key for multiple covariant displacements,
+                      // we reverse the iteration order over the elements in the derivative
+                      // chain as the first element of the chain is applied first,
+                      // followed by the second and then by the third
+                      // Thus, in order to obtain operator notation (with the first application
+                      // appearing *right-most* in the key), we need to push_back the elements
+                      // from the last to the first.
+                      for( auto cov_displ_i = cov_displ_chain.rbegin(); cov_displ_i != cov_displ_chain.rend(); ++cov_displ_i ){
+                        snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ_i->dim, cov_displ_i->dir);
                         path_list.push_back(subpath);
                       }
                       snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
@@ -372,15 +379,25 @@ void oet_meson_three_point_function(
                       // add the various covariantly displaced vertices
                       std::vector<Vertex> cov_displ_vertices;
 
-                      // the covariant displacement of highest order will end up in
-                      // this key, built below
+                      // generate a key for the covariantly displaced quark propagator
+                      // in operator ordering (see snprintf below, displacements are added
+                      // to the key from the left)
                       std::string cov_displ_prop_key = fwd_prop_key;
                       for( size_t i_cov_displ = 0; i_cov_displ < cov_displ_chain.size(); ++i_cov_displ ){
                         const deriv_t & cov_displ = cov_displ_chain[i_cov_displ];
 
-                        char cov_displ_prop_string[200];
-                        snprintf(cov_displ_prop_string, 200,
-                            "Ddim%d_dir%d::%s", cov_displ.dim, cov_displ.dir, cov_displ_prop_key.c_str());
+                        char cov_displ_prop_string[300];
+                        int nchar = snprintf(cov_displ_prop_string, 300,
+                                             "Ddim%d_dir%d::%s", cov_displ.dim, cov_displ.dir,
+                                             cov_displ_prop_key.c_str());
+                        if( nchar >= 300 ){
+                          char msg[200];
+                          snprintf(msg, 200,
+                                   "[yaml::oet_meson_three_point_function] Exceeded maximum number of characters (299)"
+                                   "in the writing of 'cov_displ_prop_string'. You should increase the number"
+                                   "of characters that can be written here! Sorry about the poor implementation!\n");
+                          EXIT_WITH_MSG(CVC_EXIT_SNPRINTF_OVERFLOW, msg);
+                        }
 
                         std::string new_cov_displ_prop_key(cov_displ_prop_string);
                         Vertex cov_displ_vertex = boost::add_vertex(new_cov_displ_prop_key, corrs_graph);
