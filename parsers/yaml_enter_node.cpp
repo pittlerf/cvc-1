@@ -1,7 +1,7 @@
 #include "global.h"
 #include "Logger.hpp"
 #include "meta_types.hpp"
-#include "parsers/yaml_parsers.hpp"
+#include "yaml_parsers.hpp"
 #include "constants.hpp"
 
 #include <yaml-cpp/yaml.h>
@@ -90,8 +90,11 @@ void enter_node(YAML::Node const &node,
               data.cov_displ_props_data,
               metas.gauge_field_with_phases
               );
-        } else if ( it->first.as<std::string>() == "JacobiSmearing" ){
-        } else if ( it->first.as<std::string>() == "MomentumJacobiSmearing" ){
+        } else if ( it->first.as<std::string>() == "JacobiSmearing" ||
+                    it->first.as<std::string>() == "MomentumJacobiSmearing" ){
+          quark_smearing(
+              it->second,
+              metas.quark_smearing_meta);
         } else {
           char msg[200];
           snprintf(msg, 200,

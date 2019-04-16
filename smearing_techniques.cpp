@@ -26,6 +26,7 @@
 #include "cvc_geometry.h"
 #include "cvc_utils.h"
 #include "smearing_techniques.h"
+#include "debug_printf.hpp"
 
 namespace cvc {
 
@@ -33,7 +34,7 @@ namespace cvc {
  * Performs a number of APE smearing steps
  *
  ************************************************************/
-int APE_Smearing(double *smeared_gauge_field, double APE_smearing_alpha, int APE_smearing_niter) {
+int APE_Smearing(double * const smeared_gauge_field, double const APE_smearing_alpha, int const APE_smearing_niter) {
   const unsigned int gf_items = 72*VOLUME;
   const size_t gf_bytes = gf_items * sizeof(double);
 
@@ -255,7 +256,7 @@ int APE_Smearing(double *smeared_gauge_field, double APE_smearing_alpha, int APE
  * N, kappa = Jacobi smearing parameters (in)
  *
  *****************************************************/
-int Jacobi_Smearing(double *smeared_gauge_field, double *psi, int N, double kappa) {
+int Jacobi_Smearing(double * smeared_gauge_field, double * const psi, int const N, double const kappa) {
   const unsigned int sf_items = _GSI(VOLUME);
   const size_t sf_bytes = sf_items * sizeof(double);
   const double norm = 1.0 / (1.0 + 6.0*kappa);
@@ -351,5 +352,50 @@ int Jacobi_Smearing(double *smeared_gauge_field, double *psi, int N, double kapp
   free(psi_old);
   return(0);
 }  /* end of Jacobi_Smearing */
+
+
+void Momentum_Smearing(double const * const smeared_gauge_field,
+    mom_t const & momentum, double const mom_scale_factor,
+    double * const psi, int const N, double const kappa) {
+{
+  size_t const gf_bytes = _GGI(VOLUMEPLUSRAND);
+  double * smeared_gauge_field_with_phase = (double*)malloc(gf_bytes);
+  if( (void*)smeared_gauge_field_with_phase == NULL ){
+    error_printf("malloc failure in [MomentumSmearing]");
+    EXIT(CVC_EXIT_MALLOC_FAILURE);
+  }
+
+  const double TWO_MPI = 2.0 * M_PI;
+  ::cvc::complex smear_phase[3];
+  smear_phase[0].re = cos( mom_scale_factor * TWO_MPI * momentum.x / (double)LX_global );
+  smear_phase[0].im = sin( mom_scale_factor * TWO_MPI * momentum.x / (double)LX_global );
+  smear_phase[1].re = cos( mom_scale_factor * TWO_MPI * momentum.y / (double)LY_global );
+  smear_phase[1].im = sin( mom_scale_factor * TWO_MPI * momentum.y / (double)LY_global );
+  smear_phase[2].re = cos( mom_scale_factor * TWO_MPI * momentum.z / (double)LZ_global );
+  smear_phase[2].im = sin( mom_scale_factor * TWO_MPI * momentum.z / (double)LZ_global );
+
+#ifdef HAVE_OPENMP
+#pragma omp parallel
+#endif
+  {
+    // multiply gauge field by momentum smearing phase 
+    FOR_IN_PARALLEL(ix, 0, VOLUME)
+    {
+      _cm_eq_cm_ti_co(smeared_gauge_field_with_phase + _GGI(ix,1),
+                      smeared_gauge_field + _GGI(ix,1),
+                      &smear_phase[0]);
+      _cm_eq_cm_ti_co(smeared_gauge_field_with_phase + _GGI(ix,2),
+                      smeared_gauge_field + _GGI(ix,2),
+                      &smear_phase[1]);
+      _cm_eq_cm_ti_co(smeared_gauge_field_with_phase + _GGI(ix,3),
+                      smeared_gauge_field + _GGI(ix,3),
+                      &smear_phase[2]);
+    }
+  } // omp parallel closing brace
+  
+  Jacobi_Smearing(smeared_gauge_field_with_phase, psi, N, kappa);
+  free(smeared_gauge_field_with_phase);
+  return 0;
+}
 
 }  /* end of namespace cvc */

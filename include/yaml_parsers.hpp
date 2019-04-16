@@ -6,4 +6,5 @@
 #include "parsers/yaml_time_slice_propagator.hpp"
 #include "parsers/yaml_oet_meson_two_point_function.hpp"
 #include "parsers/yaml_oet_meson_three_point_function.hpp"
+#include "parsers/yaml_quark_smearing.hpp"
 
