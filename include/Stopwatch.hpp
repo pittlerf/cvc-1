@@ -106,10 +106,10 @@ class Stopwatch {
     duration elapsed_print(const char* const name){
       duration duration = elapsed();
       if(rank==0){ 
-        std::cout << "STOPWATCH " << name << " " << duration.mean 
+        std::cout << "STOPWATCH " << name << " " << duration.max 
           << " seconds" << std::endl
-          << "min(" << duration.min << ") max(" 
-          << duration.max << ")" << std::endl;
+          << "min(" << duration.min << ") mean(" 
+          << duration.mean << ")" << std::endl;
         fflush(stdout);
       }
       return(duration);
