@@ -161,7 +161,8 @@ static inline void scale_cplx(double * const contr, size_t const l_half, ::cvc::
 
 void contract_twopoint_snk_momentum_trange(double *contr, const int idsource, const int idsink, double **chi, double **phi, int n_c, int* snk_mom, int tmin, int tmax);
 
-void contract_twopoint_xdep(void*contr, const int idsource, const int idsink, void*chi, void*phi, int n_c, int stride, double factor, size_t prec);
+void contract_twopoint_xdep(void*contr, const int idsource, const int idsink, void * const chi, void * const phi, int const n_s, int const n_c, unsigned int const stride, double const factor, size_t const prec);
+
 void contract_twopoint_xdep_timeslice(void*contr, const int idsource, const int idsink, void*chi, void*phi, int n_c, int stride, double factor, size_t prec);
 
 int decompress_gauge(double*gauge_aux, float*gauge_field_flt);
@@ -245,7 +246,7 @@ void spinor_field_pl_eq_spinor_field_ti_co (double*r, double*s, complex w, unsig
 
 void xchange_eo_propagator ( fermion_propagator_type *fp, int eo, int dir);
 
-int get_point_source_info (int gcoords[4], int lcoords[4], int*proc_id);
+int get_point_source_info (int const gcoords[4], int lcoords[4], int * const proc_id);
 
 int get_timeslice_source_info (int gts, int *lts, int*proc_id );
 

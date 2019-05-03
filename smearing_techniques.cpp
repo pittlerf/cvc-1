@@ -257,9 +257,20 @@ int APE_Smearing(double * const smeared_gauge_field, double const APE_smearing_a
  *
  *****************************************************/
 int Jacobi_Smearing(double * smeared_gauge_field, double * const psi, int const N, double const kappa) {
-  const unsigned int sf_items = _GSI(VOLUME);
+  const size_t sf_items = _GSI(VOLUME);
   const size_t sf_bytes = sf_items * sizeof(double);
   const double norm = 1.0 / (1.0 + 6.0*kappa);
+
+  if ( N == 0 || kappa == 0.0 ) {
+    if ( g_cart_id == 0 ) fprintf(stdout, "# [Jacobi_Smearing] Warning, nothing to smear\n");
+    return ( 0 );
+  }
+
+  if ( smeared_gauge_field == NULL || psi == NULL ) {
+    fprintf(stderr, "[Jacobi_Smearing] Error, input / output fields are NULL \n");
+    return(4);
+  }
+
 
   int i1;
   double *psi_old = (double*)malloc( _GSI(VOLUME+RAND)*sizeof(double));
@@ -285,9 +296,9 @@ int Jacobi_Smearing(double * smeared_gauge_field, double * const psi, int const 
 {
 #endif
 
-  int idx, idy;
-  int index_s, index_s_mx, index_s_px, index_s_my, index_s_py, index_s_mz, index_s_pz, index_g_mx;
-  int index_g_px, index_g_my, index_g_py, index_g_mz, index_g_pz; 
+  unsigned int idx, idy;
+  unsigned int index_s, index_s_mx, index_s_px, index_s_my, index_s_py, index_s_mz, index_s_pz, index_g_mx;
+  unsigned int index_g_px, index_g_my, index_g_py, index_g_mz, index_g_pz; 
   double *s=NULL, spinor[24];
 
 #ifdef HAVE_OPENMP
