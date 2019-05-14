@@ -719,7 +719,7 @@ int cvc_tensor_tp_write_to_aff_file (double***cvc_tp, struct AffWriter_s*affw, c
     free( zbuffer );
 
     for(i=0; i < momentum_number; i++) {
-      sprintf(aff_buffer_path, "%s/px%.2dpy%.2dpz%.2d", tag, momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
+      sprintf(aff_buffer_path, "%s/pix%.2dpiy%.2dpiz%.2d", tag, momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
       /* fprintf(stdout, "# [cvc_tensor_tp_write_to_aff_file] current aff path = %s\n", aff_buffer_path); */
 #ifdef HAVE_LHPC_AFF
       affdir = aff_writer_mkpath(affw, affn, aff_buffer_path);
@@ -842,7 +842,7 @@ int contract_write_to_aff_file (double ** const c_tp, struct AffWriter_s*affw, c
     free( zbuffer );
 
     for(i=0; i < momentum_number; i++) {
-      sprintf(aff_buffer_path, "%s/px%dpy%dpz%d", tag, momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
+      sprintf(aff_buffer_path, "%s/pix%dpiy%dpiz%d", tag, momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
       if ( g_verbose > 4 ) fprintf(stdout, "# [contract_write_to_aff_file] current aff path = %s\n", aff_buffer_path);
 
       affdir = aff_writer_mkpath(affw, affn, aff_buffer_path);
@@ -1117,7 +1117,7 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
   
         char name[100];
   
-        sprintf ( name, "px%dpy%dpz%d", momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
+        sprintf ( name, "pix%dpiy%dpiz%d", momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
         fprintf ( stdout, "# [contract_write_to_h5_file] data set %2d loc_id = %ld %s %d\n", i, loc_id , __FILE__, __LINE__ );
   
         /***************************************************************************
