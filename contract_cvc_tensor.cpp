@@ -877,6 +877,76 @@ int contract_write_to_aff_file (double ** const c_tp, struct AffWriter_s*affw, c
 
 #ifdef HAVE_HDF5
 
+
+#define H5UTILS_MAX_KEY_LENGTH 500
+char key_copy[H5UTILS_MAX_KEY_LENGTH];
+
+
+ /**
+   * @brief check if a particular group / dataset exists
+   * Traverses the h5 tree and checks if the requested group
+   * hierarchy exists.
+   *
+   * @param loc_id HDF5 File or group id below which the hierarchy
+   * should be traversed
+   * @param key Group / Dataset key of the form "/grp1/grp2/grp3/dataset1"
+   * @param fail_path First link path of searched hierarchy which
+   *                  could not be found. Note pass as reference.
+   *
+   * @return true if path was found, false if it was not. Path of
+   *         failure is returned vial fail_path argument.
+   */
+  static inline bool check_key_exists(hid_t loc_id,
+                                      char const * const key,
+                                      std::string & fail_path,
+                                      bool full_path = true)
+  {
+    char key_copy[H5UTILS_MAX_KEY_LENGTH];
+    if( strlen(key) < H5UTILS_MAX_KEY_LENGTH ){
+      strcpy( key_copy, key );
+    } else {
+      char message[500];
+      snprintf(message,
+               500,
+               "[cvc::h5::check_key_exists] length of key exceeds %d characters. %s line %d",
+               H5UTILS_MAX_KEY_LENGTH, __FILE__, __LINE__);
+      EXIT_WITH_MSG(2, message);
+    }
+
+    htri_t status;
+    std::string curr_path("");
+
+    if( full_path ){
+      curr_path = "/";
+      status = H5Lexists(loc_id, curr_path.c_str(), H5P_DEFAULT);
+      if( status <= 0 ){
+        fail_path = "/";
+        return false;
+      }
+    }
+
+    const char grp_sep[] = "/";
+    char * curr_grp_substr = strtok( key_copy, grp_sep );
+    while( curr_grp_substr != NULL ){
+      curr_path += std::string(curr_grp_substr);
+      status = H5Lexists(loc_id, curr_path.c_str(), H5P_DEFAULT);
+      if( status <= 0 ){
+        fail_path = curr_path;
+        return false;
+      }
+      curr_grp_substr = strtok( NULL, grp_sep );
+      curr_path += std::string("/");
+    }
+
+    // traversal was successful
+    fail_path = "";
+    return true;
+  }
+
+
+
+
+
 /***************************************************************************
  * write time-momentum-dependent contraction  results to HDF5 file
  *
@@ -1119,6 +1189,13 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
   
         sprintf ( name, "pix%dpiy%dpiz%d", momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
         fprintf ( stdout, "# [contract_write_to_h5_file] data set %2d loc_id = %ld %s %d\n", i, loc_id , __FILE__, __LINE__ );
+
+        hid_t dataset_id;
+        std::string fail_path;
+        if( check_key_exists(loc_id, name, fail_path, false) ){
+          dataset_id = H5Dopen(loc_id, name, dapl_id);
+        } else {
+
   
         /***************************************************************************
          * create a data set
@@ -1135,8 +1212,8 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
   
                      hid_t H5Dcreate ( hid_t loc_id, const char *name, hid_t dtype_id, hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id ) 
          */
-        hid_t dataset_id = H5Dcreate (       loc_id,             name,       dtype_id,       space_id,       lcpl_id,       dcpl_id,       dapl_id );
-  
+          dataset_id = H5Dcreate (       loc_id,             name,       dtype_id,       space_id,       lcpl_id,       dcpl_id,       dapl_id );
+        }
         /***************************************************************************
          * write the current data set
          ***************************************************************************/
