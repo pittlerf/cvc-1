@@ -233,7 +233,12 @@ class Core {
         return;
       }
 #endif
-      read_input_parser( cmd_options["input_filename"].as<std::string>().c_str() );
+      status = read_input_parser( cmd_options["input_filename"].as<std::string>().c_str() );
+      if( status == 2){
+        debug_printf(0,0,"[Core::init] read_input_parser failed\n");
+        return;
+      }
+
       
       mpi_init(argc, argv);
       mpi_initialised = true;

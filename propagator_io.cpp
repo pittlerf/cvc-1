@@ -618,15 +618,9 @@ int write_lemon_spinor(double * const s, char const * const filename, const int 
 
 #ifdef HAVE_MPI
   MPI_Offset bytes;
-<<<<<<< HEAD
-#else */
-  MPI_Offset bytes;
-/* #endif */
-=======
 #else
   n_uint64_t bytes;
 #endif
->>>>>>> bartek/cpff-bartek-devel
 
   DML_Checksum checksum;
   char *message;

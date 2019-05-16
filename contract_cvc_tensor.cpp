@@ -1074,7 +1074,7 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
         hid_t loc_id = ( grp_list_nmem == 0 ) ? file_id : grp_list[grp_list_nmem-1];
         if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] grp_ptr = %s\n", grp_ptr );
         std::string fail_path;
-        if( check_key_exists(loc_id, grp_ptr, fail_path, false) ){
+        if( h5::check_key_exists(loc_id, grp_ptr, fail_path, false) ){
           grp = H5Gopen2(loc_id, grp_ptr, gapl_id);
           if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] opened group %s %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
         } else {
@@ -1121,12 +1121,6 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
         sprintf ( name, "pix%dpiy%dpiz%d", momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
         fprintf ( stdout, "# [contract_write_to_h5_file] data set %2d loc_id = %ld %s %d\n", i, loc_id , __FILE__, __LINE__ );
 
-        hid_t dataset_id;
-        std::string fail_path;
-        if( check_key_exists(loc_id, name, fail_path, false) ){
-          dataset_id = H5Dopen(loc_id, name, dapl_id);
-        } else {
-
   
         hid_t dataset_id;
         std::string fail_path;
@@ -1150,10 +1144,6 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
          */
           dataset_id = H5Dcreate (       loc_id,             name,       dtype_id,       space_id,       lcpl_id,       dcpl_id,       dapl_id );
         }
-<<<<<<< HEAD
-=======
-  
->>>>>>> bartek/cpff-bartek-devel
         /***************************************************************************
          * write the current data set
          ***************************************************************************/

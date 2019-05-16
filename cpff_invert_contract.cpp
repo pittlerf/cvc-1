@@ -37,7 +37,6 @@ extern "C"
 #endif
 
 #define MAIN_PROGRAM
-
 #include "cvc_complex.h"
 #include "cvc_linalg.h"
 #include "global.h"
@@ -153,7 +152,10 @@ int main(int argc, char **argv) {
   /* set the default values */
   if(filename_set==0) sprintf ( filename, "%s.input", outfile_prefix );
   /* fprintf(stdout, "# [cpff_invert_contract] Reading input from file %s\n", filename); */
-  read_input_parser(filename);
+  exitstatus = read_input_parser(filename);
+  if(exitstatus == 2) {
+   printf("[cpff_invert_contract] read_input_parser failed\n");
+  }
 
 #ifdef HAVE_TMLQCD_LIBWRAPPER
 
@@ -175,9 +177,6 @@ int main(int argc, char **argv) {
   if(exitstatus != 0) {
     EXIT(3);
   }
-  if (g_cart_id == 0){
-    printf("[cpff_invert_contract] Tmlqcd invert init mpi init lat param init\n");
-  } 
 #endif
 
   /***************************************************************************
@@ -832,13 +831,9 @@ int main(int argc, char **argv) {
                *****************************************************************/
               for ( int mu = 0; mu < 4; mu++ ) {
                 for ( int i = 0; i < spin_color_dilution; i++ ) {
-<<<<<<< HEAD
-                    spinor_field_eq_cov_deriv_spinor_field ( sequential_propagator_deriv_list[i], sequential_propagator_list[i], mu, ifbwd, gauge_field_with_phase );
-=======
                   sw.reset();
                   spinor_field_eq_cov_deriv_spinor_field ( sequential_propagator_deriv_list[i], sequential_propagator_list[i], mu, ifbwd, gauge_field_with_phase );
                   sw.elapsed_print("spinor_field_eq_cov_deriv_spinor_field first derivative");
->>>>>>> bartek/cpff-bartek-devel
                 }
 
                 /* We calculate the one derivative insertion only for zero sequential source momentum */
@@ -853,7 +848,6 @@ int main(int argc, char **argv) {
 
                     int gamma_current = gamma_current_list[icur_gamma];
 
-<<<<<<< HEAD
                     for ( int isrc_gamma = 0; isrc_gamma < g_source_gamma_id_number; isrc_gamma++ ) {
 
                       int gamma_source = g_source_gamma_id_list[isrc_gamma];
@@ -884,13 +878,8 @@ int main(int argc, char **argv) {
                       source_momentum[0][0]=0;
                       source_momentum[0][1]=0;
                       source_momentum[0][2]=0;
-=======
-                    sw.reset();
-                    contract_twopoint_snk_momentum ( contr_p[isrc_mom], gamma_source,  mu, 
-                        stochastic_propagator_mom_list[isrc_mom], 
-                        sequential_propagator_deriv_list, spin_dilution, color_dilution, current_momentum, 1);
-                    sw.elapsed_print("contract_twopoint_snk_momentum covariant derivative");
->>>>>>> bartek/cpff-bartek-devel
+                    
+                      sw.elapsed_print("contract_twopoint_snk_momentum covariant derivative");
 
 
                       int current_momentum[3] = {
@@ -898,9 +887,12 @@ int main(int argc, char **argv) {
                         -( source_momentum[0][1] + seq_source_momentum[1] ),
                         -( source_momentum[0][2] + seq_source_momentum[2] ) };
 
+
                       contract_twopoint_snk_momentum ( contr_p[0], gamma_source,  mu, 
                         stochastic_propagator_mom_list[isrc_mom], 
                         sequential_propagator_deriv_list, spin_dilution, color_dilution, current_momentum, 1);
+                      sw.elapsed_print("contract_twopoint_snk_momentum covariant derivative");
+
                       sprintf ( data_tag, "/d+-g-sud/t%d/dt%d/gf%d/pfx%dpfy%dpfz%d/gc%d/Ddim%d_dir%d/gi%d", 
                         gts, g_sequential_source_timeslice_list[iseq_timeslice],
                         seq_source_gamma,  seq_source_momentum[0], seq_source_momentum[1], seq_source_momentum[2] ,
@@ -928,24 +920,17 @@ int main(int argc, char **argv) {
                 /*****************************************************************/
 
                 for ( int kfbwd = 0; kfbwd <= 1; kfbwd++ ) {
-<<<<<<< HEAD
-=======
-                  for ( int i = 0; i < spin_color_dilution; i++ ) {
-                    sw.reset();
-                    spinor_field_eq_cov_deriv_spinor_field ( sequential_propagator_dderiv_list[i], sequential_propagator_deriv_list[i], mu, kfbwd, gauge_field_with_phase );
-                    sw.elapsed_print("spinor_field_eq_cov_deriv_spinor_field second derivative");
-                  }
 
-                  for ( int isrc_gamma = 0; isrc_gamma < g_source_gamma_id_number; isrc_gamma++ ) {
->>>>>>> bartek/cpff-bartek-devel
-
-                /*****************************************************************
+                 /*****************************************************************
                  * loop on directions for cov deriv
                  *****************************************************************/
                   for ( int nu = 0; nu < 4; nu++ ) {
 
                     for ( int i = 0; i < spin_color_dilution; i++ ) {
+                      sw.reset();
                       spinor_field_eq_cov_deriv_spinor_field ( sequential_propagator_dderiv_list[i], sequential_propagator_deriv_list[i], nu, kfbwd, gauge_field_with_phase );
+                      sw.elapsed_print("spinor_field_eq_cov_deriv_spinor_field second derivative");
+
                     }
                     /* Loop on local gamma structures */
 
@@ -954,7 +939,6 @@ int main(int argc, char **argv) {
 
                       for ( int isrc_gamma = 0; isrc_gamma < g_source_gamma_id_number; isrc_gamma++ ) {
 
-<<<<<<< HEAD
                         int gamma_source = g_source_gamma_id_list[isrc_gamma];
                     
                         double ** contr_p = init_2level_dtable ( 1, 2*T );
@@ -971,18 +955,6 @@ int main(int argc, char **argv) {
                         source_momentum[0][0] = -seq_source_momentum[0];
                         source_momentum[0][1] = -seq_source_momentum[1];
                         source_momentum[0][2] = -seq_source_momentum[2];
-=======
-                      int current_momentum[3] = {
-                        -( source_momentum[0] + seq_source_momentum[0] ),
-                        -( source_momentum[1] + seq_source_momentum[1] ),
-                        -( source_momentum[2] + seq_source_momentum[2] ) };
-                      
-                      sw.reset();
-                      contract_twopoint_snk_momentum ( contr_p[isrc_mom], gamma_source,  4, 
-                          stochastic_propagator_mom_list[isrc_mom], 
-                          sequential_propagator_deriv_list, spin_dilution, color_dilution, current_momentum, 1);
-                      sw.elapsed_print("contract_twopoint_snk_momentum second derivative");
->>>>>>> bartek/cpff-bartek-devel
 
 
                         int current_momentum[3] = { 0, 0, 0};
@@ -998,9 +970,12 @@ int main(int argc, char **argv) {
 
 
 
+                        sw.reset();
                         contract_twopoint_snk_momentum ( contr_p[0], gamma_source,  gamma_current, 
                              stochastic_propagator_mom_list[isrc_mom], 
                              sequential_propagator_deriv_list, spin_dilution, color_dilution, current_momentum, 1);
+                        sw.elapsed_print("contract_twopoint_snk_momentum second derivative");
+ 
 
                         sprintf ( data_tag, "/d+-g-sud/t%d/dt%d/gf%d/pfx%dpfy%dpfz%d/gc%d/Ddim%d_dir%d/Ddim%d_dir%d/gi%d/", 
                           gts, g_sequential_source_timeslice_list[iseq_timeslice],
