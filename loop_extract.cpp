@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
      EXIT(1);
     }
   }
-  snprintf ( filename, 400, "%s/%s.%.4d_%s_%cs%.4d_step%.4d_Qsq%d.h5", spinprojectionfname_prefix,filename_prefix, Nconf, filename_prefix2, accumulate, g_nsample, Nsave, Qsq );
+  snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", spinprojectionfname_prefix,filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
   /***************************************************************************
@@ -269,10 +269,10 @@ int main(int argc, char **argv) {
 
 
   if (g_spinprojection_gammas != 4){
-    snprintf ( filename, 400, "filtered_%s.%.4d_%s_%cs%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, accumulate, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq, g_spinprojection_gammas );
+    snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq, g_spinprojection_gammas );
   }
   else{
-    snprintf ( filename, 400, "filtered_%s.%.4d_%s_%cs%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, accumulate, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq );
+    snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq );
   }
 
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
@@ -377,13 +377,13 @@ int main(int argc, char **argv) {
         snprintf(direction_part, 100, "dir_%02d", loop_direction);
      
         if (inner_loop_length > 1)
-          snprintf ( data_tag, 400, "/conf_%.4d/nstoch_%.4d/%s/%s/%s", Nconf, Nstoch, loop_type, direction_part, loop_name );
+          snprintf ( data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s/%s", Nconf, accumulate, Nstoch, loop_type, direction_part, loop_name );
         else
-          snprintf ( data_tag, 400, "/conf_%.4d/nstoch_%.4d/%s/%s", Nconf, Nstoch, loop_type, loop_name );
+          snprintf ( data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s", Nconf, accumulate, Nstoch, loop_type, loop_name );
 
         if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
-        snprintf ( filename, 400, "%s/%s.%.4d_%s_%cs%.4d_step%.4d_Qsq%d.h5", spinprojectionfname_prefix, filename_prefix, Nconf, filename_prefix2, accumulate, g_nsample, Nsave, Qsq );
+        snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", spinprojectionfname_prefix, filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, Qsq );
 
         exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
         if ( exitstatus != 0 ) {
@@ -464,17 +464,17 @@ int main(int argc, char **argv) {
 
 
         if (inner_loop_length > 1)
-          snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s/%s", Nconf, Nstoch, loop_type, direction_part );
+          snprintf ( data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s", Nconf, accumulate, Nstoch, loop_type, direction_part );
         else
-          snprintf ( data_tag, 400, "/conf_%.4d/Nstoch_%.4d/%s", Nconf, Nstoch, loop_type);
+          snprintf ( data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s", Nconf, accumulate, Nstoch, loop_type);
 
         if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
         if (g_spinprojection_gammas != 4){
-          snprintf ( filename, 400, "filtered_%s.%.4d_%s_%cs%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, accumulate, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq, g_spinprojection_gammas);
+          snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq, g_spinprojection_gammas);
         }
         else{
-          snprintf ( filename, 400, "filtered_%s.%.4d_%s_%cs%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, accumulate, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq);
+          snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", filename_prefix, Nconf, filename_prefix2, g_nsample, Nsave, (int)g_spinprojection_filtered_qsq);
         }
         if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
