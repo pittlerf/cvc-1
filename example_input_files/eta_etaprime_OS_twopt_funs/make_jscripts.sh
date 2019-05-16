@@ -29,7 +29,7 @@ for cid in $(seq ${cstart} ${cstep} ${cend}); do
 
   cp templates/definitions.yaml.template ${yaml_input}
 
-  cp templates/invert.input.template ${tmlqcd_infile}
+  cp templates/invert.input.${arch}.template ${tmlqcd_infile}
   sed -i "s/_NSTORE_/${cid}/g" ${tmlqcd_infile}
 
   cp templates/job_${arch}.cmd.template ${jscript}
