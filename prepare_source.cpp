@@ -9,15 +9,6 @@
  * CHANGES:
  ************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <complex.h>
-#include <time.h>
-#include <getopt.h>
-#include <sys/time.h>
-
 #include "cvc_linalg.h"
 #include "cvc_complex.h"
 #include "iblas.h"
@@ -34,6 +25,22 @@
 #include "matrix_init.h"
 #include "make_x_orbits.h"
 #include "table_init_d.h"
+#include "loop_tools.h"
+#include "types.h"
+#include "debug_printf.hpp"
+#include "constants.hpp"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <complex.h>
+#include <time.h>
+#include <getopt.h>
+#include <sys/time.h>
+
+#include <vector>
+#include <iostream>
 
 namespace cvc {
 
@@ -1050,8 +1057,159 @@ int init_timeslice_source_oet ( double ** const s, int const tsrc, int * const m
 }  /* end of init_timeslice_source_oet */
 
 
-/*************************************************************************/
-/*************************************************************************/
+  int prepare_gamma_timeslice_oet(double * const s,
+      double const * const ran,
+      int const gamma_id,
+      int const t_src,
+      const mom_t & momentum)
+  {
+    const unsigned int vol3 = LX * LY * LZ;
+    const size_t vol3_fv_size = _GSI(vol3)*sizeof(double);
+    const bool have_source = ( (t_src / T) == g_proc_coords[0] );
+    const unsigned int src_index = (t_src % T)*vol3;
+    const unsigned int src_offset = _GSI(src_index);
+
+    debug_printf(0,verbosity::detailed_progress,
+      "# [prepare_gamma_timeslice_oet] Creating time slice source with gamma %d, px %d py %d, pz %d\n",
+      gamma_id, momentum.x, momentum.y, momentum.z); 
+
+    std::vector<double> buffer;
+    // on the tasks that hold part of the source time slice, we copy the relevant
+    // part of the random field 
+    if(have_source)
+    {
+      try { buffer.resize(24*VOLUME); } 
+      catch(...)
+      { 
+        return(-1);
+      }
+      memcpy((void*)buffer.data(), (void*)(ran+src_offset), vol3_fv_size );
+    }
+    double * const bufptr = buffer.data();
+
+#ifdef HAVE_OPENMP
+#pragma omp parallel
+#endif
+    {
+      double psi[24];
+      // if momentum is provided, compute and apply the phase factors to the
+      // random field 
+      if( (momentum.x != 0 || momentum.y != 0 || momentum.z != 0) && have_source ){
+        const double       TWO_MPI = 2. * M_PI;
+        const double       p[3] = { TWO_MPI * (double)momentum.x/(double)LX_global,
+                                    TWO_MPI * (double)momentum.y/(double)LY_global,
+                                    TWO_MPI * (double)momentum.z/(double)LZ_global };
+        const double phase_offset = p[0] * g_proc_coords[1] * LX + 
+                                    p[1] * g_proc_coords[2] * LY + 
+                                    p[2] * g_proc_coords[3] * LZ;
+        double phase_angle;
+        complex phase_factor;
+
+        FOR_IN_PARALLEL(x, 0, LX)
+        {
+          for(unsigned int y = 0; y < LY; ++y){
+            for(unsigned int z = 0; z < LZ; ++z){
+              // use the coords of the zeroth timeslice to get the 3D idx
+              const unsigned iix = _GSI(g_ipt[0][x][y][z]);
+              phase_angle = phase_offset + x*p[0] + y*p[1] + z*p[2];
+              phase_factor.re = cos( phase_angle );
+              phase_factor.im = sin( phase_angle );
+              // this is complex so it's not a local operation
+              // without a true complex type available, we need a temporary
+              _fv_eq_fv(psi, bufptr+iix);
+              _fv_eq_fv_ti_co(bufptr+iix, psi, &phase_factor);
+            }
+          }
+        }
+      } // if(momentum != NULL)
+
+      // finally, perform the gamma multiplication and set the source to zero
+      // on all sites which do not belong to the source time slice
+      FOR_IN_PARALLEL(ix, 0, VOLUME)
+      {
+        if(have_source && ix >= src_index && ix < src_index+vol3 ){
+          // we subtract src_offset because buffer is of length vol3
+          _fv_eq_gamma_ti_fv(s+_GSI(ix), gamma_id, bufptr+_GSI(ix)-src_offset);
+        } else {
+          _fv_eq_zero(s+_GSI(ix));
+        }
+      }
+    } // end of parallel section
+
+    return(0);
+  } // end of prepare_gamma_timeslice_oet
+  
+  int prepare_gamma_timeslice_oet_ext_momentum(
+      double * const s,
+      double const * const ran,
+      int const gamma_id,
+      int const t_src,
+      ::cvc::complex const * const phases,
+      const mom_t & momentum)
+  {
+    const unsigned int vol3 = LX * LY * LZ;
+    const size_t vol3_fv_size = _GSI(vol3)*sizeof(double);
+    const bool have_source = ( (t_src / T) == g_proc_coords[0] );
+    const unsigned int src_index = (t_src % T)*vol3;
+    const unsigned int src_offset = _GSI(src_index);
+
+    debug_printf(0,verbosity::detailed_progress,
+      "# [prepare_gamma_timeslice_oet_ext_momentum] Creating time slice source with gamma %d, px %d py %d, pz %d\n",
+      gamma_id, momentum.x, momentum.y, momentum.z); 
+
+    std::vector<double> buffer;
+    // on the tasks that hold part of the source time slice, we copy the relevant
+    // part of the random field 
+    if(have_source)
+    {
+      try { buffer.resize(24*VOLUME); } 
+      catch(...)
+      { 
+        return(-1);
+      }
+      memcpy((void*)buffer.data(), (void*)(ran+src_offset), vol3_fv_size );
+    }
+    double * const bufptr = buffer.data();
+
+#ifdef HAVE_OPENMP
+#pragma omp parallel
+#endif
+    {
+      double psi[24];
+      // if momentum is provided, compute and apply the phase factors to the
+      // random field 
+      if( (momentum.x != 0 || momentum.y != 0 || momentum.z != 0) && have_source ){
+
+        FOR_IN_PARALLEL(x, 0, LX)
+        {
+          for(unsigned int y = 0; y < LY; ++y){
+            for(unsigned int z = 0; z < LZ; ++z){
+              // use the coords of the zeroth timeslice to get the 3D idx
+              const unsigned iix = _GSI(g_ipt[0][x][y][z]);
+              // this is complex so it's not a local operation
+              // without a true complex type available, we need a temporary
+              _fv_eq_fv(psi, bufptr+iix);
+              _fv_eq_fv_ti_co(bufptr+iix, psi, &phases[iix]);
+            }
+          }
+        }
+      } // if(momentum != 0)
+
+      // finally, perform the gamma multiplication and set the source to zero
+      // on all sites which do not belong to the source time slice
+      FOR_IN_PARALLEL(ix, 0, VOLUME)
+      {
+        if(have_source && ix >= src_index && ix < src_index+vol3 ){
+          // we subtract src_offset because buffer is of length vol3
+          _fv_eq_gamma_ti_fv(s+_GSI(ix), gamma_id, bufptr+_GSI(ix)-src_offset);
+        } else {
+          _fv_eq_zero(s+_GSI(ix));
+        }
+      }
+    } // end of parallel section
+
+    return(0);
+  } // end of prepare_gamma_timeslice_oet
 
 /*************************************************************************
  * prepare a sequential FHT source

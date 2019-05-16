@@ -97,7 +97,7 @@ int project_spinor_field(double *s, double * r, int parallel, double *V, int num
 */
 
   /* multiply p = (V^+ r)^* */
-  _F(zgemv)(&BLAS_TRANS, &BLAS_M, &BLAS_N, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_X, &BLAS_INCX, &BLAS_BETA, BLAS_Y, &BLAS_INCY,1);
+  F_GLOBAL(zgemv, ZGEMV)(&BLAS_TRANS, &BLAS_M, &BLAS_N, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_X, &BLAS_INCX, &BLAS_BETA, BLAS_Y, &BLAS_INCY,1);
 
   /* for(k=0; k<num; k++) { fprintf(stdout, "# p %3d %3d %25.16e %25.16e\n", g_cart_id, k, creal(p[k]), cimag(p[k])); } */
 
@@ -144,7 +144,7 @@ int project_spinor_field(double *s, double * r, int parallel, double *V, int num
     BLAS_BETA  =  1.;
   }
 
-  _F(zgemv)(&BLAS_TRANS, &BLAS_M, &BLAS_N, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_X, &BLAS_INCX, &BLAS_BETA, BLAS_Y, &BLAS_INCY,1);
+  F_GLOBAL(zgemv, ZGEMV)(&BLAS_TRANS, &BLAS_M, &BLAS_N, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_X, &BLAS_INCX, &BLAS_BETA, BLAS_Y, &BLAS_INCY,1);
 
 
   if(p != NULL) free(p);
@@ -206,7 +206,7 @@ int project_propagator_field(double *s, double * r, int parallel, double *V, int
   BLAS_LDB    = BLAS_K;
   BLAS_LDC    = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
 #ifdef HAVE_MPI
   /* allreduce across all processes */
@@ -249,7 +249,7 @@ int project_propagator_field(double *s, double * r, int parallel, double *V, int
   BLAS_LDB    = BLAS_K;
   BLAS_LDC    = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
   free(p);
 
@@ -313,7 +313,7 @@ int project_propagator_field_weighted(double *s, double * r, int parallel, doubl
   BLAS_LDB    = BLAS_K;
   BLAS_LDC    = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
 #ifdef HAVE_MPI
   /* allreduce across all processes */
@@ -366,7 +366,7 @@ int project_propagator_field_weighted(double *s, double * r, int parallel, doubl
   BLAS_LDB    = BLAS_K;
   BLAS_LDC    = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
   fini_2level_zbuffer ( &p );
 
@@ -420,7 +420,7 @@ int project_reduce_from_propagator_field (double *p, double * r, double *V, int 
   BLAS_LDB    = BLAS_K;
   BLAS_LDC    = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
 #ifdef HAVE_MPI
   if ( xchange == 1 ) {
@@ -489,7 +489,7 @@ int project_expand_to_propagator_field(double *s, double *p, double *V, int num1
   BLAS_LDB    = BLAS_K;
   BLAS_LDC    = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
   retime = _GET_TIME;
   if(g_cart_id == 0) fprintf(stdout, "# [project_expand_to_propagator_field] time for projection = %e seconds\n", retime-ratime);
@@ -556,10 +556,10 @@ int momentum_projection (double*V, double *W, unsigned int nv, int momentum_numb
 #pragma omp for
 #endif
     for(ix=0; ix<VOL3; ix++) {
-      q_phase = q_offset \
-        + lexic_coords[ix].x[0] * q[0] \
-        + lexic_coords[ix].x[1] * q[1] \
-        + lexic_coords[ix].x[2] * q[2];
+      q_phase = q_offset +
+                lexic_coords[ix].x[0] * q[0] +
+                lexic_coords[ix].x[1] * q[1] +
+                lexic_coords[ix].x[2] * q[2];
       zphase[i][ix] = cos(q_phase) + I*sin(q_phase);
     }
 #ifdef HAVE_OPENMP
@@ -581,19 +581,19 @@ int momentum_projection (double*V, double *W, unsigned int nv, int momentum_numb
   BLAS_LDB   = BLAS_K;
   BLAS_LDC   = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
   fini_2level_buffer((double***)(&zphase));
 
 #ifdef HAVE_MPI
 #  if ( defined PARALLELTX ) || ( defined PARALLELTXY ) || ( defined PARALLELTXYZ )
-  i = 2 * nv * momentum_number;
-  void *buffer = malloc(i * sizeof(double));
+  unsigned int count = 2 * nv * momentum_number;
+  void *buffer = malloc(count * sizeof(double));
   if(buffer == NULL) {
     return(1);
   }
-  memcpy(buffer, W, i*sizeof(double));
-  int status = MPI_Allreduce(buffer, (void*)W, i, MPI_DOUBLE, MPI_SUM, g_ts_comm);
+  memcpy(buffer, W, count*sizeof(double));
+  int status = MPI_Allreduce(buffer, (void*)W, count, MPI_DOUBLE, MPI_SUM, g_ts_comm);
   if(status != MPI_SUCCESS) {
     fprintf(stderr, "[momentum_projection] Error from MPI_Allreduce, status was %d\n", status);
     return(2);
@@ -647,7 +647,6 @@ int momentum_projection2 ( double * const V, double * const W, unsigned int cons
   }}} */
 
   int shift[3] = {0,0,0};
-
   if(gshift != NULL) {
     memcpy( shift, gshift, 3*sizeof(int) );
   }
@@ -711,7 +710,7 @@ int momentum_projection2 ( double * const V, double * const W, unsigned int cons
   BLAS_LDB   = BLAS_K;
   BLAS_LDC   = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
   fini_2level_ztable( &zphase );
 
@@ -1093,7 +1092,7 @@ int momentum_projection_eo_timeslice (
   BLAS_LDB   = BLAS_K;
   BLAS_LDC   = BLAS_M;
 
-  _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+  F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
   fini_2level_zbuffer( &zphase );
 
@@ -1196,7 +1195,7 @@ int project_reduce_from_propagator_field_per_timeslice (double *p, double * r, d
 
     BLAS_C = (double _Complex*)( p + it * offset_p );
 
-    _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+    F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
   }  /* of loop on it */
 

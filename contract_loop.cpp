@@ -278,7 +278,7 @@ int contract_loop_write_to_h5_file (double *** const loop, void * file, char*tag
       /* big_endian() ?  H5T_IEEE_F64BE : H5T_IEEE_F64LE; */
  
       /* shape of the output arary */ 
-      hsize_t dims[3] = { T_global, momentum_number, 2 * nc };
+      hsize_t dims[4] = { T_global, momentum_number, nc, 2 };
   
       /*
                  int rank                             IN: Number of dimensions of dataspace.
@@ -286,7 +286,7 @@ int contract_loop_write_to_h5_file (double *** const loop, void * file, char*tag
                  const hsize_t * maximum_dims         IN: Array specifying the maximum size of each dimension.
                  hid_t H5Screate_simple( int rank, const hsize_t * current_dims, const hsize_t * maximum_dims )
        */
-      hid_t space_id = H5Screate_simple(        3,                         dims,                          NULL);
+      hid_t space_id = H5Screate_simple(        4,                         dims,                          NULL);
   
       /***************************************************************************
        * some default settings for H5Dwrite
@@ -460,6 +460,197 @@ int contract_loop_write_to_h5_file (double *** const loop, void * file, char*tag
 
 #ifdef HAVE_HDF5
 
+/***********************************************************
+ * get attribute from hdf file
+ *
+ * OUT: attribute description in string format
+ * IN:  file name of the hdf5 file
+ * IN:  tag: name of the attribute
+ * IN:  momentum_number = number of entries in momentum_list
+ * IN:  id of process does the io
+ ***********************************************************/
+
+int get_attribute_from_h5_file (char **ret,void * file, char* const tag, int const io_proc ) {
+
+  if ( io_proc > 0 ) {
+
+
+    char * filename = (char *)file;
+
+    /***************************************************************************
+     * time measurement
+     ***************************************************************************/
+    struct timeval ta, tb;
+    gettimeofday ( &ta, (struct timezone *)NULL );
+
+
+    /***************************************************************************
+     * io_proc 2 is origin of Cartesian grid and does the write to disk
+     ***************************************************************************/
+    if(io_proc == 2) {
+
+      /***************************************************************************
+       * create or open file
+       ***************************************************************************/
+
+      hid_t   file_id = -1;
+      hid_t   attr_id = -1;
+      herr_t  status;
+
+      struct stat fileStat;
+      if ( stat( filename, &fileStat) < 0 ) {
+        fprintf ( stderr, "[loop_read_from_h5_file] Error, file %s does not exist %s %d\n", filename, __FILE__, __LINE__ );
+        return ( 1 );
+      } else {
+        /* open an existing file. */
+        if ( g_verbose > 1 ) fprintf ( stdout, "# [loop_read_from_h5_file] open existing file\n" );
+
+        unsigned flags = H5F_ACC_RDONLY;  /* IN: File access flags. Allowable values are:
+                                             H5F_ACC_RDWR   --- Allow read and write access to file.
+                                             H5F_ACC_RDONLY --- Allow read-only access to file.
+  
+                                             H5F_ACC_RDWR and H5F_ACC_RDONLY are mutually exclusive; use exactly one.
+                                             An additional flag, H5F_ACC_DEBUG, prints debug information.
+                                             This flag can be combined with one of the above values using the bit-wise OR operator (`|'),
+                                             but it is used only by HDF5 Library developers; it is neither tested nor supported for use in applications. */
+        hid_t fapl_id = H5P_DEFAULT;
+        /*  hid_t H5Fopen ( const char *name, unsigned flags, hid_t fapl_id ) */
+        file_id = H5Fopen (         filename,         flags,        fapl_id );
+
+        if ( file_id < 0 ) {
+          fprintf ( stderr, "[loop_read_from_h5_file] Error from H5Fopen %s %d\n", __FILE__, __LINE__ );
+          return ( 2 );
+        }
+        hid_t aapl_id = H5P_DEFAULT;
+        /*hid_t H5Aopen( hid_t loc_id, const char *attr_name, hid_t aapl_id) */
+        attr_id= H5Aopen( file_id, tag, aapl_id );
+        if ( attr_id < 0 ) {
+          fprintf ( stderr, "[loop_read_from_h5_file] Error from H5Aopen %s %d\n", __FILE__, __LINE__ );
+          EXIT( 2 );
+        }
+        hsize_t size = H5Aget_storage_size(attr_id);
+        *ret=(char *)malloc(sizeof(char)*size);
+        hid_t atype = H5Aget_type(attr_id);
+        H5Aread(attr_id,atype,(void*)*ret);
+        printf("%s", *ret);
+        H5Aclose(attr_id);
+        H5Fclose(file_id);
+
+      }
+       
+    }
+    return 0;
+
+  }
+
+}
+#endif  /* of if defined HAVE_HDF5 */
+
+/***********************************************************/
+/***********************************************************/
+
+#ifdef HAVE_HDF5
+
+/***********************************************************
+ * set attribute in hdf file
+ *
+ * IN:  attribute in string format
+ * IN:  file name of the hdf5 file
+ * IN:  tag: name of the attribute
+ * IN:  momentum_number = number of entries in momentum_list
+ * IN:  id of process does the io
+ ***********************************************************/
+
+int set_attribute_in_h5_file (char * const descrip, void * file, char* const tag, int const io_proc ) {
+
+  if ( io_proc > 0 ) {
+
+
+    char * filename = (char *)file;
+
+    /***************************************************************************
+     * time measurement
+     ***************************************************************************/
+    struct timeval ta, tb;
+    gettimeofday ( &ta, (struct timezone *)NULL );
+
+
+    /***************************************************************************
+     * io_proc 2 is origin of Cartesian grid and does the write to disk
+     ***************************************************************************/
+    if(io_proc == 2) {
+
+      /***************************************************************************
+       * create or open file
+       ***************************************************************************/
+
+      hid_t   file_id = -1;
+      hid_t   attr_id = -1;
+      herr_t  status;
+
+      struct stat fileStat;
+      if ( stat( filename, &fileStat) < 0 ) {
+        fprintf ( stderr, "[set_attribute_in_h5_file] Error, file %s does not exist %s %d\n", filename, __FILE__, __LINE__ );
+        return ( 1 );
+      } else {
+        /* open an existing file. */
+        if ( g_verbose > 1 ) fprintf ( stdout, "# [loop_read_from_h5_file] open existing file\n" );
+
+        unsigned flags = H5F_ACC_RDWR;  /* IN: File access flags. Allowable values are:
+                                             H5F_ACC_RDWR   --- Allow read and write access to file.
+                                             H5F_ACC_RDONLY --- Allow read-only access to file.
+  
+                                             H5F_ACC_RDWR and H5F_ACC_RDONLY are mutually exclusive; use exactly one.
+                                             An additional flag, H5F_ACC_DEBUG, prints debug information.
+                                             This flag can be combined with one of the above values using the bit-wise OR operator (`|'),
+                                             but it is used only by HDF5 Library developers; it is neither tested nor supported for use in applications. */
+        hid_t fapl_id = H5P_DEFAULT;
+        /*  hid_t H5Fopen ( const char *name, unsigned flags, hid_t fapl_id ) */
+        file_id = H5Fopen (         filename,         flags,        fapl_id );
+
+        if ( file_id < 0 ) {
+          fprintf ( stderr, "[set_attribute_in_h5_file] Error from H5Fopen %s %d\n", __FILE__, __LINE__ );
+          return ( 2 );
+        }
+
+        hid_t aapl_id = H5P_DEFAULT;
+        hsize_t dims=strlen(descrip);
+        
+       
+        hid_t dataspace_id = H5Screate(H5S_SCALAR);
+        hid_t dtype_id = H5Tcopy( H5T_C_S1);
+        status= H5Tset_size(dtype_id, dims);
+        attr_id= H5Acreate2(file_id, tag, dtype_id ,dataspace_id ,aapl_id, aapl_id);
+        if ( attr_id < 0 ) {
+          fprintf ( stderr, "[set_attribute_in_h5_file] Error from H5Acreate %s %d\n", __FILE__, __LINE__ );
+          EXIT( 2 );
+        }
+        status = H5Awrite(attr_id, dtype_id, descrip); 
+        if (status < 0){
+          fprintf ( stderr, "[set_attribute_in_h5_file] Error from H5Awrite %s %d\n", __FILE__, __LINE__ );
+          EXIT(3);
+        }
+        H5Aclose(attr_id);
+        H5Sclose(dataspace_id);
+        H5Fclose(file_id);
+
+      }
+
+    }
+    return 0;
+
+  }
+
+}
+#endif  /* of if defined HAVE_HDF5 */
+
+/***********************************************************/
+/***********************************************************/
+
+
+
+#ifdef HAVE_HDF5
+
 /***************************************************************************
  * read time-momentum-dependent accumulated loop data from HDF5 file
  *
@@ -588,7 +779,6 @@ int loop_read_from_h5_file (double *** const loop, void * file, char*tag, int co
      * io_proc == 2 must be id 0 in g_tr_comm / g_cart_grid
      ***************************************************************************/
     int mitems = T * momentum_number * nc * 2;
-    /* MPI_Status mstatus; */
     int mstatus;
 
 #if ( defined PARALLELTX ) || ( defined PARALLELTXY ) || ( defined PARALLELTXYZ ) 
@@ -621,9 +811,216 @@ int loop_read_from_h5_file (double *** const loop, void * file, char*tag, int co
 }  /* end of loop_read_from_h5_file */
 
 /***************************************************************************
- * read time-momentum-dependent accumulated loop data from HDF5 file
+ * write momentum-list to HDF5 file
  *
- * OUT: loop            : T x Nmom x 2nc doubles
+ * IN : momentum_list   : momentum_number x 3 int
+ * IN : file            : here filename
+ * IN : momentum_number : number of momenta
+ * IN : io_proc         : I/O id
+ *
+ ***************************************************************************/
+int loop_write_momentum_list_to_h5_file ( int (*momentum_list)[3], void * file, int const momentum_number, int const io_proc ) {
+
+  if ( io_proc > 0 ) {
+
+    /***************************************************************************
+     * io_proc 2 is origin of Cartesian grid and does the write to disk
+     ***************************************************************************/
+
+    struct timeval ta, tb;
+
+    if(io_proc == 2) {
+
+      char * filename = (char *)file;
+
+      int *ibuffer = NULL;
+
+      ibuffer = init_1level_itable ( 3 * momentum_number );
+      if( ibuffer == NULL ) {
+        fprintf(stderr, "[loop_write_momentum_list_to_h5_file] Error from init_1level_itable %s %d\n", __FILE__, __LINE__);
+        return(1);
+      } 
+      for (int i=0;i<momentum_number;++i)
+        for (int j=0;j<3;++j){
+          ibuffer[3*i+j]=momentum_list[i][j];
+        }
+  
+      /***************************************************************************
+       * create or open file
+       ***************************************************************************/
+
+      hid_t   file_id = -1;
+      herr_t  status;
+
+      struct stat fileStat;
+      if ( stat( filename, &fileStat) > 0 ) {
+        fprintf ( stderr, "[loop_write_momentum_list_to_h5_file] Error, file %s does exist %s %d\n", filename, __FILE__, __LINE__ );
+        return ( 1 );
+      } else {
+        /* open a new file. */
+        if ( g_verbose > 1 ) fprintf ( stdout, "# [loop_write_momentum_list_to_h5_file] open a new file\n" );
+
+        unsigned flags = H5F_ACC_TRUNC; /* IN: File access flags. Allowable values are:
+                                           H5F_ACC_TRUNC --- Truncate file, if it already exists, erasing all data previously stored in the file.
+                                           H5F_ACC_EXCL  --- Fail if file already exists.
+  
+                                           H5F_ACC_TRUNC and H5F_ACC_EXCL are mutually exclusive; use exactly one.
+                                           An additional flag, H5F_ACC_DEBUG, prints debug information.
+                                           This flag can be combined with one of the above values using the bit-wise OR operator (`|'),
+                                           but it is used only by HDF5 Library developers; it is neither tested nor supported for use in applications.  */
+        hid_t fcpl_id = H5P_DEFAULT; /* IN: File creation property list identifier, used when modifying default file meta-data.
+                                        Use H5P_DEFAULT to specify default file creation properties. */
+        hid_t fapl_id = H5P_DEFAULT; /* IN: File access property list identifier. If parallel file access is desired,
+                                        this is a collective call according to the communicator stored in the fapl_id.
+                                        Use H5P_DEFAULT for default file access properties. */
+
+        /*  hid_t H5Fcreate ( const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id ) */
+        file_id = H5Fcreate (         filename,          flags,       fcpl_id,       fapl_id );
+
+        if ( file_id < 0 ) {
+          fprintf ( stderr, "[loop_write_momentum_list_to_h5_file] Error from H5Fopen %s %d\n", __FILE__, __LINE__ );
+          return ( 2 );
+        }
+      }
+  
+      if ( g_verbose > 1 ) fprintf ( stdout, "# [loop_write_momentum_list_to_h5_file] file_id = %ld\n", file_id );
+
+      /***************************************************************************
+       * H5 data space and data type
+       ***************************************************************************/
+      hid_t dtype_id = H5Tcopy( H5T_NATIVE_INT);
+      /* big_endian() ?  H5T_IEEE_F64BE : H5T_IEEE_F64LE; */
+
+      /* shape of the output arary */
+      hsize_t dims[2] = { momentum_number, 3 };
+
+      /*
+                 int rank                             IN: Number of dimensions of dataspace.
+                 const hsize_t * current_dims         IN: Array specifying the size of each dimension.
+                 const hsize_t * maximum_dims         IN: Array specifying the maximum size of each dimension.
+                 hid_t H5Screate_simple( int rank, const hsize_t * current_dims, const hsize_t * maximum_dims )
+       */
+      hid_t space_id = H5Screate_simple(        2,                         dims,                          NULL);
+
+      /***************************************************************************
+       * some default settings for H5Dwrite
+       ***************************************************************************/
+      hid_t mem_type_id   = H5T_NATIVE_INT;
+      hid_t mem_space_id  = H5S_ALL;
+      hid_t file_space_id = H5S_ALL;
+      hid_t xfer_plist_id = H5P_DEFAULT;
+      hid_t lcpl_id       = H5P_DEFAULT;
+      hid_t dcpl_id       = H5P_DEFAULT;
+      hid_t dapl_id       = H5P_DEFAULT;
+      hid_t gcpl_id       = H5P_DEFAULT;
+      hid_t gapl_id       = H5P_DEFAULT;
+      /* size_t size_hint    = 0; */
+
+      /***************************************************************************
+       * hdf5 id to write to
+       * either file itself or current group identifier
+       ***************************************************************************/
+      hid_t loc_id = file_id ;
+
+      /***************************************************************************
+       * write data set
+       ***************************************************************************/
+      char name[] = "Momenta_list_xyz";
+
+      /***************************************************************************
+       * create a data set
+       ***************************************************************************/
+      /*
+                   hid_t loc_id         IN: Location identifier
+                   const char *name     IN: Dataset name
+                   hid_t dtype_id       IN: Datatype identifier
+                   hid_t space_id       IN: Dataspace identifier
+                   hid_t lcpl_id        IN: Link creation property list
+                   hid_t dcpl_id        IN: Dataset creation property list
+                   hid_t dapl_id        IN: Dataset access property list
+                   hid_t H5Dcreate2 ( hid_t loc_id, const char *name, hid_t dtype_id, hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id )
+  
+                   hid_t H5Dcreate ( hid_t loc_id, const char *name, hid_t dtype_id, hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id ) 
+       */
+      hid_t dataset_id = H5Dcreate (       loc_id,             name,       dtype_id,       space_id,       lcpl_id,       dcpl_id,       dapl_id );
+
+      /***************************************************************************
+       * write the current data set
+       ***************************************************************************/
+      /*
+               hid_t dataset_id           IN: Identifier of the dataset to write to.
+               hid_t mem_type_id          IN: Identifier of the memory datatype.
+               hid_t mem_space_id         IN: Identifier of the memory dataspace.
+               hid_t file_space_id        IN: Identifier of the dataset's dataspace in the file.
+               hid_t xfer_plist_id        IN: Identifier of a transfer property list for this I/O operation.
+               const void * buf           IN: Buffer with data to be written to the file.
+        herr_t H5Dwrite ( hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, const void * buf )
+       */
+      status = H5Dwrite (       dataset_id,       mem_type_id,       mem_space_id,       file_space_id,        xfer_plist_id,    ibuffer );
+
+      if( status < 0 ) {
+        fprintf(stderr, "[contract_loop_write_to_h5_file] Error from H5Dwrite, status was %d %s %d\n", status, __FILE__, __LINE__);
+        return(8);
+      }
+
+      /***************************************************************************
+       * close the current data set
+       ***************************************************************************/
+      status = H5Dclose ( dataset_id );
+      if( status < 0 ) {
+        fprintf(stderr, "[contract_loop_write_to_h5_file] Error from H5Dclose, status was %d %s %d\n", status, __FILE__, __LINE__);
+        return(9);
+      }
+
+      /***************************************************************************
+       * close the data space
+       ***************************************************************************/
+      status = H5Sclose ( space_id );
+      if( status < 0 ) {
+        fprintf(stderr, "[contract_loop_write_to_h5_file] Error from H5Sclose, status was %d %s %d\n", status, __FILE__, __LINE__);
+        return(10);
+      }
+
+      /***************************************************************************
+       * close the data type
+       ***************************************************************************/
+      status = H5Tclose ( dtype_id );
+      if( status < 0 ) {
+        fprintf(stderr, "[contract_loop_write_to_h5_file] Error from H5Tclose, status was %d %s %d\n", status, __FILE__, __LINE__);
+        return(12);
+      }
+
+      /***************************************************************************
+       * close the file
+       ***************************************************************************/
+      status = H5Fclose ( file_id );
+      if( status < 0 ) {
+        fprintf(stderr, "[loop_write_momentum_to_h5_file] Error from H5Fclose, status was %d %s %d\n", status, __FILE__, __LINE__);
+        return(13);
+      }
+
+      fini_1level_itable ( &ibuffer );
+
+    }  /* if io_proc == 2 */
+
+    /***************************************************************************
+     * time measurement
+     ***************************************************************************/
+    gettimeofday ( &tb, (struct timezone *)NULL );
+  
+    show_time ( &ta, &tb, "loop_write_momentum_list_to_h5_file", "write h5", 1 );
+
+  }  /* end of of if io_proc > 0 */
+  
+  return(0);
+
+
+}  /* end of loop_get_momentum_list_from_h5_file */
+
+/***************************************************************************
+ * read momentum list from HDF5 file
+ *
+ * OUT: momentum_list   : momentum_number x 3 int-s
  * IN : file            : here filename
  * IN : momentum_number : number of momenta
  * IN : io_proc         : I/O id
@@ -657,7 +1054,7 @@ int loop_get_momentum_list_from_h5_file ( int (*momentum_list)[3], void * file, 
      * io_proc 2 is origin of Cartesian grid and does the write to disk
      ***************************************************************************/
     if(io_proc == 2) {
-  
+
       /***************************************************************************
        * create or open file
        ***************************************************************************/
@@ -672,7 +1069,7 @@ int loop_get_momentum_list_from_h5_file ( int (*momentum_list)[3], void * file, 
       } else {
         /* open an existing file. */
         if ( g_verbose > 1 ) fprintf ( stdout, "# [loop_get_momentum_list_from_h5_file] open existing file\n" );
-  
+
         unsigned flags = H5F_ACC_RDONLY;  /* IN: File access flags. Allowable values are:
                                              H5F_ACC_RDWR   --- Allow read and write access to file.
                                              H5F_ACC_RDONLY --- Allow read-only access to file.
@@ -690,9 +1087,9 @@ int loop_get_momentum_list_from_h5_file ( int (*momentum_list)[3], void * file, 
           return ( 2 );
         }
       }
-  
+
       if ( g_verbose > 1 ) fprintf ( stdout, "# [loop_get_momentum_list_from_h5_file] file_id = %ld\n", file_id );
-  
+
       /***************************************************************************
        * open H5 data set
        ***************************************************************************/
@@ -737,7 +1134,7 @@ int loop_get_momentum_list_from_h5_file ( int (*momentum_list)[3], void * file, 
       if( status < 0 ) {
         fprintf(stderr, "[loop_get_momentum_list_from_h5_file] Error from H5Fclose, status was %d %s %d\n", status, __FILE__, __LINE__);
         return(6);
-      } 
+      }
 
     }  /* if io_proc == 2 */
 
@@ -746,7 +1143,6 @@ int loop_get_momentum_list_from_h5_file ( int (*momentum_list)[3], void * file, 
      * io_proc == 2 must be id 0 in g_tr_comm / g_cart_grid
      ***************************************************************************/
     int mitems = momentum_number * 3;
-    /* MPI_Status = mstatus; */
     int mstatus;
 
 #if ( defined PARALLELTX ) || ( defined PARALLELTXY ) || ( defined PARALLELTXYZ ) 
@@ -770,15 +1166,15 @@ int loop_get_momentum_list_from_h5_file ( int (*momentum_list)[3], void * file, 
      * time measurement
      ***************************************************************************/
     gettimeofday ( &tb, (struct timezone *)NULL );
-  
-    show_time ( &ta, &tb, "loop_get_momentum_list_from_h5_file", "write h5", 1 );
+
+    show_time ( &ta, &tb, "loop_write_momentum_list_to_h5_file", "write h5", 1 );
 
   }  /* end of of if io_proc > 0 */
-  
+
   return(0);
 
 
-}  /* end of loop_get_momentum_list_from_h5_file */
+}  /* end of loop_write_momentum_list_to_h5_file */
 
 #endif  /* of if defined HAVE_HDF5 */
 

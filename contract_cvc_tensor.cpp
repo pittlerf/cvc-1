@@ -50,6 +50,7 @@
 #include "Q_clover_phi.h"
 #include "contract_cvc_tensor.h"
 #include "scalar_products.h"
+#include "h5utils.hpp"
 
 #define MAX_SUBGROUP_NUMBER 20
 
@@ -1197,6 +1198,11 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
         } else {
 
   
+        hid_t dataset_id;
+        std::string fail_path;
+        if( h5::check_key_exists(loc_id, name, fail_path, false) ){
+          dataset_id = H5Dopen(loc_id, name, dapl_id);
+        } else {
         /***************************************************************************
          * create a data set
          ***************************************************************************/
@@ -1214,6 +1220,10 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
          */
           dataset_id = H5Dcreate (       loc_id,             name,       dtype_id,       space_id,       lcpl_id,       dcpl_id,       dapl_id );
         }
+<<<<<<< HEAD
+=======
+  
+>>>>>>> bartek/cpff-bartek-devel
         /***************************************************************************
          * write the current data set
          ***************************************************************************/
@@ -1525,7 +1535,7 @@ int contract_local_loop_stochastic_clover (double***eo_stochastic_propagator, do
       BLAS_LDB   = BLAS_K;
       BLAS_LDC   = BLAS_M;
 
-      _F(zgemm) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
+      F_GLOBAL(zgemm, ZGEMM) ( &BLAS_TRANSA, &BLAS_TRANSB, &BLAS_M, &BLAS_N, &BLAS_K, &BLAS_ALPHA, BLAS_A, &BLAS_LDA, BLAS_B, &BLAS_LDB, &BLAS_BETA, BLAS_C, &BLAS_LDC,1,1);
 
     }  /* end of loop on timeslices */
 

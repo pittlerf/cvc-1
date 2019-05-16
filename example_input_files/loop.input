@@ -1,0 +1,53 @@
+# *******************************************************
+# Input parameters for cvc-code
+# Filters the existing loops in 1;) loop types
+#                               2;) Momentum transfer
+# Optionally perform spin projection as well
+# for loop_extract executable
+# *******************************************************
+T =  64
+LX = 32
+LY = 32
+LZ = 32
+mu = 0.0030
+kappa = 0.1400645
+Nconf = 1240
+csw = 1.740000
+format = 0
+BCangleT = 1.
+BCangleX = 0
+BCangleY = 0
+BCangleZ = 0
+
+# spinprojectionfname_prefix : Directory containing the loop
+# filename_prefix: name of the loop file before confindex
+# filename_prefix2: name of the loop file after the confindex
+# prefix of source and propagator fiels,
+# in case  of source / propagator io
+spinprojectionfname_prefix = /p/scratch/chbn28/hbn28d/loop/cA211a.030.32
+filename_prefix = MG_loop_lightquark_conf_conf
+filename_prefix2 = runtype_probD8_part1_stoch_NeV0
+gaugefilename_prefix = conf
+
+
+outfile_prefix =./
+
+# taken from tmLQCD if wrapper is used
+#NrTProcs = 1
+#NrXProcs = 1
+#NrYProcs = 1
+#NrZProcs = 1
+
+# taken from tmLQCD if wrapper is used
+num_threads = 1
+
+# With verbosity_level>4 we also produce ascii output
+verbosity_level = 5
+samples = 128
+SpinProjectionFilterQsq = 4.
+# Output files are produced with spin projection
+SpinProjectionSpinTrace = yes
+# Project on Gamma in the spin basis in cvc convention: 4: identity
+SpinProjectionGammaStructure = 4
+SpinProjectionLoopAccumulate = yes
+SpinProjectionFilterLoopType = Scalar, dOp

@@ -73,6 +73,91 @@ void contract_twopoint(double *contr, const int idsource, const int idsink, doub
 
 void contract_twopoint_snk_momentum ( double * const contr, int const idsource, int const idsink, double ** const chi, double ** const phi, unsigned int const n_s, unsigned int const n_c, int const snk_mom[3], int const reduce );
 
+/**                                                                                                                                               
+ * @brief contract two propagators with fixed gamma structures
+ * Computes \chi^/dagger \gamma_5 \gamma_sink \psi(p_src), where
+ * we assume that \chi and \psi are of the form D^{-1} \gamma \eta,
+ * where \eta is an appropriate (stochastic) source and the gamma
+ * structures of chi and psi can be different (although this is
+ * implicit and no regard is made for possible sign changes or the fact
+ * that the resulting correlator could be real or imaginary)
+ * The implicitly included gamma5 allows us to keep the identity of the
+ * resulting correlation function clear (idsink really is idsink).
+ *
+ * @param contr contraction field (2*VOLUME)
+ * @param idsink gamma id at sink
+ * @param chi backward propagator 
+ * @param psi forward propagator
+ * @param stride stride for contr
+ */
+template <typename TYPE>
+void contract_twopoint_xdep_gamma5_gamma_snk_only(
+    TYPE * const contr, const int idsink, 
+    TYPE const * chi, TYPE const * psi); 
+#include "impl_contract_twopoint_xdep_gamma5_gamma_snk_only.hpp"
+
+/**                                                                                                                                               
+ * @brief contract two propagators with fixed gamma structures
+ * Computes \chi^/dagger \gamma_5 \gamma_sink \psi(p_src), where
+ * we assume that \chi and \psi are of the form D^{-1} \gamma \eta,
+ * where \eta is an appropriate (stochastic) source and the gamma
+ * structures of chi and psi can be different (although this is
+ * implicit and no regard is made for possible sign changes or the fact
+ * that the resulting correlator could be real or imaginary)
+ * The implicitly included gamma5 allows us to keep the identity of the
+ * resulting correlation function clear (idsink really is idsink).
+ *
+ * @param contr contraction field (2*T)
+ * @param idsink gamma id at sink
+ * @param snk_mom stride for contr
+ * @param chi backward propagator (will be daggered)
+ * @param psi forward propagator
+ */
+void contract_twopoint_gamma5_gamma_snk_only_snk_momentum(
+    double * const contr, const int idsink, int const snk_mom[3],
+    double const * chi, double const * psi);
+
+void contract_twopoint_gamma5_gamma_only_ext_momentum(
+    double * const contr, const int idsink, ::cvc::complex const * const phases,
+    double const * chi, double const * psi);
+
+/**
+ * @brief compute < chi^dagger gamma psi > for all 16 gamma structures
+ *
+ * @param contr Memory for 2*T*phase_fields.size()*16 doubles
+ * @param phase_fields Vector containing all the phase fields that should
+ * be used for the momentum projections.
+ * @param chi Memory holding doubles of length _GSI(VOLUME), representing a spinor.
+ * @param psi Memory holding doubles of length _GSI(VOUME), representing another spinor.
+ */
+void 
+contract_twopoint_all_gammas_ext_momentum_list(
+    double * const contr, 
+    const std::vector< std::vector<::cvc::complex> > & phase_fields,
+    double const * const chi, double const * const psi); 
+
+/**
+ * @brief Scale correlation function
+ *
+ * @param contr pointer to correlation function
+ * @param l_half half the number of elements (generally this is T)
+ * @param normalisation normalisation factor (something like {-1.0/vol3, 0.0})
+ */
+static inline void scale_cplx(double * const contr, size_t const l_half, ::cvc::complex normalisation)
+{
+#ifdef HAVE_OPENMP
+#pragma omp parallel
+#endif
+  {
+    ::cvc::complex temp;
+    FOR_IN_PARALLEL(i, 0, l_half){
+      temp.re = contr[2*i  ];
+      temp.im = contr[2*i+1];
+      contr[2*i  ] = normalisation.re * temp.re - normalisation.im * temp.im;
+      contr[2*i+1] = normalisation.re * temp.im + normalisation.im * temp.re;
+    }
+  }
+}
 
 void contract_twopoint_snk_momentum_trange(double *contr, const int idsource, const int idsink, double **chi, double **phi, int n_c, int* snk_mom, int tmin, int tmax);
 
@@ -239,7 +324,7 @@ inline void set_omp_number_threads (void) {
 /***************************************************************************
  * calculate elapsed wall-time
  ***************************************************************************/
-inline void show_time ( struct timeval * const ta, struct timeval * const tb, char * tag, char * timer, int const io ) {
+inline void show_time ( struct timeval * const ta, struct timeval * const tb, char const * const tag, char const * const timer, int const io ) {
 
   long int seconds =  tb->tv_sec  - ta->tv_sec;
   long int useconds = tb->tv_usec - ta->tv_usec;
