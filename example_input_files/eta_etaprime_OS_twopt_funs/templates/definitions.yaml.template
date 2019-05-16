@@ -1,0 +1,192 @@
+MomentumList:
+  id: pzero
+  Psqmax: 0
+
+TimeSlicePropagator:
+  id: u
+  solver_id: 0
+  solver_driver: tmlqcd
+  g: [4,5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: d
+  solver_id: 1
+  solver_driver: tmlqcd
+  g: [4,5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: sp1760
+  solver_id: 2
+  solver_driver: tmlqcd
+  g: [4,5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: sm1760
+  solver_id: 3
+  solver_driver: tmlqcd
+  g: [4,5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: sp2200
+  solver_id: 4
+  solver_driver: tmlqcd
+  g: [4,5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: sm2200
+  solver_id: 5
+  solver_driver: tmlqcd
+  g: [4,5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: sp2640
+  solver_id: 6
+  solver_driver: tmlqcd
+  g: [4,5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: sm2640
+  solver_id: 7
+  solver_driver: tmlqcd
+  g: [4,5]
+  P: pzero
+  
+OetMesonTwoPointFunction:
+  id: pipm_zero_momentum
+  fwd_flav: u
+  bwd_flav: u
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: pi0_zero_momentum
+  fwd_flav: u
+  bwd_flav: d
+  gi: [4]
+  gf: [4]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: kaon_light_zero_momentum
+  fwd_flav: u
+  bwd_flav: sp1760
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: kaon_intermediate_zero_momentum
+  fwd_flav: u
+  bwd_flav: sp2200
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: kaon_heavy_zero_momentum
+  fwd_flav: u
+  bwd_flav: sp2640
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: etass_pm_light_zero_momentum
+  fwd_flav: sp1760
+  bwd_flav: sp1760
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: etass_0_light_zero_momentum
+  fwd_flav: sp1760
+  bwd_flav: sm1760
+  gi: [4]
+  gf: [4]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: etass_pm_intermediate_zero_momentum
+  fwd_flav: sp2200
+  bwd_flav: sp2200
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: etass_0_intermediate_zero_momentum
+  fwd_flav: sp2200
+  bwd_flav: sm2200
+  gi: [4]
+  gf: [4]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: etass_pm_heavy_zero_momentum
+  fwd_flav: sp2640
+  bwd_flav: sp2640
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: etass_0_heavy_zero_momentum
+  fwd_flav: sp2640
+  bwd_flav: sm2640
+  gi: [4]
+  gf: [4]
+  gb: [5]
+  Pi: pzero
+  Pf: pzero
+  momentum_conservation: true
+  dirac_join: outer
+
