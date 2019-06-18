@@ -720,7 +720,7 @@ int cvc_tensor_tp_write_to_aff_file (double***cvc_tp, struct AffWriter_s*affw, c
     free( zbuffer );
 
     for(i=0; i < momentum_number; i++) {
-      sprintf(aff_buffer_path, "%s/px%.2dpy%.2dpz%.2d", tag, momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
+      sprintf(aff_buffer_path, "%s/pix%.2dpiy%.2dpiz%.2d", tag, momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
       /* fprintf(stdout, "# [cvc_tensor_tp_write_to_aff_file] current aff path = %s\n", aff_buffer_path); */
 #ifdef HAVE_LHPC_AFF
       affdir = aff_writer_mkpath(affw, affn, aff_buffer_path);
@@ -843,7 +843,7 @@ int contract_write_to_aff_file (double ** const c_tp, struct AffWriter_s*affw, c
     free( zbuffer );
 
     for(i=0; i < momentum_number; i++) {
-      sprintf(aff_buffer_path, "%s/px%dpy%dpz%d", tag, momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
+      sprintf(aff_buffer_path, "%s/pix%dpiy%dpiz%d", tag, momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
       if ( g_verbose > 4 ) fprintf(stdout, "# [contract_write_to_aff_file] current aff path = %s\n", aff_buffer_path);
 
       affdir = aff_writer_mkpath(affw, affn, aff_buffer_path);
@@ -1073,10 +1073,12 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
         hid_t grp;
         hid_t loc_id = ( grp_list_nmem == 0 ) ? file_id : grp_list[grp_list_nmem-1];
         if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] grp_ptr = %s\n", grp_ptr );
-  
-        grp = H5Gopen2( loc_id, grp_ptr, gapl_id );
-        if ( grp < 0 ) {
-          fprintf ( stderr, "[contract_write_to_h5_file] Error from H5Gopen2 for group %s, status was %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
+        std::string fail_path;
+        if( h5::check_key_exists(loc_id, grp_ptr, fail_path, false) ){
+          grp = H5Gopen2(loc_id, grp_ptr, gapl_id);
+          if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] opened group %s %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
+        } else {
+ 
           grp = H5Gcreate2 (       loc_id,         grp_ptr,       lcpl_id,       gcpl_id,       gapl_id );
           if ( grp < 0 ) {
             fprintf ( stderr, "[contract_write_to_h5_file] Error from H5Gcreate2 for group %s, status was %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
@@ -1084,9 +1086,7 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
           } else {
             if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] created group %s %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
           }
-        } else {
-          if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] opened group %s %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
-        }
+        } 
         grp_ptr = strtok(NULL, grp_sep );
   
         grp_list[grp_list_nmem] = grp;
@@ -1118,8 +1118,9 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
   
         char name[100];
   
-        sprintf ( name, "px%dpy%dpz%d", momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
+        sprintf ( name, "pix%dpiy%dpiz%d", momentum_list[i][0], momentum_list[i][1], momentum_list[i][2] );
         fprintf ( stdout, "# [contract_write_to_h5_file] data set %2d loc_id = %ld %s %d\n", i, loc_id , __FILE__, __LINE__ );
+
   
         hid_t dataset_id;
         std::string fail_path;
@@ -1143,7 +1144,6 @@ int contract_write_to_h5_file (double ** const c_tp, void * file, char*tag, cons
          */
           dataset_id = H5Dcreate (       loc_id,             name,       dtype_id,       space_id,       lcpl_id,       dcpl_id,       dapl_id );
         }
-  
         /***************************************************************************
          * write the current data set
          ***************************************************************************/

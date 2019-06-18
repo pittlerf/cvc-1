@@ -37,7 +37,6 @@ extern "C"
 #endif
 
 #define MAIN_PROGRAM
-
 #include "cvc_complex.h"
 #include "cvc_linalg.h"
 #include "global.h"
@@ -81,7 +80,6 @@ int main(int argc, char **argv) {
   
   const char outfile_prefix[] = "cpff";
 
-  const char fbwd_str[2][4] =  { "fwd", "bwd" };
 
   int c;
   int filename_set = 0;
@@ -102,8 +100,8 @@ int main(int argc, char **argv) {
 
   /* int const gamma_current_number = 10;
   int gamma_current_list[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }; */
-  int const gamma_current_number = 2;
-  int gamma_current_list[10] = {0, 1 };
+  int const gamma_current_number = 6;
+  int gamma_current_list[10] = {0, 1, 2, 3 ,4 ,5};
 
   char data_tag[400];
 #if ( defined HAVE_LHPC_AFF ) && ! ( defined HAVE_HDF5 )
@@ -154,7 +152,10 @@ int main(int argc, char **argv) {
   /* set the default values */
   if(filename_set==0) sprintf ( filename, "%s.input", outfile_prefix );
   /* fprintf(stdout, "# [cpff_invert_contract] Reading input from file %s\n", filename); */
-  read_input_parser(filename);
+  exitstatus = read_input_parser(filename);
+  if(exitstatus == 2) {
+   printf("[cpff_invert_contract] read_input_parser failed\n");
+  }
 
 #ifdef HAVE_TMLQCD_LIBWRAPPER
 
@@ -164,7 +165,7 @@ int main(int argc, char **argv) {
    * initialize MPI parameters for cvc
    ***************************************************************************/
   /* exitstatus = tmLQCD_invert_init(argc, argv, 1, 0); */
-  exitstatus = tmLQCD_invert_init(argc, argv, 1);
+  exitstatus = tmLQCD_invert_init(argc, argv, 1, 0);
   if(exitstatus != 0) {
     EXIT(1);
   }
@@ -316,6 +317,8 @@ int main(int argc, char **argv) {
    * WITHOUT halo
    ***************************************************************************/
   int const spin_color_dilution = spin_dilution * color_dilution;
+  if (g_cart_id == 0)
+   printf("[cpff_invert_contract] spin_dilution=%d color_dilution=%d\n", spin_dilution, color_dilution );
   nelem = _GSI( VOLUME );
   double *** stochastic_propagator_mom_list = init_3level_dtable ( g_source_momentum_number, spin_color_dilution, nelem );
   if ( stochastic_propagator_mom_list == NULL ) {
@@ -626,9 +629,9 @@ int main(int argc, char **argv) {
           }
           sw.elapsed_print("sink momentum_projection");
 
-          sprintf ( data_tag, "/d+-g-d-g/t%d/s%d/gf%d/gi%d/pix%dpiy%dpiz%d", gts, isample,
-              g_source_gamma_id_list[isnk_gamma], g_source_gamma_id_list[isrc_gamma],
-              source_momentum[0], source_momentum[1], source_momentum[2] );
+          sprintf ( data_tag, "/d+-g-d-g/t%d/gf%d/pfx%dpfy%dpfz%d/gi%d", gts,
+              g_source_gamma_id_list[isnk_gamma],  source_momentum[0], 
+              source_momentum[1], source_momentum[2], g_source_gamma_id_list[isrc_gamma] );
 
 #if ( defined HAVE_LHPC_AFF ) && ! ( defined HAVE_HDF5 )
           exitstatus = contract_write_to_aff_file ( contr_p, affw, data_tag, g_sink_momentum_list, g_sink_momentum_number, io_proc );
@@ -737,6 +740,7 @@ int main(int argc, char **argv) {
             /*****************************************************************
              * loop on local gamma matrices
              *****************************************************************/
+
             for ( int icur_gamma = 0; icur_gamma < gamma_current_number; icur_gamma++ ) {
 
               int gamma_current = gamma_current_list[icur_gamma];
@@ -774,10 +778,11 @@ int main(int argc, char **argv) {
 
                 }  /* end of loop on source momenta */
 
-                sprintf ( data_tag, "/d+-g-sud/t%d/s%d/dt%d/gf%d/gc%d/gi%d/pfx%dpfy%dpfz%d/", 
-                    gts, isample, g_sequential_source_timeslice_list[iseq_timeslice],
-                    seq_source_gamma, gamma_current, gamma_source,
-                    seq_source_momentum[0], seq_source_momentum[1], seq_source_momentum[2] );
+                sprintf ( data_tag, "/d+-g-sud/t%d/dt%d/gf%d/pfx%dpfy%dpfz%d/gc%d/gi%d", 
+                    gts,  g_sequential_source_timeslice_list[iseq_timeslice],
+                    seq_source_gamma,
+                    seq_source_momentum[0], seq_source_momentum[1], seq_source_momentum[2],
+                    gamma_current, gamma_source );
 
 #if ( defined HAVE_LHPC_AFF ) && ! ( defined HAVE_HDF5 )
                 exitstatus = contract_write_to_aff_file ( contr_p, affw, data_tag, g_source_momentum_list, g_source_momentum_number, io_proc );
@@ -819,6 +824,8 @@ int main(int argc, char **argv) {
                 EXIT(33);
               }
 
+
+
               /*****************************************************************
                * loop on directions for cov deriv
                *****************************************************************/
@@ -829,119 +836,169 @@ int main(int argc, char **argv) {
                   sw.elapsed_print("spinor_field_eq_cov_deriv_spinor_field first derivative");
                 }
 
-                for ( int isrc_gamma = 0; isrc_gamma < g_source_gamma_id_number; isrc_gamma++ ) {
+                /* We calculate the one derivative insertion only for zero sequential source momentum */
 
-                  int gamma_source = g_source_gamma_id_list[isrc_gamma];
+                if (seq_source_momentum[0] == 0 && seq_source_momentum[1] == 0 && seq_source_momentum[2]==0){
 
-                  double ** contr_p = init_2level_dtable ( g_source_momentum_number, 2*T );
-                  if ( contr_p == NULL ) {
-                    fprintf(stderr, "[cpff_invert_contract] Error from init_2level_dtable %s %d\n", __FILE__, __LINE__ );
-                    EXIT(47);
-                  }
+                 /* Loop on local gamma structures */
 
-                  /*****************************************************************
-                   * loop on source momenta
-                   *****************************************************************/
-                  for ( int isrc_mom = 0; isrc_mom < g_source_momentum_number; isrc_mom++ ) {
+                 /******************************************************************/
 
-                    int source_momentum[3] = {
-                      g_source_momentum_list[isrc_mom][0],
-                      g_source_momentum_list[isrc_mom][1],
-                      g_source_momentum_list[isrc_mom][2] };
+                  for ( int icur_gamma = 0; icur_gamma < gamma_current_number; icur_gamma++ ) {
 
-                    int current_momentum[3] = {
-                      -( source_momentum[0] + seq_source_momentum[0] ),
-                      -( source_momentum[1] + seq_source_momentum[1] ),
-                      -( source_momentum[2] + seq_source_momentum[2] ) };
+                    int gamma_current = gamma_current_list[icur_gamma];
 
-                    sw.reset();
-                    contract_twopoint_snk_momentum ( contr_p[isrc_mom], gamma_source,  mu, 
+                    for ( int isrc_gamma = 0; isrc_gamma < g_source_gamma_id_number; isrc_gamma++ ) {
+
+                      int gamma_source = g_source_gamma_id_list[isrc_gamma];
+
+                      double ** contr_p = init_2level_dtable ( 1, 2*T );
+                      if ( contr_p == NULL ) {
+                        fprintf(stderr, "[cpff_invert_contract] Error from init_2level_dtable %s %d\n", __FILE__, __LINE__ );
+                        EXIT(47);
+                      }
+
+                      /*****************************************************************
+                       * we perform the one covariant derivative insertion only on (0,0,0) 
+                       * source momenta
+                       *****************************************************************/
+                      int isrc_mom;
+ 
+                      for ( isrc_mom = 0; isrc_mom < g_source_momentum_number; isrc_mom++ ) {
+
+                          if ( (g_source_momentum_list[isrc_mom][0] == 0) &&
+                               (g_source_momentum_list[isrc_mom][1] == 0) && 
+                               (g_source_momentum_list[isrc_mom][2] == 0) )
+                            break;
+                      };
+
+                    
+
+                      int source_momentum[1][3];
+                      source_momentum[0][0]=0;
+                      source_momentum[0][1]=0;
+                      source_momentum[0][2]=0;
+                    
+                      sw.elapsed_print("contract_twopoint_snk_momentum covariant derivative");
+
+
+                      int current_momentum[3] = {
+                        -( source_momentum[0][0] + seq_source_momentum[0] ),
+                        -( source_momentum[0][1] + seq_source_momentum[1] ),
+                        -( source_momentum[0][2] + seq_source_momentum[2] ) };
+
+
+                      contract_twopoint_snk_momentum ( contr_p[0], gamma_source,  mu, 
                         stochastic_propagator_mom_list[isrc_mom], 
                         sequential_propagator_deriv_list, spin_dilution, color_dilution, current_momentum, 1);
-                    sw.elapsed_print("contract_twopoint_snk_momentum covariant derivative");
+                      sw.elapsed_print("contract_twopoint_snk_momentum covariant derivative");
 
-                  }  /* end of loop on source momenta */
-
-                  sprintf ( data_tag, "/d+-gd-sud/t%d/s%d/dt%d/gf%d/gc%d/d%d/%s/gi%d/pfx%dpfy%dpfz%d/", 
-                      gts, isample, g_sequential_source_timeslice_list[iseq_timeslice],
-                      seq_source_gamma, mu, mu, fbwd_str[ifbwd], gamma_source,
-                      seq_source_momentum[0], seq_source_momentum[1], seq_source_momentum[2] );
+                      sprintf ( data_tag, "/d+-g-sud/t%d/dt%d/gf%d/pfx%dpfy%dpfz%d/gc%d/Ddim%d_dir%d/gi%d", 
+                        gts, g_sequential_source_timeslice_list[iseq_timeslice],
+                        seq_source_gamma,  seq_source_momentum[0], seq_source_momentum[1], seq_source_momentum[2] ,
+                        gamma_current, mu, ifbwd, gamma_source );
 
 #if ( defined HAVE_LHPC_AFF ) && ! ( defined HAVE_HDF5 )
-                  exitstatus = contract_write_to_aff_file ( contr_p, affw, data_tag, g_source_momentum_list, g_source_momentum_number, io_proc );
+                      exitstatus = contract_write_to_aff_file ( contr_p, affw, data_tag,source_momentum,  1, io_proc );
 #elif ( defined HAVE_HDF5 )
-                  exitstatus = contract_write_to_h5_file ( contr_p, output_filename, data_tag, g_source_momentum_list, g_source_momentum_number, io_proc );
+                      exitstatus = contract_write_to_h5_file ( contr_p, output_filename, data_tag, source_momentum, 1, io_proc );
 #endif
-                  if(exitstatus != 0) {
-                    fprintf(stderr, "[cpff_invert_contract] Error from contract_write_to_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__);
-                    EXIT(3);
-                  }
+                      if(exitstatus != 0) {
+                        fprintf(stderr, "[cpff_invert_contract] Error from contract_write_to_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__);
+                        EXIT(3);
+                      }
               
-                  fini_2level_dtable ( &contr_p );
+                      fini_2level_dtable ( &contr_p );
 
-                }  /* end of loop on source gamma id */
+                    }  /* end of loop on source gamma id */
+
+                  } /* end of loop on current gamma id */
+
+                } /* end of one derivative insertion */
 
                 /*****************************************************************/
                 /*****************************************************************/
 
                 for ( int kfbwd = 0; kfbwd <= 1; kfbwd++ ) {
-                  for ( int i = 0; i < spin_color_dilution; i++ ) {
-                    sw.reset();
-                    spinor_field_eq_cov_deriv_spinor_field ( sequential_propagator_dderiv_list[i], sequential_propagator_deriv_list[i], mu, kfbwd, gauge_field_with_phase );
-                    sw.elapsed_print("spinor_field_eq_cov_deriv_spinor_field second derivative");
-                  }
 
-                  for ( int isrc_gamma = 0; isrc_gamma < g_source_gamma_id_number; isrc_gamma++ ) {
+                 /*****************************************************************
+                 * loop on directions for cov deriv
+                 *****************************************************************/
+                  for ( int nu = 0; nu < 4; nu++ ) {
 
-                    int gamma_source = g_source_gamma_id_list[isrc_gamma];
-
-                    double ** contr_p = init_2level_dtable ( g_source_momentum_number, 2*T );
-                    if ( contr_p == NULL ) {
-                      fprintf(stderr, "[cpff_invert_contract] Error from init_2level_dtable %s %d\n", __FILE__, __LINE__ );
-                      EXIT(47);
-                    }
-
-                    /*****************************************************************
-                     * loop on source momenta
-                     *****************************************************************/
-                    for ( int isrc_mom = 0; isrc_mom < g_source_momentum_number; isrc_mom++ ) {
-
-                      int source_momentum[3] = {
-                        g_source_momentum_list[isrc_mom][0],
-                        g_source_momentum_list[isrc_mom][1],
-                        g_source_momentum_list[isrc_mom][2] };
-
-                      int current_momentum[3] = {
-                        -( source_momentum[0] + seq_source_momentum[0] ),
-                        -( source_momentum[1] + seq_source_momentum[1] ),
-                        -( source_momentum[2] + seq_source_momentum[2] ) };
-                      
+                    for ( int i = 0; i < spin_color_dilution; i++ ) {
                       sw.reset();
-                      contract_twopoint_snk_momentum ( contr_p[isrc_mom], gamma_source,  4, 
-                          stochastic_propagator_mom_list[isrc_mom], 
-                          sequential_propagator_deriv_list, spin_dilution, color_dilution, current_momentum, 1);
-                      sw.elapsed_print("contract_twopoint_snk_momentum second derivative");
+                      spinor_field_eq_cov_deriv_spinor_field ( sequential_propagator_dderiv_list[i], sequential_propagator_deriv_list[i], nu, kfbwd, gauge_field_with_phase );
+                      sw.elapsed_print("spinor_field_eq_cov_deriv_spinor_field second derivative");
 
-                    }  /* end of loop on source momenta */
+                    }
+                    /* Loop on local gamma structures */
 
-                    sprintf ( data_tag, "/d+-dd-sud/t%d/s%d/dt%d/gf%d/d%d/%s/d%d/%s/gi%d/pfx%dpfy%dpfz%d/", 
-                        gts, isample, g_sequential_source_timeslice_list[iseq_timeslice],
-                        seq_source_gamma, mu, fbwd_str[kfbwd], mu, fbwd_str[ifbwd], gamma_source,
-                        seq_source_momentum[0], seq_source_momentum[1], seq_source_momentum[2] );
+                    /******************************************************************/
+                    for ( int gamma_current = 0; gamma_current < 5; gamma_current ++ ) {
+
+                      for ( int isrc_gamma = 0; isrc_gamma < g_source_gamma_id_number; isrc_gamma++ ) {
+
+                        int gamma_source = g_source_gamma_id_list[isrc_gamma];
+                    
+                        double ** contr_p = init_2level_dtable ( 1, 2*T );
+                        if ( contr_p == NULL ) {
+                          fprintf(stderr, "[cpff_invert_contract] Error from init_2level_dtable %s %d\n", __FILE__, __LINE__ );
+                          EXIT(47);
+                        }
+
+                        /*****************************************************************
+                         * we need source momenta only -seq_source_momentum
+                         *****************************************************************/
+
+                        int source_momentum[1][3];
+                        source_momentum[0][0] = -seq_source_momentum[0];
+                        source_momentum[0][1] = -seq_source_momentum[1];
+                        source_momentum[0][2] = -seq_source_momentum[2];
+
+
+                        int current_momentum[3] = { 0, 0, 0};
+                        int isrc_mom;
+
+                        for ( isrc_mom = 0; isrc_mom < g_source_momentum_number; isrc_mom++ ) {
+
+                          if ( (g_source_momentum_list[isrc_mom][0] ==  source_momentum[0][0] ) &&
+                               (g_source_momentum_list[isrc_mom][1] ==  source_momentum[0][1] ) &&
+                               (g_source_momentum_list[isrc_mom][2] ==  source_momentum[0][2] ) )
+                            break;
+                        };
+
+
+
+                        sw.reset();
+                        contract_twopoint_snk_momentum ( contr_p[0], gamma_source,  gamma_current, 
+                             stochastic_propagator_mom_list[isrc_mom], 
+                             sequential_propagator_deriv_list, spin_dilution, color_dilution, current_momentum, 1);
+                        sw.elapsed_print("contract_twopoint_snk_momentum second derivative");
+ 
+
+                        sprintf ( data_tag, "/d+-g-sud/t%d/dt%d/gf%d/pfx%dpfy%dpfz%d/gc%d/Ddim%d_dir%d/Ddim%d_dir%d/gi%d/", 
+                          gts, g_sequential_source_timeslice_list[iseq_timeslice],
+                          seq_source_gamma, seq_source_momentum[0], seq_source_momentum[1], 
+			  seq_source_momentum[2], gamma_current, nu, kfbwd, mu, ifbwd, gamma_source);
 
 #if ( defined HAVE_LHPC_AFF ) && ! ( defined HAVE_HDF5 )
-                    exitstatus = contract_write_to_aff_file ( contr_p, affw, data_tag, g_source_momentum_list, g_source_momentum_number, io_proc );
+                        exitstatus = contract_write_to_aff_file ( contr_p, affw, data_tag, source_momentum, 1, io_proc );
 #elif ( defined HAVE_HDF5 )
-                    exitstatus = contract_write_to_h5_file ( contr_p, output_filename, data_tag, g_source_momentum_list, g_source_momentum_number, io_proc );
+                        exitstatus = contract_write_to_h5_file ( contr_p, output_filename, data_tag, source_momentum, 1, io_proc );
 #endif
-                    if(exitstatus != 0) {
-                      fprintf(stderr, "[cpff_invert_contract] Error from contract_write_to_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__);
-                      EXIT(3);
-                    }
+                        if(exitstatus != 0) {
+                          fprintf(stderr, "[cpff_invert_contract] Error from contract_write_to_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__);
+                          EXIT(3);
+                        }
               
-                    fini_2level_dtable ( &contr_p );
+                        fini_2level_dtable ( &contr_p );
+                     
+                      }  /* end of loop on source gamma id */
 
-                  }  /* end of loop on source gamma id */
+                    }  /* end of loop on current gamma id */
+
+                  }  /* end of loop on direction for second covariant derivative*/
 
                 }  /* end of loop on fbwd directions k */
 
@@ -950,7 +1007,7 @@ int main(int argc, char **argv) {
               fini_2level_dtable ( &sequential_propagator_deriv_list );
               fini_2level_dtable ( &sequential_propagator_dderiv_list );
 
-            }  /* end of loop on fbwd */
+            } /* end of loop on fbwd */
 
             /*****************************************************************/
             /*****************************************************************/

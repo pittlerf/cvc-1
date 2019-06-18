@@ -70,7 +70,7 @@ int write_binary_spinor_data(double * const s, LemonWriter * writer, const int p
   int scidacMapping[] = {0, 3, 2, 1};
   unsigned long bufoffset = 0;
   char *filebuffer = NULL;
-  uint64_t bytes;
+  MPI_Offset bytes;
   DML_SiteRank rank;
   double tick = 0, tock = 0;
   char measure[64];
@@ -312,7 +312,7 @@ int read_binary_spinor_data(double * const s, LemonReader * reader,
   int t, x, y , z, i = 0, status = 0;
   int latticeSize[] = {T_global, LX_global, LY_global, LZ_global};
   int scidacMapping[] = {0, 3, 2, 1};
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   double *p = NULL;
   char *filebuffer = NULL, *current = NULL;
   double tick = 0, tock = 0;
@@ -378,7 +378,7 @@ int read_binary_spinor_data(double * const s, LimeReader * limereader,
 			    const int prec, DML_Checksum *ans) {
 
   int status=0;
-  n_uint64_t bytes, ix;
+  MPI_Offset bytes, ix;
   double tmp[24];
   DML_SiteRank rank;
   float tmp2[24];
@@ -706,7 +706,7 @@ int write_lime_spinor(double * const s, char const * const filename,
   LimeRecordHeader * limeheader = NULL;
   int status = 0;
   int ME_flag=0, MB_flag=0;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   DML_Checksum checksum;
 
   if(g_cart_id==0) {
@@ -890,7 +890,7 @@ int read_lime_spinor(double * const s, char * filename, const int position) {
 int read_lime_spinor(double * const s, char const * const filename, const int position) {
   FILE * ifs;
   int status=0, getpos=-1;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   char * header_type;
   LimeReader * limereader;
   n_uint64_t prec = 32;
@@ -1021,7 +1021,7 @@ int write_binary_spinor_data_timeslice(double * const s, LimeWriter * limewriter
   int x, y, z, i=0, status=0;
   double tmp[24];
   float  tmp2[24];
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   DML_SiteRank rank;
   int words_bigendian = big_endian();
 
@@ -1085,7 +1085,7 @@ int write_lime_spinor_timeslice(double * const s, char const * const filename,
   LimeRecordHeader * limeheader = NULL;
   int status = 0;
   int ME_flag=0, MB_flag=0;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
 
   if(timeslice==0) {
     write_source_type(0, filename);
@@ -1411,7 +1411,7 @@ int read_binary_spinor_data_single(float* const s, LimeReader * limereader,
 int read_lime_spinor_single(float * const s, char const * const filename, const int position) {
   FILE * ifs;
   int status=0, getpos=-1;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   char * header_type;
   LimeReader * limereader;
   n_uint64_t prec = 32;
@@ -1493,7 +1493,7 @@ int read_lime_spinor_timeslice(double * const s, int timeslice, char const * con
 #else
   FILE * ifs;
   int status=0, getpos=-1;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   char * header_type;
   LimeReader * limereader;
   n_uint64_t prec = 32;
@@ -1557,7 +1557,7 @@ int read_binary_spinor_data_timeslice(double * const s, int timeslice, LimeReade
   return(1);
 #else
   int status=0;
-  n_uint64_t bytes, ix;
+  MPI_Offset bytes, ix;
   double tmp[24];
   DML_SiteRank rank;
   float tmp2[24];
