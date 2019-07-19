@@ -360,8 +360,9 @@ int main(int argc, char **argv) {
                inner_loop_length=4;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw loops\n");
                break;
-       case 5: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV loops\n");
-               EXIT(1); 
+       case 5: snprintf ( loop_type, 100, "%s", "LoopsCv" );
+               inner_loop_length=4;
+               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV loops\n");
                break;
        case 6: snprintf ( loop_type, 100, "%s", "LpsDwCv" );
                inner_loop_length=4;
