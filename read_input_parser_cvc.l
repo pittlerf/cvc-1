@@ -707,7 +707,7 @@ static inline double fltlist_next_token(int * const list_end){
     else if( strcmp(token, "LpsDw") == 0){
       cvc::g_spinprojection_loop_type[index]=4;
     }
-    else if( strcmp(token, "LoopsCV") == 0){
+    else if( strcmp(token, "LoopsCv") == 0){
       cvc::g_spinprojection_loop_type[index]=5;
     }
     else if( strcmp(token, "LpsDwCv") == 0){
