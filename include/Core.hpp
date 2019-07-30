@@ -63,8 +63,11 @@ class Core {
       core_tmLQCD_initialised(false),
       initialised(false)
     {
+      // keep track of the status of the different initialisations
+      bool cumulative_status = false;
+
       // we want to init MPI as soon as possible
-      core_mpi_init(argc,argv);
+      cumulative_status = core_mpi_init(argc,argv);
       // and this allows us to have "world_rank" well-defined
       // as well as giving us access to MPI functions
       sw = new Stopwatch(MPI_COMM_WORLD);
@@ -88,7 +91,6 @@ class Core {
         std::cerr << ex.what() << std::endl;
       }
 
-
       // if usage information is requested, we display it and finalise
       if( cmd_options.count("help") ){
         if(world_rank == 0){
@@ -98,9 +100,14 @@ class Core {
         return;
       // otherwise we're finally ready to initialise everything else
       } else {
-        init(argc,argv);
+        cumulative_status = init(argc,argv);
       }
-      initialised = true;
+     
+      // all initialisations seem to have succeeded, we can claim
+      // that the core has been initialised successfully 
+      if( cumulative_status ){
+        initialised = true;
+      }
 #ifdef HAVE_MPI
       MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -170,7 +177,7 @@ class Core {
      * @param argc
      * @param argv
      */
-    void core_mpi_init(int argc, char **argv)
+    bool core_mpi_init(int argc, char **argv)
     {
       // need to check if MPI_Init has already been called somewhere else
       int check_core_mpi_initialised = 0;
@@ -189,7 +196,7 @@ class Core {
           core_mpi_initialised = true;
         } else {
           debug_printf(0,0,"[Core::core_mpi_init] tmLQCD_init_parallel_and_read_input failed!\n");
-          return;
+          return false;
         } 
         #else
         #ifdef HAVE_MPI
@@ -197,8 +204,8 @@ class Core {
         if( status == MPI_SUCCESS ){
           core_mpi_initialised = true;
         } else {
-          debug_print(0,0,"[Core::core_mpi_init] MPI_Init failed!\n");
-          return;
+          debug_printf(0,0,"[Core::core_mpi_init] MPI_Init failed!\n");
+          return false;
         }
         #endif
         #endif
@@ -209,9 +216,10 @@ class Core {
       #ifdef HAVE_MPI
       MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
       #endif
+      return true;
     }
 
-    void init(int argc, char ** argv){
+    bool init(int argc, char ** argv){
       int status;
       
 #ifdef HAVE_TMLQCD_LIBWRAPPER
@@ -220,23 +228,23 @@ class Core {
         tmLQCD_initialised = true;
       } else {
         debug_printf(0,0,"[Core::init] tmLQCD_invert_init failed!\n");
-        return;
+        return false;
       }
       status = tmLQCD_get_mpi_params(&g_tmLQCD_mpi);
       if( status != 0 ){
         debug_printf(0,0,"[Core::init] tmLQCD_get_mpi_params failed\n");
-        return;
+        return false;
       }
       status = tmLQCD_get_lat_params(&g_tmLQCD_lat);
-      if( status != 0){
+      if( status != 0 ){
         debug_printf(0,0,"[Core::init] tmLQCD_get_lat_params failed\n");
-        return;
+        return false;
       }
 #endif
       status = read_input_parser( cmd_options["input_filename"].as<std::string>().c_str() );
-      if( status == 2){
+      if( status == 2 ){
         debug_printf(0,0,"[Core::init] read_input_parser failed\n");
-        return;
+        return false;
       }
 
       
@@ -250,9 +258,10 @@ class Core {
         geom_initialised = true;
       } else {
         debug_printf(0,0,"[Core::init] init_geometry failed!\n");
-        return;
+        return false;
       }
       geometry();
+      return true;
     }
 
     void declare_default_cmd_options(void){
