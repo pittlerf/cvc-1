@@ -32,6 +32,7 @@
 
 #ifdef HAVE_HDF5
 #include <hdf5.h>
+#include "h5utils.hpp"
 #endif
 
 #include "cvc_complex.h"
@@ -50,7 +51,6 @@
 #include "Q_clover_phi.h"
 #include "contract_cvc_tensor.h"
 #include "scalar_products.h"
-#include "h5utils.hpp"
 
 #define MAX_SUBGROUP_NUMBER 20
 

@@ -30,6 +30,7 @@
 
 #ifdef HAVE_HDF5
 #include <hdf5.h>
+#include "h5utils.hpp"
 #endif
 
 #include "cvc_complex.h"
