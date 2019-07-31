@@ -13,6 +13,9 @@ target_link_libraries(benchmark_index_tools cvc ${cvc_libraries})
 add_executable(benchmark_cov_displ benchmark_cov_displ.cpp)
 target_link_libraries(benchmark_cov_displ cvc ${cvc_libraries})
 
+add_executable(benchmark_Momentum_Smearing benchmark_Momentum_Smearing.cpp)
+target_link_libraries(benchmark_Momentum_Smearing cvc ${cvc_libraries})
+
 add_executable(test_index_tools test_index_tools.cpp)
 target_link_libraries(test_index_tools cvc ${cvc_libraries})
 
