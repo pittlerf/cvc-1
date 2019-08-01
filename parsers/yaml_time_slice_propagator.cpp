@@ -45,7 +45,8 @@ void time_slice_propagator(const YAML::Node &node,
   static const std::vector<std::string> sequence_nodes {
     "g" };
   
-  check_missing_nodes(node, required_nodes, "time_slice_propagator", "TimeSlicePropagator");
+  check_missing_nodes(node, required_nodes, 
+      "cvc::yaml::time_slice_propagator", "TimeSlicePropagator");
   
   for( const std::string name : {"id", "solver_id", "solver_driver", "P"} ){
     validate_nodetype(node[name], YAML::NodeType::Scalar, name);

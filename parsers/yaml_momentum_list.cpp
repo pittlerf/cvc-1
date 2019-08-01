@@ -63,7 +63,7 @@ void momentum_list(const YAML::Node & node,
   cvc::Logger logger(0, verbosity::input_relay, std::cout);
 
   if( node.Type() != YAML::NodeType::Map ){
-    throw( std::invalid_argument("in construct_momentum_list, 'node' must be of type YAML::NodeType::Map\n") );
+    throw( std::invalid_argument("in cvc::yaml::momentum_list, 'node' must be of type YAML::NodeType::Map\n") );
   }
   if( !node["id"] || !(node["Psqmax"] || node["Plist"]) ){
     throw( std::invalid_argument("For 'MomentumList', the 'id' property and one of 'Psqmax' or 'Plist' must be defined!\n") );

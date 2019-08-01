@@ -61,7 +61,7 @@ void oet_meson_three_point_function(
     "dt", "gi", "gf", "gb", "gc", "Dc" };
 
   check_missing_nodes(node, required_nodes,
-      "oet_meson_three_point_function", "OetMesonThreePointFunction");
+      "cvc::yaml::oet_meson_three_point_function", "OetMesonThreePointFunction");
  
   for( const std::string name : scalar_nodes ){
     validate_nodetype(node[name],

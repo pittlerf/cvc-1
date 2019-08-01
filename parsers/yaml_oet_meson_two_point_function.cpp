@@ -53,7 +53,7 @@ void oet_meson_two_point_function(const YAML::Node &node,
     "gi", "gf", "gb" };
 
   check_missing_nodes(node, required_nodes, 
-      "oet_meson_two_point_function", "OetMesonTwoPointFunction");
+      "cvc::yaml::oet_meson_two_point_function", "OetMesonTwoPointFunction");
  
   for( auto const & name : scalar_nodes ){ 
     validate_nodetype(node[name], YAML::NodeType::Scalar, name);
