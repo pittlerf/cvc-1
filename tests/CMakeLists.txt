@@ -1,3 +1,5 @@
+add_executable(test_exceptions test_exceptions.cpp)
+
 add_executable(test_Core test_Core.cpp)
 target_link_libraries(test_Core cvc ${cvc_libraries})
 
