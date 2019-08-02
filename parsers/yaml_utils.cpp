@@ -51,7 +51,7 @@ void validate_nodetype(const YAML::Node & node,
       default:
         char msg[200];
         snprintf(msg, 200,
-                 "in 'validate_nodetype', checking for type %d is not foreseen, this is a bug!\n", type);
+                 "in 'validate_nodetype', checking for type %d is not foreseen, this is a bug!", type);
         throw( ::cvc::invalid_argument(msg, "validate_nodetype") );
         break;
     }
@@ -60,7 +60,7 @@ void validate_nodetype(const YAML::Node & node,
   if( std::find(types.begin(), types.end(), node.Type()) == types.end() ){
     char msg[200];
     snprintf(msg, 200,
-             "for '%s', the node must be of '%s' type!\n",
+             "for '%s', the node must be of '%s' type!",
              object_name.c_str(), typestring.c_str() );
     throw( ::cvc::invalid_argument(msg, "validate_nodetype") );
   }
@@ -70,7 +70,7 @@ void validate_bool(const std::string & str, const std::string & name)
 {
   if( !( str == "true" || str == "false" ) ){
     char msg[200];
-    snprintf(msg, 200, "'%s' must be either 'true' or 'false'! Please check your YAML definitions file!\n", name.c_str());
+    snprintf(msg, 200, "'%s' must be either 'true' or 'false'! Please check your YAML definitions file!", name.c_str());
     throw( ::cvc::invalid_argument(msg, "validate_bool") );
   }
 }
@@ -79,7 +79,7 @@ void validate_join(const std::string & str, const std::string & name)
 {
   if( !(str == "inner" || str == "outer" ) ){
     char msg[200];
-    snprintf(msg, 200, "'%s' must be either 'inner' or 'outer'! Please check your YAML definitions file!\n", name.c_str());
+    snprintf(msg, 200, "'%s' must be either 'inner' or 'outer'! Please check your YAML definitions file!", name.c_str());
     throw( ::cvc::invalid_argument(msg, "validate_join") );
   }
 }
@@ -93,7 +93,7 @@ void validate_mom_lists_key(const mom_lists_t & mom_lists,
     char msg[200];
     snprintf(msg, 200,
              "For the definition of momentum '%s' of '%s', the momentum list '%s' does not seem "
-             "to have been defined previously! Please check your YAML definitions file!\n",
+             "to have been defined previously! Please check your YAML definitions file!",
              mom_property_name.c_str(), object_name.c_str(), mom_lists_key.c_str());
     throw( ::cvc::invalid_argument(msg, "validate_mom_lists_key") );
   }
@@ -108,7 +108,7 @@ void validate_prop_key(const std::map<std::string, stoch_prop_meta_t> & props_me
     char msg[200];
     snprintf(msg, 200,
              "For the definition of '%s', quark line '%s', propagator '%s' does not seem "
-             "to have been defined previously! Please check your YAML definitions file!\n",
+             "to have been defined previously! Please check your YAML definitions file!",
              object_name.c_str(), quarkline_name.c_str(), key.c_str());
     throw( ::cvc::invalid_argument(msg, "validate_prop_key") );
   }

@@ -60,7 +60,7 @@ void time_slice_propagator(const YAML::Node &node,
   if( !mom_lists.count( node["P"].as<std::string>() ) ){
     char msg[200];
     snprintf(msg, 200,
-             "The momentum list '%s' does not seem to exist!\n",
+             "The momentum list '%s' does not seem to exist!",
              node["P"].as<std::string>().c_str() );
     throw( ::cvc::invalid_argument(msg, "cvc::yaml::time_slice_propagator") );
   }

@@ -102,7 +102,7 @@ void enter_node(YAML::Node const &node,
         } else {
           char msg[200];
           snprintf(msg, 200,
-                   "[yaml_enter_node]: %s is not a valid Object name\n",
+                   "[yaml_enter_node]: %s is not a valid Object name",
                    it->first.as<std::string>().c_str());
           throw( ::cvc::invalid_argument(msg, "cvc::yaml::enter_node") );
         }
