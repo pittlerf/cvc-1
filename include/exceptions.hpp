@@ -20,9 +20,9 @@ class runtime_error : public std::runtime_error {
     runtime_error( const std::string& what_arg, const std::string& function_name ) :
       std::runtime_error(what_arg)
     {
-      std::cout << "[cvc::runtime_error]: exception in " << 
-        function_name << " : " <<
-        what_arg << std::endl; 
+      std::cout << "[cvc::runtime_error]: exception in '" << 
+        function_name << "' : '" <<
+        what_arg << "'" << std::endl; 
     }
 };
 
@@ -40,9 +40,9 @@ class invalid_argument : public std::invalid_argument {
     invalid_argument( const std::string& what_arg, const std::string& function_name ) :
       std::invalid_argument(what_arg)
     {
-      std::cout << "[cvc::invalid_argument]: exception in " <<
-        function_name << " : " <<
-        what_arg << std::endl;
+      std::cout << "[cvc::invalid_argument]: exception in '" <<
+        function_name << "' : '" <<
+        what_arg << "'" << std::endl;
     }
 };
 
