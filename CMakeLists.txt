@@ -381,6 +381,7 @@ add_library(cvc
   contract/contract_twopoint_all_gammas_ext_momentum_list.cpp
   contract_loop.cpp
   fourier_transform/make_phase_field.cpp
+  smearing_techniques.cpp
 )
 add_library(cvc_bare
   ${CMAKE_CURRENT_BINARY_DIR}/gitversion.cpp

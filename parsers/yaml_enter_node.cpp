@@ -47,7 +47,7 @@ void enter_node(YAML::Node const &node,
       for(YAML::const_iterator it = node.begin(); it != node.end(); ++it){
         {
           if(depth != 0){ logger << std::endl << indent; }
-          logger << it->first << ": ";
+          logger << "\n" << it->first << ": ";
         }
         
         if( it->first.as<std::string>() == "MomentumList" ){
@@ -90,15 +90,18 @@ void enter_node(YAML::Node const &node,
               data.cov_displ_props_data,
               metas.gauge_field_with_phases
               );
-        } else if ( it->first.as<std::string>() == "JacobiSmearing" ||
-                    it->first.as<std::string>() == "MomentumJacobiSmearing" ){
+        } else if ( it->first.as<std::string>() == "QuarkSmearing" ){
           quark_smearing(
               it->second,
               metas.quark_smearing_meta);
+        } else if ( it->first.as<std::string>() == "GaugeSmearing" ){
+          gauge_smearing(
+              it->second,
+              metas.gauge_smearing_meta);
         } else {
           char msg[200];
           snprintf(msg, 200,
-                   "%s is not a valid Object name\n",
+                   "[yaml_enter_node]: %s is not a valid Object name\n",
                    it->first.as<std::string>().c_str());
           throw( std::invalid_argument(msg) );
         }

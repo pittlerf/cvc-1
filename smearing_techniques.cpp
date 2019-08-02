@@ -27,6 +27,8 @@
 #include "cvc_utils.h"
 #include "smearing_techniques.h"
 #include "debug_printf.hpp"
+#include "types.h"
+#include "loop_tools.h"
 
 namespace cvc {
 
@@ -42,18 +44,8 @@ int APE_Smearing(double * const smeared_gauge_field, double const APE_smearing_a
   double *smeared_gauge_field_old = NULL;
   alloc_gauge_field(&smeared_gauge_field_old, VOLUMEPLUSRAND);
 
-  for(iter=0; iter<APE_smearing_niter; iter++) {
-
-    memcpy((void*)smeared_gauge_field_old, (void*)smeared_gauge_field, gf_bytes);
-#ifdef HAVE_MPI
-    xchange_gauge_field(smeared_gauge_field_old);
-#endif
-
-#ifdef HAVE_OPENMP
 #pragma omp parallel
-{
-#endif
-
+  {
     double M1[18], M2[18];
     int index;
     int index_mx_1, index_mx_2, index_mx_3;
@@ -63,181 +55,188 @@ int APE_Smearing(double * const smeared_gauge_field, double const APE_smearing_a
     int index_mz_1, index_mz_2, index_mz_3;
     int index_pz_1, index_pz_2, index_pz_3;
     double *U = NULL;
-
-#ifdef HAVE_OPENMP
-#pragma omp for
+  
+    for(int iter=0; iter<APE_smearing_niter; iter++) {
+    
+#pragma omp single
+      {
+        memcpy((void*)smeared_gauge_field_old, (void*)smeared_gauge_field, gf_bytes);
+#ifdef HAVE_MPI
+        xchange_gauge_field(smeared_gauge_field_old);
 #endif
-    for(unsigned int idx = 0; idx < VOLUME; idx++) {
-  
-      /************************
-       * Links in x-direction.
-       ************************/
-      index = _GGI(idx, 1);
-  
-      index_my_1 = _GGI(g_idn[idx][2], 2);
-      index_my_2 = _GGI(g_idn[idx][2], 1);
-      index_my_3 = _GGI(g_idn[g_iup[idx][1]][2], 2);
-  
-      index_py_1 = _GGI(idx, 2);
-      index_py_2 = _GGI(g_iup[idx][2], 1);
-      index_py_3 = _GGI(g_iup[idx][1], 2);
-  
-      index_mz_1 = _GGI(g_idn[idx][3], 3);
-      index_mz_2 = _GGI(g_idn[idx][3], 1);
-      index_mz_3 = _GGI(g_idn[g_iup[idx][1]][3], 3);
-  
-      index_pz_1 = _GGI(idx, 3);
-      index_pz_2 = _GGI(g_iup[idx][3], 1);
-      index_pz_3 = _GGI(g_iup[idx][1], 3);
-  
-  
-      U = smeared_gauge_field + index;
-      _cm_eq_zero(U);
-  
-      /* negative y-direction */
-      _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_my_2, smeared_gauge_field_old + index_my_3);
-  
-      _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_my_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* positive y-direction */
-      _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_py_2, smeared_gauge_field_old + index_py_3);
-  
-      _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_py_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* negative z-direction */
-      _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_mz_2, smeared_gauge_field_old + index_mz_3);
-  
-      _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_mz_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* positive z-direction */
-      _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_pz_2, smeared_gauge_field_old + index_pz_3);
-  
-      _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_pz_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      _cm_ti_eq_re(U, APE_smearing_alpha);
-  
-      /* center */
-      _cm_pl_eq_cm(U, smeared_gauge_field_old + index);
-  
-      /* Projection to SU(3). */
-      cm_proj(U);
-  
-  
-      /***********************
-       * Links in y-direction.
-       ***********************/
-  
-      index = _GGI(idx, 2);
-  
-      index_mx_1 = _GGI(g_idn[idx][1], 1);
-      index_mx_2 = _GGI(g_idn[idx][1], 2);
-      index_mx_3 = _GGI(g_idn[g_iup[idx][2]][1], 1);
-  
-      index_px_1 = _GGI(idx, 1);
-      index_px_2 = _GGI(g_iup[idx][1], 2);
-      index_px_3 = _GGI(g_iup[idx][2], 1);
-  
-      index_mz_1 = _GGI(g_idn[idx][3], 3);
-      index_mz_2 = _GGI(g_idn[idx][3], 2);
-      index_mz_3 = _GGI(g_idn[g_iup[idx][2]][3], 3);
-  
-      index_pz_1 = _GGI(idx, 3);
-      index_pz_2 = _GGI(g_iup[idx][3], 2);
-      index_pz_3 = _GGI(g_iup[idx][2], 3);
-  
-      U = smeared_gauge_field + index;
-      _cm_eq_zero(U);
-  
-      /* negative x-direction */
-      _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_mx_2, smeared_gauge_field_old + index_mx_3);
-      _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_mx_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* positive x-direction */
-      _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_px_2, smeared_gauge_field_old + index_px_3);
-      _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_px_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* negative z-direction */
-      _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_mz_2, smeared_gauge_field_old + index_mz_3);
-      _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_mz_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* positive z-direction */
-      _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_pz_2, smeared_gauge_field_old + index_pz_3);
-      _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_pz_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      _cm_ti_eq_re(U, APE_smearing_alpha);
-  
-      /* center */
-      _cm_pl_eq_cm(U, smeared_gauge_field_old + index);
-  
-      /* Projection to SU(3). */
-      cm_proj(U);
-  
-      /**************************
-       * Links in z-direction.
-       **************************/
-  
-      index = _GGI(idx, 3);
-  
-      index_mx_1 = _GGI(g_idn[idx][1], 1);
-      index_mx_2 = _GGI(g_idn[idx][1], 3);
-      index_mx_3 = _GGI(g_idn[g_iup[idx][3]][1], 1);
-  
-      index_px_1 = _GGI(idx, 1);
-      index_px_2 = _GGI(g_iup[idx][1], 3);
-      index_px_3 = _GGI(g_iup[idx][3], 1);
-  
-      index_my_1 = _GGI(g_idn[idx][2], 2);
-      index_my_2 = _GGI(g_idn[idx][2], 3);
-      index_my_3 = _GGI(g_idn[g_iup[idx][3]][2], 2);
-  
-      index_py_1 = _GGI(idx, 2);
-      index_py_2 = _GGI(g_iup[idx][2], 3);
-      index_py_3 = _GGI(g_iup[idx][3], 2);
-  
-      U = smeared_gauge_field + index;
-      _cm_eq_zero(U);
-  
-      /* negative x-direction */
-      _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_mx_2, smeared_gauge_field_old + index_mx_3);
-      _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_mx_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* positive x-direction */
-      _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_px_2, smeared_gauge_field_old + index_px_3);
-      _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_px_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* negative y-direction */
-      _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_my_2, smeared_gauge_field_old + index_my_3);
-      _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_my_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      /* positive y-direction */
-      _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_py_2, smeared_gauge_field_old + index_py_3);
-      _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_py_1, M1);
-      _cm_pl_eq_cm(U, M2);
-  
-      _cm_ti_eq_re(U, APE_smearing_alpha);
-  
-      /* center */
-      _cm_pl_eq_cm(U, smeared_gauge_field_old + index);
-  
-      /* Projection to SU(3). */
-      cm_proj(U);
-    }  /* end of loop on ix */
+      } // there is an implicit barrier here and there's an implicit barrier at the
+        // end of the volume loop below, so we should not have any synchro problems
 
+      FOR_IN_PARALLEL(idx, 0, VOLUME){
+  
+        /************************
+         * Links in x-direction.
+         ************************/
+        index = _GGI(idx, 1);
+  
+        index_my_1 = _GGI(g_idn[idx][2], 2);
+        index_my_2 = _GGI(g_idn[idx][2], 1);
+        index_my_3 = _GGI(g_idn[g_iup[idx][1]][2], 2);
+  
+        index_py_1 = _GGI(idx, 2);
+        index_py_2 = _GGI(g_iup[idx][2], 1);
+        index_py_3 = _GGI(g_iup[idx][1], 2);
+  
+        index_mz_1 = _GGI(g_idn[idx][3], 3);
+        index_mz_2 = _GGI(g_idn[idx][3], 1);
+        index_mz_3 = _GGI(g_idn[g_iup[idx][1]][3], 3);
+  
+        index_pz_1 = _GGI(idx, 3);
+        index_pz_2 = _GGI(g_iup[idx][3], 1);
+        index_pz_3 = _GGI(g_iup[idx][1], 3);
+  
+  
+        U = smeared_gauge_field + index;
+        _cm_eq_zero(U);
+  
+        /* negative y-direction */
+        _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_my_2, smeared_gauge_field_old + index_my_3);
+  
+        _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_my_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* positive y-direction */
+        _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_py_2, smeared_gauge_field_old + index_py_3);
+  
+        _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_py_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* negative z-direction */
+        _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_mz_2, smeared_gauge_field_old + index_mz_3);
+  
+        _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_mz_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* positive z-direction */
+        _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_pz_2, smeared_gauge_field_old + index_pz_3);
+  
+        _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_pz_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        _cm_ti_eq_re(U, APE_smearing_alpha);
+  
+        /* center */
+        _cm_pl_eq_cm(U, smeared_gauge_field_old + index);
+  
+        /* Projection to SU(3). */
+        cm_proj(U);
+  
+  
+        /***********************
+         * Links in y-direction.
+         ***********************/
+  
+        index = _GGI(idx, 2);
+  
+        index_mx_1 = _GGI(g_idn[idx][1], 1);
+        index_mx_2 = _GGI(g_idn[idx][1], 2);
+        index_mx_3 = _GGI(g_idn[g_iup[idx][2]][1], 1);
+  
+        index_px_1 = _GGI(idx, 1);
+        index_px_2 = _GGI(g_iup[idx][1], 2);
+        index_px_3 = _GGI(g_iup[idx][2], 1);
+  
+        index_mz_1 = _GGI(g_idn[idx][3], 3);
+        index_mz_2 = _GGI(g_idn[idx][3], 2);
+        index_mz_3 = _GGI(g_idn[g_iup[idx][2]][3], 3);
+  
+        index_pz_1 = _GGI(idx, 3);
+        index_pz_2 = _GGI(g_iup[idx][3], 2);
+        index_pz_3 = _GGI(g_iup[idx][2], 3);
+  
+        U = smeared_gauge_field + index;
+        _cm_eq_zero(U);
+  
+        /* negative x-direction */
+        _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_mx_2, smeared_gauge_field_old + index_mx_3);
+        _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_mx_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* positive x-direction */
+        _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_px_2, smeared_gauge_field_old + index_px_3);
+        _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_px_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* negative z-direction */
+        _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_mz_2, smeared_gauge_field_old + index_mz_3);
+        _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_mz_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* positive z-direction */
+        _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_pz_2, smeared_gauge_field_old + index_pz_3);
+        _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_pz_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        _cm_ti_eq_re(U, APE_smearing_alpha);
+  
+        /* center */
+        _cm_pl_eq_cm(U, smeared_gauge_field_old + index);
+  
+        /* Projection to SU(3). */
+        cm_proj(U);
+  
+        /**************************
+         * Links in z-direction.
+         **************************/
+  
+        index = _GGI(idx, 3);
+  
+        index_mx_1 = _GGI(g_idn[idx][1], 1);
+        index_mx_2 = _GGI(g_idn[idx][1], 3);
+        index_mx_3 = _GGI(g_idn[g_iup[idx][3]][1], 1);
+  
+        index_px_1 = _GGI(idx, 1);
+        index_px_2 = _GGI(g_iup[idx][1], 3);
+        index_px_3 = _GGI(g_iup[idx][3], 1);
+  
+        index_my_1 = _GGI(g_idn[idx][2], 2);
+        index_my_2 = _GGI(g_idn[idx][2], 3);
+        index_my_3 = _GGI(g_idn[g_iup[idx][3]][2], 2);
+  
+        index_py_1 = _GGI(idx, 2);
+        index_py_2 = _GGI(g_iup[idx][2], 3);
+        index_py_3 = _GGI(g_iup[idx][3], 2);
+  
+        U = smeared_gauge_field + index;
+        _cm_eq_zero(U);
+  
+        /* negative x-direction */
+        _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_mx_2, smeared_gauge_field_old + index_mx_3);
+        _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_mx_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* positive x-direction */
+        _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_px_2, smeared_gauge_field_old + index_px_3);
+        _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_px_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* negative y-direction */
+        _cm_eq_cm_ti_cm(M1, smeared_gauge_field_old + index_my_2, smeared_gauge_field_old + index_my_3);
+        _cm_eq_cm_dag_ti_cm(M2, smeared_gauge_field_old + index_my_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        /* positive y-direction */
+        _cm_eq_cm_ti_cm_dag(M1, smeared_gauge_field_old + index_py_2, smeared_gauge_field_old + index_py_3);
+        _cm_eq_cm_ti_cm(M2, smeared_gauge_field_old + index_py_1, M1);
+        _cm_pl_eq_cm(U, M2);
+  
+        _cm_ti_eq_re(U, APE_smearing_alpha);
+  
+        /* center */
+        _cm_pl_eq_cm(U, smeared_gauge_field_old + index);
+  
+        /* Projection to SU(3). */
+        cm_proj(U);
+      }  /* end of loop on ix */
+    }  /* end of loop on number of smearing steps */
 #ifdef HAVE_OPENMP
-}  /* end of parallel region */
+  }  /* end of parallel region */
 #endif
-  }  /* end of loop on number of smearing steps */
 
   free(smeared_gauge_field_old);
 #ifdef HAVE_MPI
@@ -365,11 +364,11 @@ int Jacobi_Smearing(double * smeared_gauge_field, double * const psi, int const 
 }  /* end of Jacobi_Smearing */
 
 
-void Momentum_Smearing(double const * const smeared_gauge_field,
+int Momentum_Smearing(double const * const smeared_gauge_field,
     mom_t const & momentum, double const mom_scale_factor,
-    double * const psi, int const N, double const kappa) {
+    double * const psi, int const N, double const kappa)
 {
-  size_t const gf_bytes = _GGI(VOLUMEPLUSRAND);
+  size_t const gf_bytes = 72*VOLUMEPLUSRAND*sizeof(double);
   double * smeared_gauge_field_with_phase = (double*)malloc(gf_bytes);
   if( (void*)smeared_gauge_field_with_phase == NULL ){
     error_printf("malloc failure in [MomentumSmearing]");

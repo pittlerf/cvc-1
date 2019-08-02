@@ -4,6 +4,7 @@
 #include "types.h"
 #include "DependencyGraph.hpp"
 
+#include <string>
 #include <map>
 #include <vector>
 #include <string>
@@ -104,7 +105,7 @@ typedef struct quark_smearing_meta_t
   // smearing type
   quark_smearing_meta_t()
   {
-    type = SMEAR_NTYPES;
+    type = QUARK_SMEAR_NTYPES;
     n_iter = 0;
     kappa = 0;
     mom_scale_factor = 0;
@@ -118,11 +119,25 @@ typedef struct quark_smearing_meta_t
   
   // momentum scale factor for momentum smearing
   double mom_scale_factor;
+
+  // gauge smearing id to be used to construct smeared sources and sinks
+  // see: parsers/yaml_gauge_smearing.cpp
+  std::string gauge_smearing_id;
 } quark_smearing_meta_t;
 
 typedef struct gauge_smearing_meta_t
 {
+  gauge_smearing_meta_t()
+  {
+    type = GAUGE_SMEAR_NTYPES;
+    n_iter = 0;
+    alpha = 0;
+  } 
+
+  GaugeSmearingType_t type;
   unsigned int n_iter;
+
+  // smearing strength for APE smearing
   unsigned int alpha;
 } gauge_smearing_meta_t;
 
@@ -309,6 +324,7 @@ typedef struct MetaCollection {
   std::map<std::string, ts_stoch_src_meta_t> srcs_meta;
 
   std::map<std::string, quark_smearing_meta_t> quark_smearing_meta;
+  std::map<std::string, gauge_smearing_meta_t> gauge_smearing_meta;
   
   DepGraph phases_graph;
   DepGraph props_graph;
@@ -328,4 +344,4 @@ typedef struct OutputCollection {
   std::map< std::string, H5Correlator > corrs_data;
 } OutputCollection;
 
-} // naemspace(cvc)
+} // namespace(cvc)
