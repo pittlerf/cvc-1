@@ -7,14 +7,13 @@
 #include "SourceCreators.hpp"
 #include "parsers/yaml_time_slice_propagator.hpp"
 #include "parsers/yaml_utils.hpp"
+#include "exceptions.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <vector>
 #include <map>
 #include <string>
 #include <iostream>
-#include <exception>
-#include <stdexcept>
 
 namespace cvc {
 namespace yaml {
@@ -63,7 +62,7 @@ void time_slice_propagator(const YAML::Node &node,
     snprintf(msg, 200,
              "The momentum list '%s' does not seem to exist!\n",
              node["P"].as<std::string>().c_str() );
-    throw( std::invalid_argument(msg) );
+    throw( ::cvc::invalid_argument(msg, "cvc::yaml::time_slice_propagator") );
   }
   const std::string momlist_key = node["P"].as<std::string>();
   for( auto & mom : mom_lists[ momlist_key ] ){

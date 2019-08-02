@@ -18,6 +18,7 @@
 #include "h5utils.hpp"
 #include "make_phase_field.hpp"
 #include "loop_tools.h"
+#include "exceptions.hpp"
 
 #ifdef HAVE_MPI
 #include <mpi.h>
@@ -151,7 +152,7 @@ int main(int argc, char ** argv){
     } else if ( g_noise_type == Z2_NOISE ){
       rng.gen_z2(ranspinor.data(), 24);
     } else {
-      throw( std::invalid_argument("The only supported noise types are 'Gaussian' and 'Z2'!\n") );
+      throw( ::cvc::invalid_argument("The only supported noise types are 'Gaussian' and 'Z2'!\n", "naive_loops main") );
     }
     sw.elapsed_print_and_reset("volume source generation");
 

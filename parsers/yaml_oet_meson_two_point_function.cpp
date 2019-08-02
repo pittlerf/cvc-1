@@ -45,10 +45,10 @@ void oet_meson_two_point_function(const YAML::Node &node,
 
   static const std::vector<std::string> required_nodes{
     "id", "fwd_flav", "bwd_flav", "gi", "gf", "gb", "Pi", "Pf",
-    "momentum_conservation", "dirac_join" };
+    "momentum_conservation", "dirac_join", "smearing_join" };
   static const std::vector<std::string> scalar_nodes{
     "id", "fwd_flav", "bwd_flav", "Pi", "Pf",
-    "momentum_conservation", "dirac_join" };
+    "momentum_conservation", "dirac_join", "smearing_join" };
   static const std::vector<std::string> sequence_nodes{
     "gi", "gf", "gb" };
 

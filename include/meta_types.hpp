@@ -3,13 +3,13 @@
 #include "cvc_complex.h"
 #include "types.h"
 #include "DependencyGraph.hpp"
+#include "exceptions.hpp"
 
 #include <string>
 #include <map>
 #include <vector>
 #include <string>
 #include <cstring>
-#include <stdexcept>
 
 namespace cvc {
 
@@ -47,7 +47,8 @@ typedef struct ts_stoch_src_meta_t
 static inline std::string check_mom_prop(const std::string prop_in)
 {
   if( !(prop_in == "fwd" || prop_in == "bwd" || prop_in == "neither") ){
-    throw std::invalid_argument("propagator with momentum has to be either 'fwd', 'bwd' or 'neither'\n");
+    throw ::cvc::invalid_argument("propagator with momentum has to be either 'fwd', 'bwd' or 'neither'\n", 
+                                  "check_mom_prop");
   }
   return prop_in;
 }

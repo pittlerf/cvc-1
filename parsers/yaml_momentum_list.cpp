@@ -3,12 +3,11 @@
 #include "constants.hpp"
 #include "algorithms.hpp"
 #include "types.h"
+#include "exceptions.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <vector>
 #include <map>
-#include <exception>
-#include <stdexcept>
 #include <algorithm>
 #include <iostream>
 #include <cmath>
@@ -19,7 +18,8 @@ namespace yaml {
 std::vector< mom_t > parse_momentum_list(const YAML::Node & node)
 {
   if( node.Type() != YAML::NodeType::Sequence ){
-    throw( std::invalid_argument("in parse_momentum_list, 'node' must be of type YAML::NodeType::Sequence\n") );
+    throw( ::cvc::invalid_argument("'node' must be of type YAML::NodeType::Sequence",
+                                   "cvc::yaml::parse_momentum_list") );
   }
   std::vector< mom_t > momenta;
   for(size_t i = 0; i < node.size(); ++i){
@@ -34,7 +34,8 @@ std::vector< mom_t > parse_momentum_list(const YAML::Node & node)
 std::vector< mom_t > psq_to_momentum_list(const YAML::Node & node)
 {
   if( node.Type() != YAML::NodeType::Scalar ){
-    throw( std::invalid_argument("in psq_to_momentum_list, 'node' must be of type YAML::NodeType::Scalar\n") );
+    throw( ::cvc::invalid_argument("'node' must be of type YAML::NodeType::Scalar",
+                                   "cvc::yaml::psq_to_momentum_list") );
   }
   const int psqmax = node.as<int>();
   const int pmax = static_cast<int>(sqrt( node.as<double>() )); 
@@ -63,10 +64,12 @@ void momentum_list(const YAML::Node & node,
   cvc::Logger logger(0, verbosity::input_relay, std::cout);
 
   if( node.Type() != YAML::NodeType::Map ){
-    throw( std::invalid_argument("in cvc::yaml::momentum_list, 'node' must be of type YAML::NodeType::Map\n") );
+    throw( ::cvc::invalid_argument("'node' must be of type YAML::NodeType::Map",
+                                   "cvc::yaml::momentum_list") );
   }
   if( !node["id"] || !(node["Psqmax"] || node["Plist"]) ){
-    throw( std::invalid_argument("For 'MomentumList', the 'id' property and one of 'Psqmax' or 'Plist' must be defined!\n") );
+    throw( ::cvc::invalid_argument("For 'MomentumList', the 'id' property and one of 'Psqmax' or 'Plist' must be defined!",
+                                   "cvc::yaml::momentum_list") );
   }
 
   std::string id;
@@ -85,7 +88,7 @@ void momentum_list(const YAML::Node & node,
       snprintf(msg, 200,
                "%s is not a valid property for a MomentumList!\n",
                it->first.as<std::string>().c_str());
-      throw( std::invalid_argument(msg) );
+      throw( ::cvc::invalid_argument(msg, "cvc::yaml::momentum_list") );
     }
   }
  

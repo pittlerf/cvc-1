@@ -3,6 +3,7 @@
 #include "meta_types.hpp"
 #include "yaml_parsers.hpp"
 #include "constants.hpp"
+#include "exceptions.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <iostream>
@@ -103,7 +104,7 @@ void enter_node(YAML::Node const &node,
           snprintf(msg, 200,
                    "[yaml_enter_node]: %s is not a valid Object name\n",
                    it->first.as<std::string>().c_str());
-          throw( std::invalid_argument(msg) );
+          throw( ::cvc::invalid_argument(msg, "cvc::yaml::enter_node") );
         }
       }
     case YAML::NodeType::Null:
