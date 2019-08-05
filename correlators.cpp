@@ -133,15 +133,60 @@ int main(int argc, char ** argv){
     yaml::enter_node(input_node, 0, odefs, metas, data); 
     logger << std::endl;
 
-    debug_printf(0,verbosity::memory_info,
-                 "# [correlators] [MEMORY_INFO] Memory required for %d basic propagator%s: %.2f GB\n",
-                 metas.props_meta.size(),
-                 metas.props_meta.size() > 1 ? "s" : "",
-                 (double)metas.props_meta.size()*sizeof(double)*_GSI(g_nproc*VOLUME)*1.0e-9);
+    debug_printf(
+        0,verbosity::memory_info,
+        "# [correlators] [MEMORY_INFO] Memory required for %d basic propagator%s: %.2f GB\n",
+        metas.props_meta.size(),
+        metas.props_meta.size() > 1 ? "s" : "",
+        (double)metas.props_meta.size()*sizeof(double)*_GSI(g_nproc*VOLUME)*1.0e-9);
 
-    // we begin by generating all momentum projection phases that we require
+    // we first count all the nodes requiered for our momentum projections
     std::vector<ComponentGraph>
       independent_mom_projections(connected_components_subgraphs(metas.phases_graph));
+    size_t mom_proj_size = 0;
+    for( size_t i_component = 0; i_component < independent_mom_projections.size(); ++i_component ){
+      for( auto v : boost::make_iterator_range(boost::vertices(independent_mom_projections[i_component]))) {
+        mom_proj_size++;
+      }
+    } 
+    debug_printf(
+        0, 0,
+        "# [correlators] [JOB_SIZE_INFO] Number of nodes for momentum projection phases: %lu in %lu connected subgraphs\n",
+        mom_proj_size,
+        independent_mom_projections.size());
+
+    // now we count the basic propagators and sources
+    std::vector<ComponentGraph> 
+      independent_srcs_and_props(connected_components_subgraphs(metas.props_graph));
+    size_t srcs_and_props_size = 0;
+    for( size_t i_component = 0; i_component < independent_srcs_and_props.size(); ++i_component){
+      for(auto v : boost::make_iterator_range(boost::vertices(independent_srcs_and_props[i_component]))){
+        srcs_and_props_size++;
+      }
+    }
+    debug_printf(
+        0, 0,
+        "# [correlators] [JOB_SIZE_INFO] Number of nodes for sources and propagators: %lu in %lu connected subgraphs\n",
+        srcs_and_props_size,
+        independent_srcs_and_props.size());
+
+    // and finally the number of nodes in the correlator graph   
+    std::vector<ComponentGraph>
+      independent_obs(connected_components_subgraphs(metas.corrs_graph));
+    size_t obs_size = 0;
+    for( size_t i_component = 0; i_component < independent_obs.size(); ++i_component){
+      for( auto v : boost::make_iterator_range(boost::vertices(independent_obs[i_component])) ){
+        obs_size++;
+      }
+    }
+    debug_printf(
+        0, 0,
+        "# [correlators] [JOB_SIZE_INFO] Number of nodes for correlation functions: %lu in %lu connected subgraphs\n",
+        obs_size,
+        independent_obs.size());
+
+
+    // we begin by generating all momentum projection phases that we require
     for( size_t i_component = 0; i_component < independent_mom_projections.size(); ++i_component ){
       logger << std::endl << "# [correlators] Generating momentum projection phases " <<
         i_component+1 << " of " << independent_mom_projections.size() << std::endl;
@@ -154,8 +199,6 @@ int main(int argc, char ** argv){
 
     // now we generate the basic propagators which have their own dependency graph
     // which is organised by "id" (flavour) to make the inversions efficient
-    std::vector<ComponentGraph> 
-      independent_srcs_and_props(connected_components_subgraphs(metas.props_graph));
     for( size_t i_component = 0; i_component < independent_srcs_and_props.size(); ++i_component){
       logger << std::endl << "# [correlators] Working on source / propagator set " << 
         i_component+1 << " of " << independent_srcs_and_props.size() << std::endl;
@@ -169,8 +212,6 @@ int main(int argc, char ** argv){
     // now we perform all contractions, which also includes generating sequential propagators
     // if three point functions have been defined and performing covariant shifts
     // if any covariantly displaced operators are considered
-    std::vector<ComponentGraph>
-      independent_obs(connected_components_subgraphs(metas.corrs_graph));
     for( size_t i_component = 0; i_component < independent_obs.size(); ++i_component){
       logger << std::endl << "# [correlators] Working on object set " << i_component+1 << 
         " of " << independent_obs.size() << std::endl;
