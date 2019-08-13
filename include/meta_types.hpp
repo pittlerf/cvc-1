@@ -13,6 +13,49 @@
 
 namespace cvc {
 
+typedef struct quark_smearing_meta_t
+{
+  // default constructor to set things to zero and the invalid
+  // smearing type
+  quark_smearing_meta_t()
+  {
+    type = QUARK_SMEAR_NTYPES;
+    n_iter = 0;
+    kappa = 0;
+    mom_scale_factor = 0;
+  }
+
+  QuarkSmearingType_t type;
+
+  // Jacobi parameters
+  unsigned int n_iter;
+  double kappa;
+  
+  // momentum scale factor for momentum smearing
+  double mom_scale_factor;
+
+  // gauge smearing id to be used to construct smeared sources and sinks
+  // see: parsers/yaml_gauge_smearing.cpp
+  std::string gauge_smearing_id;
+} quark_smearing_meta_t;
+
+typedef struct gauge_smearing_meta_t
+{
+  gauge_smearing_meta_t()
+  {
+    type = GAUGE_SMEAR_NTYPES;
+    n_iter = 0;
+    alpha = 0;
+  } 
+
+  GaugeSmearingType_t type;
+  unsigned int n_iter;
+
+  // smearing strength for APE smearing
+  unsigned int alpha;
+} gauge_smearing_meta_t;
+
+
 typedef struct ts_stoch_src_meta_t
 {
   mom_t p;
@@ -99,48 +142,6 @@ typedef struct stoch_prop_meta_t
   }
 
 } stoch_prop_meta_t;
-
-typedef struct quark_smearing_meta_t
-{
-  // default constructor to set things to zero and the invalid
-  // smearing type
-  quark_smearing_meta_t()
-  {
-    type = QUARK_SMEAR_NTYPES;
-    n_iter = 0;
-    kappa = 0;
-    mom_scale_factor = 0;
-  }
-
-  QuarkSmearingType_t type;
-
-  // Jacobi parameters
-  unsigned int n_iter;
-  double kappa;
-  
-  // momentum scale factor for momentum smearing
-  double mom_scale_factor;
-
-  // gauge smearing id to be used to construct smeared sources and sinks
-  // see: parsers/yaml_gauge_smearing.cpp
-  std::string gauge_smearing_id;
-} quark_smearing_meta_t;
-
-typedef struct gauge_smearing_meta_t
-{
-  gauge_smearing_meta_t()
-  {
-    type = GAUGE_SMEAR_NTYPES;
-    n_iter = 0;
-    alpha = 0;
-  } 
-
-  GaugeSmearingType_t type;
-  unsigned int n_iter;
-
-  // smearing strength for APE smearing
-  unsigned int alpha;
-} gauge_smearing_meta_t;
 
 typedef struct seq_stoch_prop_meta_t
 {

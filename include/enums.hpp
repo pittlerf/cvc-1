@@ -41,13 +41,15 @@ typedef enum NoiseType_t {
 } NoiseType_t;
 
 typedef enum QuarkSmearingType_t {
-  QUARK_SMEAR_JACOBI = 0,
+  QUARK_SMEAR_NONE = 0,
+  QUARK_SMEAR_JACOBI,
   QUARK_SMEAR_MOM_JACOBI,
   QUARK_SMEAR_NTYPES
 } QuarkSmearingType_t;
 
 typedef enum GaugeSmearingType_t {
-  GAUGE_SMEAR_APE = 0,
+  GAUGE_SMEAR_NONE = 0,
+  GAUGE_SMEAR_APE,
   GAUGE_SMEAR_NTYPES
 } GaugeSmearingType_t;
 
