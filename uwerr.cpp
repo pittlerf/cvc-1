@@ -12,7 +12,7 @@
 #include <math.h>
 #include <string.h>
 #include <time.h>
-#include "global.h"
+#include "cvc_global.h"
 #ifdef HAVE_LIBGSL
 #  include "igsl.h"
 #endif

@@ -3,7 +3,7 @@
 #include "loop_tools.h"
 #include "cvc_linalg.h"
 #include "cvc_complex.h"
-#include "global.h"
+#include "cvc_global.h"
 
 template <typename TYPE>
 void contract_twopoint_xdep_gamma5_gamma_snk_only(

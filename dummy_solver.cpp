@@ -5,7 +5,7 @@
 #include <math.h>
 #include <time.h>
 #include "ranlxd.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_utils.h"
 
 namespace cvc {

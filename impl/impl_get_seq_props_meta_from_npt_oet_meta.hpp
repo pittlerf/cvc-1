@@ -1,7 +1,7 @@
 #pragma once
 
 #include "debug_printf.hpp"
-#include "global.h"
+#include "cvc_global.h"
 
 #include <string>
 #include <vector>

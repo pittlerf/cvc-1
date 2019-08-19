@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "global.h"
-#include "global.h"
+#include "cvc_global.h"
+#include "cvc_global.h"
 #include "uwerr.h"
 
 namespace cvc {

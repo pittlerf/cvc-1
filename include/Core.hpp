@@ -21,7 +21,7 @@ extern "C"
 #include "debug_printf.hpp"
 #include "read_input_parser.h"
 #include "mpi_init.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_geometry.h"
 #include "cvc_utils.h"
 

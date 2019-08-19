@@ -4,7 +4,7 @@
 #include <math.h>
 #include <time.h>
 
-#include "global.h"
+#include "cvc_global.h"
 
 namespace cvc {
 

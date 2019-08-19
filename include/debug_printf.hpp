@@ -7,7 +7,7 @@
 #ifndef DEBUG_PRINTF_HPP
 #define DEBUG_PRINTF_HPP
 
-#include "global.h"
+#include "cvc_global.h"
 
 #include <cstdarg>
 #include <cstdio>

@@ -2,7 +2,7 @@
 #define _UWERR_H
 
 #include <math.h>
-#include "global.h"
+#include "cvc_global.h"
 
 #define MAX_NO_REPLICA 100
 #define _SQR(_a)   ( (_a) * (_a) )

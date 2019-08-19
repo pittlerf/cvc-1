@@ -1,4 +1,4 @@
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_complex.h"
 
 #include "DependencyResolving.hpp"

@@ -1,4 +1,4 @@
-#include "global.h"
+#include "cvc_global.h"
 #include "types.h"
 #include "meta_types.hpp"
 #include "parsers/yaml_utils.hpp"

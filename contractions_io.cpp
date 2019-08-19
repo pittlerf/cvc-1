@@ -49,7 +49,7 @@ extern "C"
 #endif
 
 #include "cvc_complex.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_geometry.h"
 #include "dml.h"
 #include "io_utils.h"

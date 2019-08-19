@@ -1,6 +1,6 @@
 #pragma once
 
-#include "global.h"
+#include "cvc_global.h"
 #include "debug_printf.hpp"
 #include "enums.hpp"
 #include "types.h"

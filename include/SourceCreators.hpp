@@ -1,6 +1,6 @@
 #pragma once
 
-#include "global.h"
+#include "cvc_global.h"
 #include "Logger.hpp"
 #include "debug_printf.hpp"
 #include "propagator_io.h"

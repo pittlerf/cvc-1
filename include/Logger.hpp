@@ -1,6 +1,6 @@
 #pragma once
 
-#include "global.h"
+#include "cvc_global.h"
 #include <iostream>
 #include <string>
 #include <ios>

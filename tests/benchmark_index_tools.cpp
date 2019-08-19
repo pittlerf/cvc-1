@@ -1,6 +1,6 @@
 
 #define MAIN_PROGRAM
-#include "global.h"
+#include "cvc_global.h"
 #undef MAIN_PROGRAM
 
 #include "index_tools.hpp"
