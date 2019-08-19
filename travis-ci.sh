@@ -21,6 +21,7 @@ ubuntu_packages=(
     libboost-filesystem-dev libboost-system-dev libboost-program-options-dev libboost-graph-dev
     libgtest-dev
     openmpi-bin openmpi-common libopenmpi-dev
+    libopenblas-base libopenblas-dev
 )
 sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
 #sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
