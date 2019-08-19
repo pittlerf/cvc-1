@@ -4,6 +4,7 @@ set -e
 set -u
 set -x
 
+
 sourcedir="$(pwd)"
 builddir=build-contraction
 
@@ -29,6 +30,8 @@ sudo apt-get update
 sudo apt-get install -y "${ubuntu_packages[@]}"
 
 
+mkdir -p local
+install_prefix="$(realpath local)"
 
 
 ###############################################################################
@@ -38,10 +41,9 @@ sudo apt-get install -y "${ubuntu_packages[@]}"
 git clone https://github.com/usqcd-software/c-lime.git
 pushd c-lime
 ./autogen.sh
-./configure
+./configure --prefix="$install_prefix"
 make -j $(nproc)
-sudo make install
-limedir="$(pwd)"
+make install
 popd
 
 ###############################################################################
@@ -56,7 +58,7 @@ CFLAGS="-O3 -std=c99" \
   --disable-sse2 --disable-sse3 \
   --enable-halfspinor --enable-gaugecopy \
   --enable-alignment=32 \
-  --with-limedir=${limedir} \
+  --with-limedir="$install_prefix" \
   --with-lapack="-lblas -llapack"
 make -j $(nproc)
 tmlqcddir="$(pwd)"
@@ -70,9 +72,25 @@ highfive_builddir=highfive_builddir
 git clone https://github.com/BlueBrain/HighFive.git -b v2.0
 mkdir -p "$highfive_builddir"
 pushd "$highfive_builddir"
-cmake ../HighFive
+cmake \
+  -DCMAKE_INSTALL_PREFIX="$install_prefix" \
+  ../HighFive 
 make -j $(nproc)
-highfivedir="$(pwd)"
+make install
+popd
+
+###############################################################################
+#                         Fetch and install yaml-cpp                          #
+###############################################################################
+yamlcpp_builddir=yamlcpp_builddir
+git clone https://github.com/jbeder/yaml-cpp
+mkdir -p "$yamlcpp_builddir"
+pushd "$yamlcpp_builddir"
+cmake \
+  -DCMAKE_INSTALL_PREFIX="$install_prefix" \
+  ../yaml-cpp
+make -j $(nproc)
+make install
 popd
 
 ###############################################################################
@@ -85,11 +103,11 @@ CXX=$(which mpicxx)
 
 cmake "$sourcedir" \
   -DCMAKE_CXX_COMPILER="$CXX" \
-  -DLIME_HOME="$limedir" \
+  -DLIME_HOME="$install_prefix" \
   -DTMLQCD_SRC="$tmlqcddir" \
   -DTMLQCD_BUILD="$tmlqcddir" \
   -DPARALLEL_LEVEL=TXYZ \
-  -DHighFive_DIR="$highfivedir" \
+  -DHighFive_DIR="$install_prefix" \
   "$sourcedir"
 
 make -j $(nproc) correlators
