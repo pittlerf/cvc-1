@@ -105,7 +105,7 @@ mkdir -p "$builddir"
 pushd "$builddir"
 CXX=$(which mpicxx)
 
-cmake "$sourcedir" \
+cmake \
   -DCMAKE_CXX_FLAGS="-O3" \
   -DCMAKE_PREFIX_PATH="$install_prefix" \
   -DCMAKE_CXX_COMPILER="$CXX" \
