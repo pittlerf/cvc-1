@@ -41,7 +41,7 @@ pushd c-lime
 ./configure
 make -j $(nproc)
 sudo make install
-limedir=$(pwd)
+limedir="$(pwd)"
 popd
 
 ###############################################################################
@@ -59,7 +59,7 @@ CFLAGS="-O3 -std=c99" \
   --with-limedir=${limedir} \
   --with-lapack="-lblas -llapack"
 make -j $(nproc)
-tmlqcd_dir=$(pwd)
+tmlqcddir="$(pwd)"
 popd
 
 ###############################################################################
@@ -72,18 +72,29 @@ mkdir -p "$highfive_builddir"
 pushd "$highfive_builddir"
 cmake ../HighFive
 make -j $(nproc)
+highfivedir="$(pwd)"
+popd
 
-#################################################################################
-###                         Build correlators executable                        #
-#################################################################################
-##rm -rf "$builddir"
-##mkdir -p "$builddir"
-##pushd "$builddir"
-##CXX=$(which mpicxx)
-##
-##cmake "$sourcedir" \
-##  -DCMAKE_CXX_COMPILER="$CXX" \
+###############################################################################
+#                         Build correlators executable                        #
+###############################################################################
+rm -rf "$builddir"
+mkdir -p "$builddir"
+pushd "$builddir"
+CXX=$(which mpicxx)
 
+cmake "$sourcedir" \
+  -DCMAKE_CXX_COMPILER="$CXX" \
+  -DLIME_HOME="$limedir" \
+  -DTMLQCD_SRC="$tmlqcddir" \
+  -DTMLQCD_BUILD="$tmlqcddir" \
+  -DPARALLEL_LEVEL=TXYZ \
+  -DHighFive_DIR="$highfivedir" \
+  "$sourcedir"
+
+make -j $(nproc) correlators
+
+popd
 
 #################################################################################
 ###                              Build Google Test                              #
