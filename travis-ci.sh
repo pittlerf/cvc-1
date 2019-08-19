@@ -109,7 +109,7 @@ cmake "$sourcedir" \
   -DPARALLEL_LEVEL=TXYZ \
   "$sourcedir"
 
-make -j $(nproc) correlators
+make -j $(nproc) correlators || VERBOSE=1 make correlators
 
 popd
 
