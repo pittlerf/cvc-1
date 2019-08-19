@@ -1,3 +1,4 @@
+#pragma once
 
 #ifdef HAVE_OPENMP
 #define PARALLEL_AND_FOR(_loopvar,_start,_end) \

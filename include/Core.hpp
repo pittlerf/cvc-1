@@ -1,3 +1,4 @@
+#pragma once
 
 #ifdef HAVE_MPI
 #include <mpi.h>

@@ -1,3 +1,5 @@
+#pragma once
+
 /****************************************************
  * group_projection_applicator.h
  *
