@@ -60,10 +60,6 @@ if( MPI_C_FOUND OR MPI_HOME )
 endif()
 
 set( TMLQCD_SRC CACHE PATH "path to tmLQCD source directory" )
-if( TMLQCD_SRC )
-  include_directories( ${TMLQCD_SRC}/include )
-endif()
-
 set( TMLQCD_BUILD CACHE PATH "path to tmLQCD build directory (must be build directory for source in TMLQCD_SRC!)" )
 if( TMLQCD_BUILD )
   link_directories(${TMLQCD_BUILD}/lib)
@@ -77,10 +73,14 @@ if( TMLQCD_BUILD )
   message( STATUS "tmLQCD wrapper library enabled" )
   if( NOT TMLQCD_SRC )
     message( FATAL_ERROR "tmLQCD source directory must also be defined! (TMLQCD_SRC)" )
-  endif() 
+  else()
+    include_directories( ${TMLQCD_SRC}/include )
+  endif()
 else()
   message( STATUS "tmLQCD wrapper library disabled" )
 endif()
+
+
 
 set( LIME_HOME CACHE PATH "path to the c-lime library installation" )
 if( LIME_HOME )
