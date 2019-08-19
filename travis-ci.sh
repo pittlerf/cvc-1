@@ -50,17 +50,22 @@ popd
 ###############################################################################
 git clone https://github.com/etmc/tmlqcd.git tmlqcd -b quda_work
 pushd tmlqcd
+tmlqcd_srcdir="$(pwd)"
 autoconf
+popd
+
+mkdir -p tmlqcd_builddir
+pushd tmlqcd_builddir
 CC=mpicc \
 CFLAGS="-O3 -std=c99" \
-./configure --disable-omp --enable-mpi --with-mpidimension=4 \
+"$tmlqcd_srcdir"/configure --disable-omp --enable-mpi --with-mpidimension=4 \
   --disable-sse2 --disable-sse3 \
   --enable-halfspinor --enable-gaugecopy \
   --enable-alignment=32 \
   --with-limedir="$install_prefix" \
   --with-lapack="-lblas -llapack"
 make -j $(nproc)
-tmlqcddir="$(pwd)"
+tmlqcd_builddir="$(pwd)"
 popd
 
 ###############################################################################
@@ -105,8 +110,8 @@ cmake "$sourcedir" \
   -DCMAKE_PREFIX_PATH="$install_prefix" \
   -DCMAKE_CXX_COMPILER="$CXX" \
   -DLIME_HOME="$install_prefix" \
-  -DTMLQCD_SRC="$tmlqcddir" \
-  -DTMLQCD_BUILD="$tmlqcddir" \
+  -DTMLQCD_SRC="$tmlqcd_srcdir" \
+  -DTMLQCD_BUILD="$tmlqcd_builddir" \
   -DPARALLEL_LEVEL=TXYZ \
   "$sourcedir"
 
