@@ -48,7 +48,7 @@ popd
 ###############################################################################
 #                               Install tmLQCD                                #
 ###############################################################################
-git clone https://github.com/etmc/tmlqcd.git tmlqcd
+git clone https://github.com/etmc/tmlqcd.git tmlqcd -b quda_work
 pushd tmlqcd
 autoconf
 CC=mpicc \
