@@ -101,13 +101,12 @@ pushd "$builddir"
 CXX=$(which mpicxx)
 
 cmake "$sourcedir" \
-  -DCMAKE_MODULE_PATH="$install_prefix/share/cmake" \
+  -DCMAKE_PREFIX_PATH="$install_prefix" \
   -DCMAKE_CXX_COMPILER="$CXX" \
   -DLIME_HOME="$install_prefix" \
   -DTMLQCD_SRC="$tmlqcddir" \
   -DTMLQCD_BUILD="$tmlqcddir" \
   -DPARALLEL_LEVEL=TXYZ \
-  -DHighFive_DIR="$install_prefix" \
   "$sourcedir"
 
 make -j $(nproc) correlators
