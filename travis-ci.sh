@@ -4,7 +4,6 @@ set -e
 set -u
 set -x
 
-
 sourcedir="$(pwd)"
 builddir=cvc_depgraph_builddir
 
@@ -102,7 +101,7 @@ pushd "$builddir"
 CXX=$(which mpicxx)
 
 cmake "$sourcedir" \
-  -DCMAKE_MODULE_PATH="$install_prefix" \
+  -DCMAKE_MODULE_PATH="$install_prefix/share/cmake" \
   -DCMAKE_CXX_COMPILER="$CXX" \
   -DLIME_HOME="$install_prefix" \
   -DTMLQCD_SRC="$tmlqcddir" \
