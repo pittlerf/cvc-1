@@ -67,7 +67,7 @@ endif()
 set( TMLQCD_BUILD CACHE PATH "path to tmLQCD build directory (must be build directory for source in TMLQCD_SRC!)" )
 if( TMLQCD_BUILD )
   link_directories(${TMLQCD_BUILD}/lib)
-  include_directories(${TMLQCD_BUILD})
+  include_directories(${TMLQCD_BUILD}/include)
   list(APPEND cvc_libraries 
     "-lwrapper" "-lhmc" "-lmonomial"
     "-loperator" "-lmeas" "-linit" 
