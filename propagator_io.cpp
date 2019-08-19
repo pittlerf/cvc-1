@@ -378,7 +378,7 @@ int read_binary_spinor_data(double * const s, LimeReader * limereader,
 			    const int prec, DML_Checksum *ans) {
 
   int status=0;
-  MPI_Offset bytes, ix;
+  n_uint64_t bytes, ix;
   double tmp[24];
   DML_SiteRank rank;
   float tmp2[24];
