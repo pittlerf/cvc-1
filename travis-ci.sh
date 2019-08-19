@@ -6,7 +6,7 @@ set -x
 
 
 sourcedir="$(pwd)"
-builddir=build-contraction
+builddir=cvc_depgraph_builddir
 
 cd ..
 
@@ -102,6 +102,7 @@ pushd "$builddir"
 CXX=$(which mpicxx)
 
 cmake "$sourcedir" \
+  -DCMAKE_MODULE_PATH="$install_prefix" \
   -DCMAKE_CXX_COMPILER="$CXX" \
   -DLIME_HOME="$install_prefix" \
   -DTMLQCD_SRC="$tmlqcddir" \
