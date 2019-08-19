@@ -62,6 +62,29 @@ make -j $(nproc)
 tmlqcd_dir=$(pwd)
 popd
 
+###############################################################################
+#                         Fetch and install HighFive lib                      #
+###############################################################################
+# note we use v2.0 as 'known-good'
+highfive_builddir=highfive_builddir
+git clone https://github.com/BlueBrain/HighFive.git -b v2.0
+mkdir -p "$highfive_builddir"
+pushd "$highfive_builddir"
+cmake ../HighFive
+make -j $(nproc)
+
+#################################################################################
+###                         Build correlators executable                        #
+#################################################################################
+##rm -rf "$builddir"
+##mkdir -p "$builddir"
+##pushd "$builddir"
+##CXX=$(which mpicxx)
+##
+##cmake "$sourcedir" \
+##  -DCMAKE_CXX_COMPILER="$CXX" \
+
+
 #################################################################################
 ###                              Build Google Test                              #
 #################################################################################
