@@ -58,6 +58,7 @@ CFLAGS="-O3 -std=c99" \
   --enable-alignment=32 \
   --with-limedir=${limedir} \
   --with-lapack="-lblas -llapack"
+make -j $(nproc)
 tmlqcd_dir=$(pwd)
 popd
 
