@@ -16,7 +16,13 @@ fi
 # remove any existing h5 files, just in case (the code does not overwrite!)
 rm *.h5
 
-mpirun -np 1 $CORRBIN
+mpiproc=$(nproc)
+# since we have parallelisation set up only in T, we can't have more than 8 procs
+# in order to not cause to much load, let's limit ourselves to 4
+if [ $mpiproc -gt 4 ]; then
+  mpiproc=4
+fi
+mpirun -np ${mpiproc} $CORRBIN
 
 echo "Analysing differences in correlator data"
 
