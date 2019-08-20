@@ -54,8 +54,7 @@ export LIMEDIR="$install_prefix"
 git clone https://github.com/etmc/lemon lemon
 pushd lemon
 lemon_srcdir="$(pwd)"
-aclocal
-autoconf
+autoreconf -vfi
 popd
 
 mkdir -p lemon_builddir
