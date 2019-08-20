@@ -5,7 +5,7 @@ mpirun -np 2 $CORRBIN
 echo "Analysing differences in correlator data"
 corr_differences=( )
 for corrfile in *.h5; do
-  h5diff -p 1e-10 $corrfile reference/$corrfile
+  h5diff -p 1e-6 $corrfile reference/$corrfile
   if [ $? -ne 0 ]; then
     corr_differences+=( $corrfile )
   fi
@@ -15,6 +15,8 @@ if [ ${#corr_differences[@]} -ne 0 ]; then
   for i in $(seq 0 $(( ${#corr_differences[@]} - 1 )) ); do
     echo ${corr_differences[$i]}
   done
+else
+  echo "No differenes found in correlator data!"
 fi
 echo ------------------------------------------------
 echo
@@ -27,7 +29,7 @@ echo
 echo "Analysing differences in propagator data"
 prop_differences=( )
 for prop in *.txtprop; do
-  numdiff -X1:1 -X2:1 $prop reference/$prop
+  numdiff -r1e-10 -X1:1 -X2:1 $prop reference/$prop
   if [ $? -ne 0 ]; then
     prop_differences+=( $prop )
   fi
@@ -37,6 +39,8 @@ if [ ${#prop_differences[@]} -ne 0 ]; then
   for i in $(seq 0 $(( ${#prop_differences[@]} - 1 )) ); do
     echo ${prop_differences[$i]}
   done
+else
+  echo "No differences found in propagator data!"
 fi 
 echo ------------------------------------------------
 echo
