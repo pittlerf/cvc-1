@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# remove any existing h5 files, just in case (the code does not overwrite!)
+rm *.h5
+
 mpirun -np 2 $CORRBIN
 
 echo "Analysing differences in correlator data"

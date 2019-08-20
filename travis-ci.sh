@@ -81,6 +81,7 @@ pushd "$highfive_builddir"
 cmake \
   -DCMAKE_INSTALL_PREFIX="$install_prefix" \
   -DHIGHFIVE_UNIT_TESTS=FALSE \
+  -DHIGHFIVE_EXAMPLES=FALSE \
   ../HighFive 
 make -j $(nproc)
 make install
@@ -129,7 +130,6 @@ popd
 #                         run integration test                                #
 ###############################################################################
 pushd "$sourcedir"/integration_tests/correlators_8c16
-rm *.h5
 ./run_integration_test.sh
 #mpirun -np $(nproc) "$builddir"/correlators
 popd
