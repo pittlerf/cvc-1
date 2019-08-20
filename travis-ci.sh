@@ -54,6 +54,7 @@ tmlqcd_srcdir="$(pwd)"
 autoconf
 popd
 
+rm -f tmlqcd_builddir
 mkdir -p tmlqcd_builddir
 pushd tmlqcd_builddir
 CC=mpicc \
@@ -116,8 +117,16 @@ cmake \
   "$sourcedir"
 
 VERBOSE=1 make correlators
-
 popd
+
+
+###############################################################################
+#                         run integration test                                #
+###############################################################################
+pushd "$sourcedir"/integration_tests/correlators_8c16
+mpirun -np 2 "$builddir"/correlators
+popd
+
 
 #################################################################################
 ###                              Build Google Test                              #
