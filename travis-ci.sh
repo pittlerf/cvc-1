@@ -23,6 +23,7 @@ ubuntu_packages=(
     libgtest-dev
     openmpi-bin openmpi-common libopenmpi-dev
     libopenblas-base libopenblas-dev
+    git-lfs
 )
 sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
 #sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -118,6 +119,8 @@ cmake \
   "$sourcedir"
 
 VERBOSE=1 make correlators
+
+export CORRBIN="$builddir/correlators"
 popd
 
 
@@ -125,7 +128,8 @@ popd
 #                         run integration test                                #
 ###############################################################################
 pushd "$sourcedir"/integration_tests/correlators_8c16
-mpirun -np $(nproc) "$builddir"/correlators
+./run_integration_test.sh
+#mpirun -np $(nproc) "$builddir"/correlators
 popd
 
 
