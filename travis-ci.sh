@@ -23,7 +23,6 @@ ubuntu_packages=(
     libgtest-dev
     openmpi-bin openmpi-common libopenmpi-dev
     libopenblas-base libopenblas-dev
-    git-lfs
 )
 sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
 #sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -81,6 +80,7 @@ mkdir -p "$highfive_builddir"
 pushd "$highfive_builddir"
 cmake \
   -DCMAKE_INSTALL_PREFIX="$install_prefix" \
+  -DHIGHFIVE_UNIT_TESTS=FALSE \
   ../HighFive 
 make -j $(nproc)
 make install
@@ -95,6 +95,7 @@ mkdir -p "$yamlcpp_builddir"
 pushd "$yamlcpp_builddir"
 cmake \
   -DCMAKE_INSTALL_PREFIX="$install_prefix" \
+  -DYAML_CPP_BUILD_TESTS=OFF \
   ../yaml-cpp
 make -j $(nproc)
 make install
@@ -128,6 +129,7 @@ popd
 #                         run integration test                                #
 ###############################################################################
 pushd "$sourcedir"/integration_tests/correlators_8c16
+rm *.h5
 ./run_integration_test.sh
 #mpirun -np $(nproc) "$builddir"/correlators
 popd
