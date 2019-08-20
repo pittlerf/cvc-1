@@ -16,11 +16,19 @@ fi
 # remove any existing h5 files, just in case (the code does not overwrite!)
 rm *.h5
 
-mpirun -np 2 $CORRBIN
+mpirun -np 1 $CORRBIN
 
 echo "Analysing differences in correlator data"
+
+corrfiles=( $(ls *.h5) )
+if [ ${#corrfiles[@]} -eq 0 ]; then
+  echo "Correlator files were not produced!"
+  exit 1
+fi
+echo ${corrfiles[@]}
+
 corr_differences=( )
-for corrfile in *.h5; do
+for corrfile in ${corrfiles[@]}; do
   h5diff -p 1e-6 $corrfile reference/$corrfile
   if [ $? -ne 0 ]; then
     corr_differences+=( $corrfile )
@@ -42,9 +50,15 @@ echo "Extracting all propagator data"
 echo ------------------------------------------------
 echo
 
+txtprop_files=( $(ls *.txtprop) )
+if [ ${#txtprop_files[@]} -eq 0 ]; then
+  echo "txtprop files were not produced!"
+  exit 1
+fi
+
 echo "Analysing differences in propagator data"
 prop_differences=( )
-for prop in *.txtprop; do
+for prop in ${txtprop_files[@]}; do
   numdiff -r1e-10 -X1:1 -X2:1 $prop reference/$prop
   if [ $? -ne 0 ]; then
     prop_differences+=( $prop )
