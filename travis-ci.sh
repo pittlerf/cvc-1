@@ -5,9 +5,10 @@ set -u
 set -x
 
 sourcedir="$(pwd)"
-builddir=cvc_depgraph_builddir
 
 cd ..
+
+builddir="$(pwd)/cvc_depgraph_builddir"
 
 ###############################################################################
 #                              Install Packages                               #
