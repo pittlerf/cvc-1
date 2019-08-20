@@ -148,7 +148,7 @@ cmake \
   -DPARALLEL_LEVEL=TXYZ \
   "$sourcedir"
 
-make -j $(nproc) || VERBOSE=1 make correlators
+make -j $(nproc) correlators || VERBOSE=1 make correlators
 
 # set up environment variable that can be used in the integration test(s)
 # to refer to correlators executable
