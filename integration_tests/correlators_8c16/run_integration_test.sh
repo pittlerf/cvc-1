@@ -1,5 +1,18 @@
 #!/bin/bash
 
+if [ -z "$CORRBIN" ]; then
+  echo "The CORRBIN environment variable must be defined and point to the 'correlators' executable!"
+fi
+
+if [ -z "$LIMEDIR" ]; then
+  echo "The LIMEDIR environment variable must be defined and point to the c-lime installation directory!" 
+fi
+
+if [ -z "$CORRBIN" -o -z "$LIMEDIR" ]; then
+  exit 1
+fi
+
+
 # remove any existing h5 files, just in case (the code does not overwrite!)
 rm *.h5
 
@@ -51,5 +64,10 @@ echo
 if [ ${#differences[@]} -ne 0 -o ${#prop_differences[@]} -ne 0 ]; then
   echo "Errors found!"
   exit 1
+else
+  echo "No errors!"
+  echo ------------------------------------------------
+  echo
+  exit 0
 fi
 
