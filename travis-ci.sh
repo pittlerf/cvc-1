@@ -23,21 +23,19 @@ ubuntu_packages=(
     libgtest-dev
     openmpi-bin openmpi-common libopenmpi-dev
     libopenblas-base libopenblas-dev
+    numdiff
 )
 sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
-#sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 sudo apt-get update
 sudo apt-get install -y "${ubuntu_packages[@]}"
 
-
+# Installation path for the various libraries to be installed below
 mkdir -p local
 install_prefix="$(realpath local)"
-
 
 ###############################################################################
 #                               Install C-LIME                                #
 ###############################################################################
-
 git clone https://github.com/usqcd-software/c-lime.git
 pushd c-lime
 ./autogen.sh
@@ -45,6 +43,8 @@ pushd c-lime
 make -j $(nproc)
 make install
 popd
+
+export LIMEDIR="$install_prefix"
 
 ###############################################################################
 #                               Install tmLQCD                                #
@@ -58,7 +58,7 @@ popd
 rm -f tmlqcd_builddir
 mkdir -p tmlqcd_builddir
 pushd tmlqcd_builddir
-CC=mpicc \
+CC=$(which mpicc) \
 CFLAGS="-O3 -std=c99" \
 "$tmlqcd_srcdir"/configure --disable-omp --enable-mpi --with-mpidimension=4 \
   --disable-sse2 --disable-sse3 \
@@ -120,54 +120,18 @@ cmake \
   -DPARALLEL_LEVEL=TXYZ \
   "$sourcedir"
 
-VERBOSE=1 make correlators
+make -j $(nproc) || VERBOSE=1 make correlators
 
+# set up environment variable that can be used in the integration test(s)
+# to refer to correlators executable
 export CORRBIN="$builddir/correlators"
 popd
-
 
 ###############################################################################
 #                         run integration test                                #
 ###############################################################################
 pushd "$sourcedir"/integration_tests/correlators_8c16
 ./run_integration_test.sh
-#mpirun -np $(nproc) "$builddir"/correlators
 popd
 
-
-#################################################################################
-###                              Build Google Test                              #
-#################################################################################
-##
-### https://www.eriksmistad.no/getting-started-with-google-test-on-ubuntu/
-##
-##mkdir "gtest"
-##pushd "gtest"
-##cmake /usr/src/gtest
-##make -j $(nproc)
-##sudo cp *.a /usr/lib/
-##popd
-##
-#################################################################################
-###                          Build sLapH-contractions                           #
-#################################################################################
-##
-##rm -rf "$builddir"
-##mkdir -p "$builddir"
-##pushd "$builddir"
-##
-##CXX=$(which g++)
-##
-### Compile gtest
-### Modified from https://www.eriksmistad.no/getting-started-with-google-test-on-ubuntu/
-##pushd /usr/src/gtest
-##sudo cmake CMakeLists.txt -DCMAKE_CXX_COMPILER="$CXX"
-##sudo make -j $(nproc)
-##sudo cp *.a /usr/lib
-##popd
-##
-##cmake "$sourcedir" -DCMAKE_MODULE_PATH=../cmake-module -DCMAKE_CXX_COMPILER="$CXX" \
-##  -DLIME_INCLUDE_DIRS="$limedir/include" -DLIME_LIBRARIES="-L$limedir/libs -llime"
-##make -j $(nproc) || make VERBOSE=1
-##
 ##ctest --output-on-failure
