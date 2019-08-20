@@ -125,7 +125,7 @@ popd
 #                         run integration test                                #
 ###############################################################################
 pushd "$sourcedir"/integration_tests/correlators_8c16
-mpirun -np 2 "$builddir"/correlators
+mpirun -np $(nproc) "$builddir"/correlators
 popd
 
 
