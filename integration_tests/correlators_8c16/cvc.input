@@ -39,7 +39,7 @@ outfile_prefix =./
 read_source                 = no
 #  read_propagator             = no;  not used at the moment
 write_source                = no
-write_propagator            = no
+write_propagator            = yes
 
 write_sequential_source     = no
 write_sequential_propagator = no
