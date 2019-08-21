@@ -121,7 +121,7 @@ struct TimeSliceSourceResolve : public ResolveDependency {
       std::string filename = src_key;
       std::replace( filename.begin(), filename.end(), '/', '_');
       filename += ".lime";
-      write_propagator(src.data(), filename.c_str(), 0, 64);
+      ::cvc::write_propagator(src.data(), filename.c_str(), 0, 64);
     } 
 
     if(g_verbose >= verbosity::detailed_progress){
@@ -223,7 +223,8 @@ struct PropResolve : public ResolveDependency {
 
     if( g_write_propagator ){
       std::string filename = prop_key + ".lime";
-      write_propagator(workspinorB.data(), filename.c_str(), 0, 64);
+      std::replace( filename.begin(), filename.end(), ':', '_');
+      ::cvc::write_propagator(workspinorB.data(), filename.c_str(), 0, 64);
 #ifdef HAVE_MPI
     MPI_Barrier(g_cart_grid);
 #endif
