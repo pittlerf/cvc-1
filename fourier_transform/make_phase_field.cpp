@@ -1,4 +1,4 @@
-#include "global.h"
+#include "cvc_global.h"
 #include "loop_tools.h"
 #include "cvc_complex.h"
 #include "make_phase_field.hpp"

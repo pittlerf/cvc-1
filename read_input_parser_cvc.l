@@ -26,7 +26,7 @@ EQL {SPC}*={SPC}*
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "global.h"
+#include "cvc_global.h"
 #include "read_input_parser.h"
 #include "default_input_values.h"
 #include "set_default.h"

@@ -27,7 +27,7 @@
 #include "fotran_name_mangling.h"
 #include "ilinalg.h"
 #include "cvc_linalg.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_geometry.h"
 #include "mpi_init.h"
 #include "cvc_utils.h"

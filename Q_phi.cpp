@@ -14,7 +14,7 @@
 #endif
 
 #include "cvc_complex.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "ilinalg.h"
 #include "cvc_linalg.h"
 #include "cvc_geometry.h"

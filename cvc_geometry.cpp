@@ -6,7 +6,7 @@
 #endif
 #include <math.h>
 #include "cvc_complex.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_utils.h"
 #include "cvc_geometry.h"
 

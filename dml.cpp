@@ -5,7 +5,7 @@
 #ifdef HAVE_MPI
 #  include <mpi.h>
 #endif
-#include "global.h"
+#include "cvc_global.h"
 #include "dml.h"
 
 

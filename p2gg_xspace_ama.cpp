@@ -48,7 +48,7 @@ extern "C"
 
 #include "cvc_complex.h"
 #include "cvc_linalg.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_geometry.h"
 #include "cvc_utils.h"
 #include "mpi_init.h"

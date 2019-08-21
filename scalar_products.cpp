@@ -19,7 +19,7 @@
 #ifdef HAVE_OPENMP
 #include <omp.h>
 #endif
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_complex.h"
 #include "cvc_linalg.h"
 #include "mpi_init.h"
