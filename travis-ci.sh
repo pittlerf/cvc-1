@@ -20,10 +20,11 @@ ubuntu_packages=(
     libeigen3-dev
     libboost-filesystem-dev libboost-system-dev libboost-program-options-dev libboost-graph-dev
     libgtest-dev
-    openmpi-bin openmpi-common libopenmpi-dev
     libopenblas-base libopenblas-dev
+    libmpich-dev mpich
     numdiff
 )
+    #openmpi-bin openmpi-common libopenmpi-dev
 sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main universe restricted multiverse"
 sudo apt-get update
 sudo apt-get install -y "${ubuntu_packages[@]}"
