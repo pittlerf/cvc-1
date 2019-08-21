@@ -1,17 +1,22 @@
 #!/bin/bash
 
-if [ -z "$CORRBIN" ]; then
-  echo "The CORRBIN environment variable must be defined and point to the 'correlators' executable!"
+CORRBIN=""
+if [ -z "$1" ]; then
+  echo "The first argument of run_integration_test.sh must be the path to the 'correlators' executable!"
+else
+  CORRBIN="$1/correlators"
 fi
 
-if [ -z "$LIMEDIR" ]; then
-  echo "The LIMEDIR environment variable must be defined and point to the c-lime installation directory!" 
+LIMEDIR=""
+if [ -z "$2" ]; then
+  echo "The second argument of run_integration_test.sh must be the path of the c-lime installation directory!" 
+else
+  LIMEDIR="$2"
 fi
 
 if [ -z "$CORRBIN" -o -z "$LIMEDIR" ]; then
   exit 1
 fi
-
 
 # remove any existing h5 files, just in case (the code does not overwrite!)
 rm *.h5

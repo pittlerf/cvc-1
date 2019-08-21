@@ -45,9 +45,6 @@ make -j $(nproc)
 make install
 popd
 
-# the integration tests make use of this environment variable to access
-# the c-lime tool 'lime_extract_record'
-export LIMEDIR="$install_prefix"
 
 ###############################################################################
 #                               Install LEMON                                 #
@@ -67,8 +64,6 @@ CFLAGS="-fPIC" \
 make -j $(nproc)
 make install
 popd
-
-export LIMEDIR="$install_prefix"
 
 ###############################################################################
 #                               Install tmLQCD                                #
@@ -151,16 +146,9 @@ cmake \
 
 make -j $(nproc) correlators || VERBOSE=1 make correlators
 
-# set up environment variable that can be used in the integration test(s)
-# to refer to correlators executable
-export CORRBIN="$builddir/correlators"
-popd
-
 ###############################################################################
-#                         run integration test                                #
+#                         run integration test(s)                             #
 ###############################################################################
-pushd "$sourcedir"/integration_tests/correlators_4c8
-./run_integration_test.sh
-popd
+ctest --output-on-failure
 
-##ctest --output-on-failure
+popd

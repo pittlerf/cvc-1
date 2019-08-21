@@ -445,3 +445,12 @@ target_link_libraries(cpff_invert_contract_no_spin_dilution
 add_subdirectory(external/googletest)
 add_subdirectory(tests)
 add_subdirectory(parsers)
+
+# integration test(s)
+
+enable_testing()
+
+add_test(NAME "integration_correlators_4c8"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/correlators_4c8/run_integration_test.sh" "${CMAKE_CURRENT_BINARY_DIR}" "${LIME_HOME}"
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/correlators_4c8")
+
