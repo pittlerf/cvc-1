@@ -24,7 +24,6 @@ if [ $mpiproc -gt 4 ]; then
 fi
 mpirun -np ${mpiproc} $CORRBIN
 
-
 corrfiles=( $(ls *.h5) )
 if [ ${#corrfiles[@]} -eq 0 ]; then
   echo "Correlator files were not produced!"
@@ -36,14 +35,9 @@ fi
 #corr_diff_abs_thresh="1e-12"
 #echo "Analysing differences in correlator data (absolute deviation threshold: $corr_diff_abs_thresh)"
 
-# The relative comparison is more meaningful, but for some correlators differences are found in
-# one or two values (out of 32) when the relative threshold is 1e-3
-# The number of affected correlators increases as we make the threshold more stringent, but the number
-# of differing values (per correlator) only increases very slowly
-# To make the tests pass, we choose a relative threshold of 5e-2, which is safe in the sense that
-# in this case many thousands of correlators match up to the second decimal place everywhere
-# which should be good enough for most purposes
-corr_diff_rel_thresh="1e-4"
+# The relative comparison is more meaningful, and a relative deviation no larger than the seventh
+# decimal place should be more than stringent enough for most purposes!
+corr_diff_rel_thresh="1e-7"
 echo "Analysing differences in correlator data (relative deviation threshold: $corr_diff_rel_thresh)"
 
 corr_differences=( )
@@ -72,14 +66,15 @@ echo "Extracting all propagator data"
 echo ------------------------------------------------
 echo
 
-
 txtprop_files=( $(ls *.txtprop) )
 if [ ${#txtprop_files[@]} -eq 0 ]; then
   echo "txtprop files were not produced!"
   exit 1
 fi
 
-prop_diff_rel_thresh="1e-6"
+# for the propagators, we require the relative deviation to be no larger than
+# in the 8th decimal place
+prop_diff_rel_thresh="1e-8"
 echo "Analysing differences in propagator data (relative deviation threshold: $prop_diff_rel_thresh)"
 prop_differences=( )
 for prop in ${txtprop_files[@]}; do

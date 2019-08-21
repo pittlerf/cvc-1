@@ -1,8 +1,6 @@
 L = 4
 T = 8
 
-nrzprocs = 1
-
 kappa = 0.177
 2kappamu = 0.04
 
