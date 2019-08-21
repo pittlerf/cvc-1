@@ -1,0 +1,68 @@
+L = 4
+T = 8
+
+nrzprocs = 1
+
+kappa = 0.177
+2kappamu = 0.04
+
+bcanglet = 1.0
+
+debuglevel = 1
+
+ompnumthreads=1
+
+initialstorecounter = 0
+
+UseRelativePrecision = yes
+
+# up id 0
+BeginOperator TMWILSON
+  kappa = 0.177
+  2kappamu = 0.04
+  maxsolveriterations = 20000
+  solverprecision = 1.0e-16
+  solver = cg
+  useevenodd = yes
+EndOperator
+
+# down id 1
+BeginOperator TMWILSON
+  kappa = 0.177
+  2kappamu = -0.04
+  maxsolveriterations = 20000
+  solverprecision = 1.0e-16
+  solver = cg
+  useevenodd = yes
+EndOperator
+
+# strange+ 3*mul, id 2   
+BeginOperator TMWILSON
+  kappa = 0.177
+  2kappamu = 0.12
+  maxsolveriterations = 20000
+  solverprecision = 1.0e-16
+  solver = cg
+  useevenodd = yes
+EndOperator
+
+# strange+ 4*mul, id 3
+BeginOperator TMWILSON
+  kappa = 0.177
+  2kappamu = 0.16
+  maxsolveriterations = 20000
+  solverprecision = 1.0e-16
+  solver = cg
+  useevenodd = yes
+EndOperator
+
+# strange+ 5*mul, id 4
+BeginOperator TMWILSON
+  kappa = 0.177
+  2kappamu = 0.20
+  maxsolveriterations = 20000
+  solverprecision = 1.0e-16
+  solver = cg
+  useevenodd = yes
+EndOperator
+

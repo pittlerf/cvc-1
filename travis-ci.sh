@@ -158,7 +158,7 @@ popd
 ###############################################################################
 #                         run integration test                                #
 ###############################################################################
-pushd "$sourcedir"/integration_tests/correlators_8c16
+pushd "$sourcedir"/integration_tests/correlators_4c8
 ./run_integration_test.sh
 popd
 
