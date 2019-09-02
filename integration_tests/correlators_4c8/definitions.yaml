@@ -96,7 +96,9 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  seq_solver_driver: tmlqcd
+  solver_driver: tmlqcd
+  fwd_solver_id: 0
+  bwd_solver_id: 0
   seq_solver_id: 1
   gi: [5]
   gf: [5]
@@ -107,6 +109,7 @@ OetMesonThreePointFunction:
   Pf: ptwo
   dirac_join: inner
   momentum_exchange: true
+  dagger_sequential: true
 
 OetMesonThreePointFunction:
   id: averx
@@ -114,7 +117,9 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  seq_solver_driver: tmlqcd
+  solver_driver: tmlqcd
+  fwd_solver_id: 0
+  bwd_solver_id: 0
   seq_solver_id: 1
   gi: [5]
   gf: [5]
@@ -125,6 +130,7 @@ OetMesonThreePointFunction:
   Pf: ptwo
   dirac_join: inner
   momentum_exchange: false
+  dagger_sequential: true
 
 OetMesonThreePointFunction:
   id: averxsq
@@ -132,7 +138,9 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  seq_solver_driver: tmlqcd
+  solver_driver: tmlqcd
+  fwd_solver_id: 0
+  bwd_solver_id: 0
   seq_solver_id: 1
   gi: [5]
   gf: [5]
@@ -143,4 +151,5 @@ OetMesonThreePointFunction:
   Pf: ptwo
   dirac_join: inner
   momentum_exchange: false
+  dagger_sequential: true
 

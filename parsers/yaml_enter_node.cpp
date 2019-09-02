@@ -64,24 +64,29 @@ void enter_node(YAML::Node const &node,
               data.props_data,
               metas.phases_graph,
               data.phases_data,
-              *(metas.ranspinor));
+              *(metas.ranspinor)
+              );
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
           oet_meson_two_point_function(
               it->second,
               metas.mom_lists,
               metas.src_ts,
               metas.props_meta,
+              metas.props_graph,
               data.props_data,
               odefs.corrs_data,
               metas.corrs_graph,
               data.phases_data,
-              metas.phases_graph);
+              metas.phases_graph,
+              *(metas.ranspinor)
+              );
         } else if ( it->first.as<std::string>() == "OetMesonThreePointFunction" ){
           oet_meson_three_point_function(
               it->second,
               metas.mom_lists,
               metas.src_ts,
               metas.props_meta,
+              metas.props_graph,
               data.props_data,
               odefs.corrs_data,
               metas.corrs_graph,
@@ -89,7 +94,8 @@ void enter_node(YAML::Node const &node,
               metas.phases_graph,
               data.seq_props_data,
               data.cov_displ_props_data,
-              metas.gauge_field_with_phases
+              metas.gauge_field_with_phases,
+              *(metas.ranspinor)
               );
         } else if ( it->first.as<std::string>() == "QuarkSmearing" ){
           quark_smearing(
