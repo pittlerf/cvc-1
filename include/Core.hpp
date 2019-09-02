@@ -138,7 +138,7 @@ class Core {
       return cmd_options;
     }
 
-    const bool
+    bool
     is_initialised(void) const
     {
       return initialised;
