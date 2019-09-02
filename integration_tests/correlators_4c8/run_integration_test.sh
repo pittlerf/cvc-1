@@ -5,6 +5,10 @@ if [ -z "$1" ]; then
   echo "The first argument of run_integration_test.sh must be the path to the 'correlators' executable!"
 else
   CORRBIN="$1/correlators"
+  if [ ! -e "${CORRBIN}" ]; then
+    echo "${CORRBIN} could not be found!"
+    exit 1
+  fi
 fi
 
 LIMEDIR=""
@@ -12,11 +16,18 @@ if [ -z "$2" ]; then
   echo "The second argument of run_integration_test.sh must be the path of the c-lime installation directory!" 
 else
   LIMEDIR="$2"
+  if [ ! -d "${LIMEDIR}" ]; then
+    "${LIMEDIR} could not be found!"
+    exit 1
+  fi
 fi
 
 if [ -z "$CORRBIN" -o -z "$LIMEDIR" ]; then
   exit 1
 fi
+
+echo LIMEDIR="${LIMEDIR}"
+echo CORRBIN="${CORRBIN}"
 
 # remove any existing h5 files, just in case (the code does not overwrite!)
 rm *.h5
@@ -67,7 +78,11 @@ echo ------------------------------------------------
 echo
 
 echo "Extracting all propagator data"
-./extract_txtprop.sh
+./extract_txtprop.sh ${LIMEDIR}
+if [ $? -ne 0 ]; then
+  echo "Something went wrong with extract_txtprop.sh!"
+  exit 1
+fi
 echo ------------------------------------------------
 echo
 
@@ -101,7 +116,7 @@ fi
 echo ------------------------------------------------
 echo
 
-if [ ${#differences[@]} -ne 0 -o ${#prop_differences[@]} -ne 0 ]; then
+if [ ${#corr_differences[@]} -ne 0 -o ${#prop_differences[@]} -ne 0 ]; then
   echo "Errors found!"
   exit 1
 else
