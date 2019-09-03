@@ -6,34 +6,31 @@ MomentumList:
   id: pzero
   Psqmax: 0
 
-TimeSlicePropagator:
+DiracOperator:
   id: u
   solver_id: 0
   solver_driver: tmlqcd
-  g: [5]
-  P: ptwo
 
-TimeSlicePropagator:
+DiracOperator:
+  id: d
+  solver_id: 1
+  solver_driver: tmlqcd
+
+DiracOperator:
   id: sp3.0mul
   solver_id: 2
   solver_driver: tmlqcd
-  g: [5]
-  P: pzero
 
-TimeSlicePropagator:
+DiracOperator:
   id: sp4.0mul
   solver_id: 3
   solver_driver: tmlqcd
-  g: [5]
-  P: pzero
 
-TimeSlicePropagator:
+DiracOperator:
   id: sp5.0mul
   solver_id: 4
-  solver_driver: tmlqcd
-  g: [5]
-  P: pzero
-  
+  solver_driver: tmlqcd  
+
 OetMesonTwoPointFunction:
   id: pion_all_momenta
   fwd_flav: u
@@ -96,8 +93,6 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  seq_solver_driver: tmlqcd
-  seq_solver_id: 1
   gi: [5]
   gf: [5]
   gb: [5]
@@ -107,6 +102,7 @@ OetMesonThreePointFunction:
   Pf: ptwo
   dirac_join: inner
   momentum_exchange: true
+  dagger_sequential: true
 
 OetMesonThreePointFunction:
   id: averx
@@ -114,8 +110,6 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  seq_solver_driver: tmlqcd
-  seq_solver_id: 1
   gi: [5]
   gf: [5]
   gb: [5]
@@ -125,6 +119,7 @@ OetMesonThreePointFunction:
   Pf: ptwo
   dirac_join: inner
   momentum_exchange: false
+  dagger_sequential: true
 
 OetMesonThreePointFunction:
   id: averxsq
@@ -132,8 +127,6 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  seq_solver_driver: tmlqcd
-  seq_solver_id: 1
   gi: [5]
   gf: [5]
   gb: [5]
@@ -143,4 +136,5 @@ OetMesonThreePointFunction:
   Pf: ptwo
   dirac_join: inner
   momentum_exchange: false
+  dagger_sequential: true
 

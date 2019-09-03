@@ -39,7 +39,7 @@ install_prefix="$(realpath local)"
 git clone https://github.com/usqcd-software/c-lime.git
 pushd c-lime
 ./autogen.sh
-CFLAGS="-fPIC" \
+CFLAGS="-fPIC -O0 -g" \
   ./configure --prefix="$install_prefix"
 make -j $(nproc)
 make install
@@ -59,7 +59,7 @@ mkdir -p lemon_builddir
 pushd lemon_builddir
 lemon_builddir="$(pwd)"
 CC=$(which mpicc) \
-CFLAGS="-fPIC" \
+  CFLAGS="-fPIC -O0 -g" \
   "$lemon_srcdir/configure" --prefix="$install_prefix"
 make -j $(nproc)
 make install
@@ -78,7 +78,7 @@ rm -f tmlqcd_builddir
 mkdir -p tmlqcd_builddir
 pushd tmlqcd_builddir
 CC=$(which mpicc) \
-CFLAGS="-O3 -std=c99 -fPIC" \
+CFLAGS="-O0 -g -std=c99 -fPIC" \
 "$tmlqcd_srcdir"/configure --disable-omp --enable-mpi --with-mpidimension=4 \
   --disable-sse2 --disable-sse3 \
   --enable-halfspinor --enable-gaugecopy \
@@ -99,6 +99,7 @@ git clone https://github.com/BlueBrain/HighFive.git -b v2.0
 mkdir -p "$highfive_builddir"
 pushd "$highfive_builddir"
 cmake \
+  -DCMAKE_CXX_FLAGS="-O0 -g" \
   -DCMAKE_INSTALL_PREFIX="$install_prefix" \
   -DHIGHFIVE_UNIT_TESTS=FALSE \
   -DHIGHFIVE_EXAMPLES=FALSE \
@@ -115,7 +116,7 @@ git clone https://github.com/jbeder/yaml-cpp
 mkdir -p "$yamlcpp_builddir"
 pushd "$yamlcpp_builddir"
 cmake \
-  -DCMAKE_CXX_FLAGS="-fPIC" \
+  -DCMAKE_CXX_FLAGS="-fPIC -O0 -g" \
   -DCMAKE_INSTALL_PREFIX="$install_prefix" \
   -DYAML_CPP_BUILD_TESTS=OFF \
   ../yaml-cpp
@@ -134,7 +135,7 @@ pushd "$builddir"
 CXX=$(which mpicxx)
 
 cmake \
-  -DCMAKE_CXX_FLAGS="-O3 -fPIC" \
+  -DCMAKE_CXX_FLAGS="-O0 -g -fPIC" \
   -DCMAKE_PREFIX_PATH="$install_prefix" \
   -DCMAKE_CXX_COMPILER="$CXX" \
   -DLIME_HOME="$install_prefix" \

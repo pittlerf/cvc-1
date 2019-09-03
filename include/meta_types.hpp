@@ -314,6 +314,26 @@ typedef struct oet_meson_threept_meta_t : oet_meson_twopt_meta_t
   std::string sprop_flav;
 } oet_meson_threept_meta_t; 
 
+typedef struct dirac_op_meta_t {
+  dirac_op_meta_t() :
+    solver_driver("invalid"),
+    solver_id(-1),
+    id("empty")
+  {}
+
+  dirac_op_meta_t(const std::string solver_driver_in,
+                  const std::string id_in,
+                  const int solver_id_in){
+    solver_driver = solver_driver_in;
+    id = id_in;
+    solver_id = solver_id_in;
+  } 
+
+  std::string solver_driver;
+  std::string id;
+  int solver_id;
+} dirac_op_meta_t;
+
 typedef struct MetaCollection {
   mom_lists_t mom_lists;
 
@@ -322,8 +342,9 @@ typedef struct MetaCollection {
 
   int src_ts;
   std::map<std::string, stoch_prop_meta_t> props_meta;
-  std::map<std::string, seq_stoch_prop_meta_t> seq_props_data;
+  std::map<std::string, seq_stoch_prop_meta_t> seq_props_meta;
   std::map<std::string, ts_stoch_src_meta_t> srcs_meta;
+  std::map<std::string, dirac_op_meta_t> dirac_ops_meta;
 
   std::map<std::string, quark_smearing_meta_t> quark_smearing_meta;
   std::map<std::string, gauge_smearing_meta_t> gauge_smearing_meta;

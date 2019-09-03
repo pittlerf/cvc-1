@@ -27,6 +27,11 @@ namespace yaml {
                          const std::string & quarkline_name,
                          const std::string & object_name);
 
+  void validate_dirac_op_key(const std::map<std::string, dirac_op_meta_t> & dirac_ops_meta,
+                             const std::string & key,
+                             const std::string & quarkline_name,
+                             const std::string & object_name);
+
   void check_missing_nodes(const YAML::Node & node,
                            const std::vector<std::string> & required_nodes,
                            const std::string & function_name,

@@ -24,6 +24,8 @@ void enter_node(YAML::Node const &node,
 #endif
   ::cvc::Logger logger(0, verbosity::input_relay, std::cout);
 
+  logger << "Depth: " << depth << std::endl;
+
   YAML::NodeType::value type = node.Type();
   std::string indent( 2*(size_t)depth, ' ');
   switch(type){
@@ -53,6 +55,8 @@ void enter_node(YAML::Node const &node,
         
         if( it->first.as<std::string>() == "MomentumList" ){
           momentum_list(it->second, metas.mom_lists );
+        } else if ( it->first.as<std::string>() == "DiracOperator" ){
+          dirac_operator(it->second, metas.dirac_ops_meta );
         } else if ( it->first.as<std::string>() == "TimeSlicePropagator" ){
           time_slice_propagator(
               it->second,
@@ -64,24 +68,30 @@ void enter_node(YAML::Node const &node,
               data.props_data,
               metas.phases_graph,
               data.phases_data,
-              *(metas.ranspinor));
+              *(metas.ranspinor)
+              );
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
           oet_meson_two_point_function(
               it->second,
               metas.mom_lists,
               metas.src_ts,
               metas.props_meta,
+              metas.props_graph,
               data.props_data,
               odefs.corrs_data,
               metas.corrs_graph,
               data.phases_data,
-              metas.phases_graph);
+              metas.phases_graph,
+              metas.dirac_ops_meta,
+              *(metas.ranspinor)
+              );
         } else if ( it->first.as<std::string>() == "OetMesonThreePointFunction" ){
           oet_meson_three_point_function(
               it->second,
               metas.mom_lists,
               metas.src_ts,
               metas.props_meta,
+              metas.props_graph,
               data.props_data,
               odefs.corrs_data,
               metas.corrs_graph,
@@ -89,7 +99,9 @@ void enter_node(YAML::Node const &node,
               metas.phases_graph,
               data.seq_props_data,
               data.cov_displ_props_data,
-              metas.gauge_field_with_phases
+              metas.dirac_ops_meta,
+              metas.gauge_field_with_phases,
+              *(metas.ranspinor)
               );
         } else if ( it->first.as<std::string>() == "QuarkSmearing" ){
           quark_smearing(
