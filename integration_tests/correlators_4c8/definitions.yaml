@@ -31,34 +31,6 @@ DiracOperator:
   solver_id: 4
   solver_driver: tmlqcd  
 
-TimeSlicePropagator:
-  id: u
-  solver_id: 0
-  solver_driver: tmlqcd
-  g: [5]
-  P: ptwo
-
-TimeSlicePropagator:
-  id: sp3.0mul
-  solver_id: 2
-  solver_driver: tmlqcd
-  g: [5]
-  P: pzero
-
-TimeSlicePropagator:
-  id: sp4.0mul
-  solver_id: 3
-  solver_driver: tmlqcd
-  g: [5]
-  P: pzero
-
-TimeSlicePropagator:
-  id: sp5.0mul
-  solver_id: 4
-  solver_driver: tmlqcd
-  g: [5]
-  P: pzero
-  
 OetMesonTwoPointFunction:
   id: pion_all_momenta
   fwd_flav: u

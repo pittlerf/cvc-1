@@ -24,6 +24,8 @@ void enter_node(YAML::Node const &node,
 #endif
   ::cvc::Logger logger(0, verbosity::input_relay, std::cout);
 
+  logger << "Depth: " << depth << std::endl;
+
   YAML::NodeType::value type = node.Type();
   std::string indent( 2*(size_t)depth, ' ');
   switch(type){
