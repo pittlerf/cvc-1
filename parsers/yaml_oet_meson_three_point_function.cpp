@@ -33,6 +33,7 @@ void oet_meson_three_point_function(
     DepGraph & phases_graph,
     std::map< std::string, std::vector<double> > & seq_props_data,
     std::map< std::string, std::vector<double> > & cov_displ_props_data,
+    std::map< std::string, dirac_op_meta_t > & dirac_ops_meta,
     double * const gauge_field_with_phases,
     const std::vector<double> & ranspinor)
 {
@@ -53,21 +54,18 @@ void oet_meson_three_point_function(
   
   static const std::vector<std::string> required_nodes{
     "id", "dt", "fwd_flav", "bwd_flav", "seq_flav", "gi", "gf", "gb", "gc", "Pi", "Pf",
-    "momentum_exchange", "dirac_join", "Dc", "dagger_sequential",
-    "fwd_solver_id", "bwd_solver_id", "seq_solver_id",
-    "solver_driver"};
+    "momentum_exchange", "dirac_join", "Dc", "dagger_sequential"};
 
   static const std::vector<std::string> scalar_nodes{
     "id", "fwd_flav", "bwd_flav", "seq_flav", "dirac_join", "momentum_exchange",
-    "Pi", "Pf", "dagger_sequential", "solver_driver",
-    "seq_solver_id", "fwd_solver_id", "bwd_solver_id" };
+    "Pi", "Pf", "dagger_sequential"};
 
   static const std::vector<std::string> sequence_nodes{
     "dt", "gi", "gf", "gb", "gc", "Dc" };
 
   check_missing_nodes(node, required_nodes,
       "cvc::yaml::oet_meson_three_point_function", "OetMesonThreePointFunction");
- 
+
   for( const std::string name : scalar_nodes ){
     validate_nodetype(node[name],
                       std::vector<YAML::NodeType::value>{YAML::NodeType::Scalar}, 
@@ -87,8 +85,16 @@ void oet_meson_three_point_function(
     validate_mom_lists_key(mom_lists, node[name].as<std::string>(), name,
                            node["id"].as<std::string>());
   }
+  for( const std::string name : { "fwd_flav", "bwd_flav", "seq_flav" } ){
+    validate_dirac_op_key(dirac_ops_meta, node[name].as<std::string>(), name,
+                          node["id"].as<std::string>());
+  }
 
   const bool dagger_seq = node["dagger_sequential"].as<bool>();
+
+  const std::string fwd_flav = node["fwd_flav"].as<std::string>();
+  const std::string bwd_flav = node["bwd_flav"].as<std::string>();
+  const std::string seq_flav = node["seq_flav"].as<std::string>();
 
   // loop over the source-sink-separation as well as the momentum combinations at this level
   // further below over all gamma and cov_displative combinations
@@ -190,9 +196,7 @@ void oet_meson_three_point_function(
               stoch_prop_meta_t fwd_prop_meta(psrc,
                                               gi[i_gi].as<int>(),
                                               src_ts,
-                                              node["fwd_flav"].as<std::string>(),
-                                              node["solver_driver"].as<std::string>(),
-                                              node["fwd_solver_id"].as<int>() );
+                                              fwd_flav);
               const std::string fwd_prop_key = fwd_prop_meta.key();
               
               if( props_meta.count(fwd_prop_key) == 0 ){
@@ -202,7 +206,7 @@ void oet_meson_three_point_function(
                 props_graph[fwd_prop_vertex].resolve.reset(
                     new PropResolve(
                       fwd_prop_key,
-                      node["fwd_solver_id"].as<int>(),
+                      dirac_ops_meta[fwd_flav].solver_id,
                       props_data,
                       new CreateGammaTimeSliceSource(
                         src_ts,
@@ -217,7 +221,7 @@ void oet_meson_three_point_function(
 
                 // all simple propagators of a given flavour (id) will be collected in one group
                 // that way, the MG setup, if any, can be used optimally
-                Vertex fwd_flav_vertex = boost::add_vertex(node["fwd_flav"].as<std::string>(), props_graph);
+                Vertex fwd_flav_vertex = boost::add_vertex(fwd_flav, props_graph);
                 ::cvc::add_unique_edge(fwd_prop_vertex, fwd_flav_vertex, props_graph); 
               }
 
@@ -227,9 +231,7 @@ void oet_meson_three_point_function(
               stoch_prop_meta_t bwd_prop_meta(zero_mom,
                                               gb[i_gb].as<int>(),
                                               src_ts,
-                                              node["bwd_flav"].as<std::string>(),
-                                              node["solver_driver"].as<std::string>(),
-                                              node["bwd_solver_id"].as<int>() );
+                                              bwd_flav);
               const std::string bwd_prop_key = bwd_prop_meta.key();
 
               if( props_meta.count(bwd_prop_key) == 0 ){
@@ -239,7 +241,7 @@ void oet_meson_three_point_function(
                 props_graph[bwd_prop_vertex].resolve.reset(
                     new PropResolve(
                       bwd_prop_key,
-                      node["bwd_solver_id"].as<int>(),
+                      dirac_ops_meta[bwd_flav].solver_id,
                       props_data,
                       new CreateGammaTimeSliceSource(
                         src_ts,
@@ -252,7 +254,7 @@ void oet_meson_three_point_function(
                       )
                     );
 
-                Vertex bwd_flav_vertex = boost::add_vertex(node["bwd_flav"].as<std::string>(), props_graph);
+                Vertex bwd_flav_vertex = boost::add_vertex(bwd_flav, props_graph);
                 ::cvc::add_unique_edge(bwd_prop_vertex, bwd_flav_vertex, props_graph);
               }
 
@@ -268,11 +270,11 @@ void oet_meson_three_point_function(
                                                       gf[i_gf].as<int>(),
                                                       seq_src_ts,
                                                       src_ts,
-                                                      node["seq_flav"].as<std::string>(),
+                                                      seq_flav,
                                                       zero_mom, // this is the momentum carried by the backward
                                                                 // propagator
                                                       gb[i_gb].as<int>(),
-                                                      node["bwd_flav"].as<std::string>()
+                                                      bwd_flav
                                                       );
 
                 const std::string seq_prop_key = seq_prop.key();
@@ -287,7 +289,7 @@ void oet_meson_three_point_function(
                 Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, corrs_graph);
                 corrs_graph[seq_prop_vertex].resolve.reset( new PropResolve(
                       seq_prop_key,
-                      node["seq_solver_id"].as<int>(),
+                      dirac_ops_meta[seq_flav].solver_id,
                       seq_props_data,
                       new CreateSequentialGammaTimeSliceSource(
                         src_ts,
@@ -303,14 +305,14 @@ void oet_meson_three_point_function(
                 char corrtype[100];
                 if( dagger_seq ){
                   snprintf(corrtype, 100, "s%s%s+-g-%s-g",
-                           node["bwd_flav"].as<std::string>().c_str(),
-                           node["seq_flav"].as<std::string>().c_str(),
-                           node["fwd_flav"].as<std::string>().c_str());
+                           bwd_flav.c_str(),
+                           seq_flav.c_str(),
+                           fwd_flav.c_str());
                 } else {
                   snprintf(corrtype, 100, "s%s%s-g-%s+-g",
-                           node["bwd_flav"].as<std::string>().c_str(),
-                           node["seq_flav"].as<std::string>().c_str(),
-                           node["fwd_flav"].as<std::string>().c_str());
+                           bwd_flav.c_str(),
+                           seq_flav.c_str(),
+                           fwd_flav.c_str());
                 }
                 for( size_t i_Dc = 0; i_Dc < Dc.size(); ++i_Dc ){
                   {

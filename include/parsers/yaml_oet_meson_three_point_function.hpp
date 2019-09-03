@@ -22,6 +22,7 @@ void oet_meson_three_point_function(
     DepGraph & phases_graph,
     std::map< std::string, std::vector<double> > & seq_props_data,
     std::map< std::string, std::vector<double> > & deriv_props_data,
+    std::map< std::string, dirac_op_meta_t > & dirac_op_metas,
     double * const gauge_field_with_phases,
     const std::vector<double> & ranspinor);
 

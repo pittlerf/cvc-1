@@ -53,6 +53,8 @@ void enter_node(YAML::Node const &node,
         
         if( it->first.as<std::string>() == "MomentumList" ){
           momentum_list(it->second, metas.mom_lists );
+        } else if ( it->first.as<std::string>() == "DiracOperator" ){
+          dirac_operator(it->second, metas.dirac_ops_meta );
         } else if ( it->first.as<std::string>() == "TimeSlicePropagator" ){
           time_slice_propagator(
               it->second,
@@ -78,6 +80,7 @@ void enter_node(YAML::Node const &node,
               metas.corrs_graph,
               data.phases_data,
               metas.phases_graph,
+              metas.dirac_ops_meta,
               *(metas.ranspinor)
               );
         } else if ( it->first.as<std::string>() == "OetMesonThreePointFunction" ){
@@ -94,6 +97,7 @@ void enter_node(YAML::Node const &node,
               metas.phases_graph,
               data.seq_props_data,
               data.cov_displ_props_data,
+              metas.dirac_ops_meta,
               metas.gauge_field_with_phases,
               *(metas.ranspinor)
               );

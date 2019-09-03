@@ -6,6 +6,31 @@ MomentumList:
   id: pzero
   Psqmax: 0
 
+DiracOperator:
+  id: u
+  solver_id: 0
+  solver_driver: tmlqcd
+
+DiracOperator:
+  id: d
+  solver_id: 1
+  solver_driver: tmlqcd
+
+DiracOperator:
+  id: sp3.0mul
+  solver_id: 2
+  solver_driver: tmlqcd
+
+DiracOperator:
+  id: sp4.0mul
+  solver_id: 3
+  solver_driver: tmlqcd
+
+DiracOperator:
+  id: sp5.0mul
+  solver_id: 4
+  solver_driver: tmlqcd  
+
 TimeSlicePropagator:
   id: u
   solver_id: 0
@@ -96,10 +121,6 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  solver_driver: tmlqcd
-  fwd_solver_id: 0
-  bwd_solver_id: 0
-  seq_solver_id: 1
   gi: [5]
   gf: [5]
   gb: [5]
@@ -117,10 +138,6 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  solver_driver: tmlqcd
-  fwd_solver_id: 0
-  bwd_solver_id: 0
-  seq_solver_id: 1
   gi: [5]
   gf: [5]
   gb: [5]
@@ -138,10 +155,6 @@ OetMesonThreePointFunction:
   fwd_flav: u 
   bwd_flav: u
   seq_flav: d
-  solver_driver: tmlqcd
-  fwd_solver_id: 0
-  bwd_solver_id: 0
-  seq_solver_id: 1
   gi: [5]
   gf: [5]
   gb: [5]

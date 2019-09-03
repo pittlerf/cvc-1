@@ -8,4 +8,5 @@
 #include "parsers/yaml_oet_meson_three_point_function.hpp"
 #include "parsers/yaml_quark_smearing.hpp"
 #include "parsers/yaml_gauge_smearing.hpp"
+#include "parsers/yaml_dirac_operator.hpp"
 

@@ -100,6 +100,21 @@ void validate_mom_lists_key(const mom_lists_t & mom_lists,
   }
 }
 
+void validate_dirac_op_key(const std::map<std::string, dirac_op_meta_t> & dirac_ops_meta,
+                           const std::string & key,
+                           const std::string & quarkline_name,
+                           const std::string & object_name)
+{
+  if( !dirac_ops_meta.count(key) ){
+    char msg[200];
+    snprintf(msg, 200,
+        "Dirac operator with id:'%s' for quark line '%s' in the definition of '%s' does not seem "
+        "to have been defined perviously! Please check your YAML definitions file!",
+        key.c_str(), quarkline_name.c_str(), object_name.c_str());
+    throw( ::cvc::invalid_argument(msg, "validate_dirac_op_key" ) );
+  }
+}
+
 void validate_prop_key(const std::map<std::string, stoch_prop_meta_t> & props_meta,
                        const std::string & key,
                        const std::string & quarkline_name,
