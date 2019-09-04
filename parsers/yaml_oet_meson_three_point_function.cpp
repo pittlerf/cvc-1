@@ -404,7 +404,17 @@ void oet_meson_three_point_function(
                       // appearing *right-most* in the key), we need to push_back the elements
                       // from the last to the first.
                       for( auto cov_displ_i = cov_displ_chain.rbegin(); cov_displ_i != cov_displ_chain.rend(); ++cov_displ_i ){
-                        snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ_i->dim, cov_displ_i->dir);
+                        // all displacements are applied to the "forward" propagator
+                        // if we dagger the sequential propagator, all is good and the labels below
+                        // are appropriate
+                        // however, if in the contraction we dagger the forward propagator instead,
+                        // the direction label in the correlator must be exchanged AND an implicit
+                        // phase must be included in case of non-zero momentum
+                        if( dagger_seq ){
+                          snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ_i->dim, cov_displ_i->dir);
+                        } else {
+                          snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ_i->dim, (cov_displ_i->dir+1) % 2);
+                        }
                         path_list.push_back(subpath);
                       }
                       snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
@@ -498,9 +508,11 @@ void oet_meson_three_point_function(
                                         phases_data,
                                         ::cvc::complex{1.0, 0.0} ) );
                       } else {
-                        // FIXME: when the covariantly displaced propagator
-                        // is daggered, one has to of course think carefully about what this means
-                        // for the displacements!
+                        // CAVEAT: in this case, the covariantly displaced propagator
+                        // is daggered in the contraction
+                        // while this has been taken into account in the correlator
+                        // labelling, in case of non-zero momentum, there is
+                        // an implicit phase missing
                         corrs_graph[corrvertex].resolve.reset( new 
                             CorrResolve(seq_prop_key,
                                         cov_displ_prop_key,
