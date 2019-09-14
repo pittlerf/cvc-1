@@ -298,9 +298,6 @@ static inline double fltlist_next_token(int * const list_end){
 ^BCangleX{SPC}*={SPC}*                     BEGIN(BCX);
 ^BCangleY{SPC}*={SPC}*                     BEGIN(BCY);
 ^BCangleZ{SPC}*={SPC}*                     BEGIN(BCZ);
-^spinprojectionfname_prefix{SPC}*={SPC}*   BEGIN(SPINPROJECTIONPREFIX);
-^filename_prefix{SPC}*={SPC}*              BEGIN(PREFIX);
-^filename_prefix2{SPC}*={SPC}*             BEGIN(PREFIX2);
 ^filename_prefix3{SPC}*={SPC}*             BEGIN(PREFIX3);
 ^sequential_filename_prefix{SPC}*={SPC}*   BEGIN(SEQPREFIX);
 ^sequential_filename_prefix2{SPC}*={SPC}*  BEGIN(SEQPREFIX2);
@@ -414,12 +411,21 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_y{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMY);
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
-^SpinProjectionLoopAccumulate{SPC}*={SPC}* BEGIN(SPINPROJECTIONLOOPACCUMULATE);
-^SpinProjectionSpinTrace{SPC}*={SPC}*      BEGIN(SPINPROJECTIONSPINTRACE);
-^SpinProjectionGammaStructure{SPC}*={SPC}* BEGIN(SPINPROJECTIONGAMMAS);
-^SpinProjectionGammaBasis{EQL}             BEGIN(SPINPROJECTIONGAMMABASIS);
-^SpinProjectionFilterQsq{SPC}*={SPC}*      BEGIN(SPINPROJECTIONFILTERQSQ);
-^SpinProjectionFilterLoopType{SPC}*={SPC}* BEGIN(SPINPROJECTIONLOOPTYPE);
+
+^loopextractinpath{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTINPATH);
+^loopextractfilenameprefix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMEPREFIX);
+^loopextractfilenamesuffix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMESUFFIX);
+^loopextractntochaccumulated{SPC}*={SPC}*       BEGIN(LOOPEXTRACTNSTOCHACCUMULATED);
+^loopextractspinprojectspinproject{SPC}*={SPC}* BEGIN(LOOPEXTRACTSPINPROJECT);
+^loopextractlegacytraj{SPC}*={SPC}*             BEGIN(LOOPEXTRACTLEGACYTRAJ);
+^loopextractspinprojectspintrace{SPC}*={SPC}*   BEGIN(LOOPEXTRACTSPINTRACE);
+^loopextractgammastructure{SPC}*={SPC}*         BEGIN(LOOPEXTRACTGAMMASTRUCTURE);
+^loopextractspinprojectgammabasis{EQL}          BEGIN(LOOPEXTRACTSPINPROJECTGAMMABASIS);
+^loopextractoutqsq{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTOUTQSQ);
+^loopextractinqsq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
+^loopextractfilterlooptypes{SPC}*={SPC}*        BEGIN(LOOPEXTRACTFILTERLOOPTYPES);
+^loopextractsamples{SPC}*={SPC}*                BEGIN(LOOPEXTRACTSAMPLES);
+^loopextractverbositylevel{SPC}*={SPC}*         BEGIN(LOOPEXTRACTASCIIOUTPUT);
 
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
 ^gpu_precision{SPC}*={SPC}*                BEGIN(GPUPREC);
@@ -552,22 +558,22 @@ static inline double fltlist_next_token(int * const list_end){
   cvc::g_gauge_step = atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] gauge step size set to %s\n", yytext);
 }
-<SPINPROJECTIONPREFIX>{FILENAME} {
-  int count=snprintf(cvc::spinprojectionfname_prefix,200,"%s",yytext);
+<LOOPEXTRACTINPATH>{FILENAME} {
+  int count=snprintf(cvc::LoopExtract_InPath,200,"%s",yytext);
   char error_message[200];
   if ((count>=200) || (count<0)){
-    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in spin projection prefix parsing !\n",count);
+    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract input path parsing !\n",count);
     yy_fatal_error(error_message);
   }
+  if(cvc::myverbose!=0) printf("# [read_input_parser] input path set to %s\n",yytext);
+}
+<LOOPEXTRACTFILENAMEPREFIX>{FILENAME} {
+  strcpy(cvc::LoopExtract_FilenamePrefix,yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
 }
-<PREFIX>{FILENAME} {
-  strcpy(cvc::filename_prefix,yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
-}
-<PREFIX2>{FILENAME} {
-  strcpy(cvc::filename_prefix2,yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. 2 filename prefix set to %s\n",yytext);
+<LOOPEXTRACTFILENAMESUFFIX>{FILENAME} {
+  strcpy(cvc::LoopExtractFilenameSuffix,yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename suffix set to %s\n",yytext);
 }
 <PREFIX3>{FILENAME} {
   strcpy(cvc::filename_prefix3,yytext);
@@ -642,43 +648,97 @@ static inline double fltlist_next_token(int * const list_end){
   } 
   if(cvc::myverbose!=0) printf("# [read_input_parser] source type set to %s\n",yytext);
 }
-<SPINPROJECTIONFILTERQSQ>{FLT} {
-  cvc::g_spinprojection_filtered_qsq = atof(yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_spinprojection_filtered_qsq);
+
+<LOOPEXTRACTSAMPLES>{DIGIT}+ {
+  cvc::g_LoopExtract_Nstoch = (unsigned int)atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_Nstoch set to %s\n",yytext);
 }
-<SPINPROJECTIONLOOPACCUMULATE>{FILENAME} {
+<LOOPEXTRACTINQSQ>{FLT} {
+  cvc::g_LoopExtract_InSq = atof(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] input momenta upto %f\n", cvc::g_LoopExtract_InQSq);
+}
+<LOOPEXTRACTOUTQSQ>{FLT} {
+  cvc::g_LoopExtract_OutSq = atof(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_LoopExtract_OutQSq);
+}
+<LOOPEXTRACTNSTOCHACCUMULATED>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
-    cvc::g_spinprojection_loopaccumulate = 1;
-    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spinprojection_loopaccumulate is on\n");
+    cvc::g_LoopExtract_NstochAccumulated = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_NstochAccumulated is on\n");
   }
   else if (strcmp(yytext,"no")==0){
-    cvc::g_spinprojection_loopaccumulate = 0;
-    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spinprojection_loopaccumulate is off\n");
+    cvc::g_LoopExtract_LoopAccumulate = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_NstochAccumulated is off\n");
   }
 }
-<SPINPROJECTIONSPINTRACE>{FILENAME} {
+<LOOPEXTRACTASCIIOUTPUT>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
-    cvc::g_spinprojection_spintrace = 1;
-    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is on\n");
+    cvc::g_LoopExtract_ASCII_Output = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_ASCII_Output is on\n");
   }
   else if (strcmp(yytext,"no")==0){
-    cvc::g_spinprojection_spintrace = 0;
-    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_spintrace is off\n");
+    cvc::g_LoopExtract_ASCII_Output = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_ASCII_Output is off\n");
   }
 }
-<SPINPROJECTIONGAMMABASIS>ukqcd {
-  cvc::g_spinprojection_gamma_basis = cvc::UKQCD;
+<LOOPEXTRACTSPINTRACE>{FILENAME} {
+  if (strcmp(yytext,"yes")==0){
+    cvc::g_LoopExtract_SpinTrace = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtractSpinTrace is on\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_LoopExtract_SpinTrace = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtractSpinTrace is off\n");
+  }
+}
+
+<LOOPEXTRACTLEGACYTRAJ>{FILENAME} {
+  if (strcmp(yytext,"yes")==0){
+    cvc::g_LoopExtract_LegacyTraj = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_LegacyTraj is on\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_LoopExtract_LegacyTraj = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_LegacyTraj is off\n");
+  }
+}
+
+<LOOPEXTRACTSPINPROJECT>{FILENAME} {
+  if (strcmp(yytext,"yes")==0){
+    cvc::g_LoopExtract_SpinProject = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is on\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_LoopExtract_SpinProject = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is off\n");
+  }
+}
+
+<LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE>{CORRCONFIG} {
+
+  if ( cvc::g_LoopExtract_SpinProjectGammaStructure_Number == MAX_LOOPEXTRACT_SPINPROJECTGAMMASTRUCTURE_NUMBER ) {
+    fprintf(stderr, "[read_input_parser] Error, too many gamma structure to be projected \n");
+    exit(1);
+  } else {
+    fprintf(stdout, "# [read_input_parser] extracting gamma structures %d\n", cvc::g_LoopExtract_SpinProjectGammaStructure_Number);
+  }
+
+  sscanf(yytext, "%d",
+    cvc::g_LoopExtract_SpinProjectGammaStructure_List[cvc::g_LoopExtract_SpinProjectGammaStructure_Number]);
+  cvc::g_LoopExtract_SpinProjectGammaStructure_Number++;
+  if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", g_LoopExtract_SpinProjectGammaStructure_number , yytext);
+}
+
+
+<LOOPEXTRACTSPINPROJECTGAMMABASIS>ukqcd {
+  cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::UKQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
 }
-<SPINPROJECTIONGAMMABASIS>chiral_tmlqcd {
-  cvc::g_spinprojection_gamma_basis = cvc::CHIRAL_TMLQCD;
+<LOOPEXTRACTSPINPROJECTGAMMABASIS>chiral_tmlqcd {
+  cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::CHIRAL_TMLQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] CHIRAL gammabasis is choosen\n");
 }
-<SPINPROJECTIONGAMMAS>{DIGIT}+ {
-  cvc::g_spinprojection_gammas = atoi(yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] spin projection on loops with gamma id %d\n", cvc::g_spinprojection_gammas);
-}
-<SPINPROJECTIONLOOPTYPE>{STRLIST} {
+<LOOPEXTRACTFILTERLOOPTYPES>{STRLIST} {
   char paramname[100];
   char token[100];
   char error_message[200];
@@ -693,25 +753,25 @@ static inline double fltlist_next_token(int * const list_end){
       }
     printf("Token=%s\n",token);
     if( strcmp(token, "Naive") == 0 ){
-      cvc::g_spinprojection_loop_type[index]=0;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=0;
     }
     else if( strcmp(token, "Scalar") == 0 ){
-      cvc::g_spinprojection_loop_type[index]=1;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=1;
     }
     else if( strcmp(token, "dOp") == 0 ){
-      cvc::g_spinprojection_loop_type[index]=2;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=2;
     }
     else if( strcmp(token, "Loops") == 0){
-      cvc::g_spinprojection_loop_type[index]=3;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=3;
     }
     else if( strcmp(token, "LpsDw") == 0){
-      cvc::g_spinprojection_loop_type[index]=4;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=4;
     }
     else if( strcmp(token, "LoopsCv") == 0){
-      cvc::g_spinprojection_loop_type[index]=5;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=5;
     }
     else if( strcmp(token, "LpsDwCv") == 0){
-      cvc::g_spinprojection_loop_type[index]=6;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=6;
     }
     else {
       snprintf(error_message, 200, "# [read_input_parser] Unknown loop type %s passed in the parsing of %s!\n", yytext, paramname);
@@ -721,7 +781,7 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] loop type saved to %s\n",token);
     cvc::strlist_next_token(&list_end, token, 100);
   }
-  cvc::g_spinprojection_loop_number=index;
+  cvc::g_LoopExtract_FilterLoopTypesNumber=index;
 }
 <SPREC>{FLT} {
   cvc::solver_precision = atof(yytext);
