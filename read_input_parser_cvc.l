@@ -558,23 +558,6 @@ static inline double fltlist_next_token(int * const list_end){
   cvc::g_gauge_step = atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] gauge step size set to %s\n", yytext);
 }
-<LOOPEXTRACTINPATH>{FILENAME} {
-  int count=snprintf(cvc::LoopExtract_InPath,200,"%s",yytext);
-  char error_message[200];
-  if ((count>=200) || (count<0)){
-    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract input path parsing !\n",count);
-    yy_fatal_error(error_message);
-  }
-  if(cvc::myverbose!=0) printf("# [read_input_parser] input path set to %s\n",yytext);
-}
-<LOOPEXTRACTFILENAMEPREFIX>{FILENAME} {
-  strcpy(cvc::LoopExtract_FilenamePrefix,yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
-}
-<LOOPEXTRACTFILENAMESUFFIX>{FILENAME} {
-  strcpy(cvc::LoopExtractFilenameSuffix,yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename suffix set to %s\n",yytext);
-}
 <PREFIX3>{FILENAME} {
   strcpy(cvc::filename_prefix3,yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] prop. 3 filename prefix set to %s\n",yytext);
@@ -649,6 +632,25 @@ static inline double fltlist_next_token(int * const list_end){
   if(cvc::myverbose!=0) printf("# [read_input_parser] source type set to %s\n",yytext);
 }
 
+
+<LOOPEXTRACTINPATH>{FILENAME} {
+  int count=snprintf(cvc::g_LoopExtract_InPath,200,"%s",yytext);
+  char error_message[200];
+  if ((count>=200) || (count<0)){
+    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract input path parsing !\n",count);
+    yy_fatal_error(error_message);
+  }
+  if(cvc::myverbose!=0) printf("# [read_input_parser] input path set to %s\n",yytext);
+}
+<LOOPEXTRACTFILENAMEPREFIX>{FILENAME} {
+  strcpy(cvc::g_LoopExtract_FilenamePrefix,yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
+}
+<LOOPEXTRACTFILENAMESUFFIX>{FILENAME} {
+  strcpy(cvc::g_LoopExtractFilenameSuffix,yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename suffix set to %s\n",yytext);
+}
+
 <LOOPEXTRACTSAMPLES>{DIGIT}+ {
   cvc::g_LoopExtract_Nstoch = (unsigned int)atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_Nstoch set to %s\n",yytext);
@@ -667,7 +669,7 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_NstochAccumulated is on\n");
   }
   else if (strcmp(yytext,"no")==0){
-    cvc::g_LoopExtract_LoopAccumulate = 0;
+    cvc::g_LoopExtract_NstochAccumulated = 0;
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_NstochAccumulated is off\n");
   }
 }
@@ -691,6 +693,16 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtractSpinTrace is off\n");
   }
 }
+<LOOPEXTRACTSPINPROJECT>{FILENAME} {
+  if (strcmp(yytext,"yes")==0){
+    cvc::g_LoopExtract_SpinProject = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is on\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_LoopExtract_SpinProject = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is off\n");
+  }
+}
 
 <LOOPEXTRACTLEGACYTRAJ>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
@@ -703,19 +715,8 @@ static inline double fltlist_next_token(int * const list_end){
   }
 }
 
-<LOOPEXTRACTSPINPROJECT>{FILENAME} {
-  if (strcmp(yytext,"yes")==0){
-    cvc::g_LoopExtract_SpinProject = 1;
-    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is on\n");
-  }
-  else if (strcmp(yytext,"no")==0){
-    cvc::g_LoopExtract_SpinProject = 0;
-    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is off\n");
-  }
-}
 
 <LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE>{CORRCONFIG} {
-
   if ( cvc::g_LoopExtract_SpinProjectGammaStructure_Number == MAX_LOOPEXTRACT_SPINPROJECTGAMMASTRUCTURE_NUMBER ) {
     fprintf(stderr, "[read_input_parser] Error, too many gamma structure to be projected \n");
     exit(1);
@@ -726,7 +727,7 @@ static inline double fltlist_next_token(int * const list_end){
   sscanf(yytext, "%d",
     cvc::g_LoopExtract_SpinProjectGammaStructure_List[cvc::g_LoopExtract_SpinProjectGammaStructure_Number]);
   cvc::g_LoopExtract_SpinProjectGammaStructure_Number++;
-  if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", g_LoopExtract_SpinProjectGammaStructure_number , yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", g_LoopExtract_SpinProjectGammaStructure_Number , yytext);
 }
 
 
