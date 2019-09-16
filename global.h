@@ -190,9 +190,9 @@ EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
 
-EXTERN char g_LoopExtract_InPath[200];
-EXTERN char g_LoopExtract_FilenamePrefix[200];
-EXTERN char g_LoopExtract_FilenameSuffix[200];
+EXTERN char g_LoopExtract_InPath[400];
+EXTERN char g_LoopExtract_FilenamePrefix[400];
+EXTERN char g_LoopExtract_FilenameSuffix[400];
 
 EXTERN int g_LoopExtract_InQSq;
 EXTERN int g_LoopExtract_OutQSq;

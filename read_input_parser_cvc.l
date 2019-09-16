@@ -641,21 +641,31 @@ static inline double fltlist_next_token(int * const list_end){
 
 
 <LOOPEXTRACTINPATH>{FILENAME} {
-  int count=snprintf(cvc::g_LoopExtract_InPath,200,"%s",yytext);
+  int count=snprintf(cvc::g_LoopExtract_InPath,400,"%s",yytext);
   char error_message[200];
-  if ((count>=200) || (count<0)){
+  if ((count>=400) || (count<0)){
     snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract input path parsing !\n",count);
     yy_fatal_error(error_message);
   }
   if(cvc::myverbose!=0) printf("# [read_input_parser] input path set to %s\n",yytext);
 }
 <LOOPEXTRACTFILENAMEPREFIX>{FILENAME} {
-  strcpy(cvc::g_LoopExtract_FilenamePrefix,yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
+  int count=snprintf(cvc::g_LoopExtract_FilenamePrefix,400,"%s",yytext);
+  char error_message[200];
+  if ((count>=400) || (count<0)){
+    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract filename prefix parsing !\n",count);
+    yy_fatal_error(error_message);
+  }
+  if(cvc::myverbose!=0) printf("# [read_input_parser] filename prefix set to %s\n",yytext);
 }
 <LOOPEXTRACTFILENAMESUFFIX>{FILENAME} {
-  strcpy(cvc::g_LoopExtract_FilenameSuffix,yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename suffix set to %s\n",yytext);
+  int count=snprintf(cvc::g_LoopExtract_FilenameSuffix,400,"%s",yytext);
+  char error_message[200];
+  if ((count>=400) || (count<0)){
+    snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract filename suffix parsing !\n",count);
+    yy_fatal_error(error_message);
+  }
+  if(cvc::myverbose!=0) printf("# [read_input_parser] filename prefix set to %s\n",yytext);
 }
 <LOOPEXTRACTSAMPLES>{DIGIT}+ {
   cvc::g_LoopExtract_Nstoch = (unsigned int)atoi(yytext);
