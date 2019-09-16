@@ -139,7 +139,21 @@ static inline double fltlist_next_token(int * const list_end){
 %x BCX
 %x BCY
 %x BCZ
-%x SPINPROJECTIONPREFIX
+%x LOOPEXTRACTFILTERLOOPTYPES
+%x LOOPEXTRACTSPINPROJECTGAMMABASIS
+%x LOOPEXTRACTFILTERLOOPTYPES
+%x LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE
+%x LOOPEXTRACTLEGACYTRAJ
+%x LOOPEXTRACTSPINPROJECT
+%x LOOPEXTRACTSPINTRACE
+%x LOOPEXTRACTASCIIOUTPUT
+%x LOOPEXTRACTNSTOCHACCUMULATED
+%x LOOPEXTRACTOUTQSQ
+%x LOOPEXTRACTINQSQ
+%x LOOPEXTRACTSAMPLES
+%x LOOPEXTRACTFILENAMESUFFIX
+%x LOOPEXTRACTFILENAMEPREFIX
+%x LOOPEXTRACTINPATH
 %x PREFIX
 %x PREFIX2
 %x PREFIX3
@@ -242,12 +256,6 @@ static inline double fltlist_next_token(int * const list_end){
 %x SEQSRCMOMX
 %x SEQSRCMOMY
 %x SEQSRCMOMZ
-%x SPINPROJECTIONLOOPACCUMULATE
-%x SPINPROJECTIONSPINTRACE
-%x SPINPROJECTIONGAMMAS
-%x SPINPROJECTIONGAMMABASIS
-%x SPINPROJECTIONLOOPTYPE
-%x SPINPROJECTIONFILTERQSQ
 %x SEQ2SRCMOM
 %x SEQ2SRCMOMX
 %x SEQ2SRCMOMY
@@ -419,7 +427,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^loopextractspinprojectspinproject{SPC}*={SPC}* BEGIN(LOOPEXTRACTSPINPROJECT);
 ^loopextractlegacytraj{SPC}*={SPC}*             BEGIN(LOOPEXTRACTLEGACYTRAJ);
 ^loopextractspinprojectspintrace{SPC}*={SPC}*   BEGIN(LOOPEXTRACTSPINTRACE);
-^loopextractgammastructure{SPC}*={SPC}*         BEGIN(LOOPEXTRACTGAMMASTRUCTURE);
+^loopextractgammastructure{SPC}*={SPC}*         BEGIN(LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE);
 ^loopextractspinprojectgammabasis{EQL}          BEGIN(LOOPEXTRACTSPINPROJECTGAMMABASIS);
 ^loopextractoutqsq{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTOUTQSQ);
 ^loopextractinqsq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
@@ -647,7 +655,7 @@ static inline double fltlist_next_token(int * const list_end){
   if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
 }
 <LOOPEXTRACTFILENAMESUFFIX>{FILENAME} {
-  strcpy(cvc::g_LoopExtractFilenameSuffix,yytext);
+  strcpy(cvc::g_LoopExtract_FilenameSuffix,yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename suffix set to %s\n",yytext);
 }
 
@@ -656,11 +664,11 @@ static inline double fltlist_next_token(int * const list_end){
   if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_Nstoch set to %s\n",yytext);
 }
 <LOOPEXTRACTINQSQ>{FLT} {
-  cvc::g_LoopExtract_InSq = atof(yytext);
+  cvc::g_LoopExtract_InQSq = atof(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] input momenta upto %f\n", cvc::g_LoopExtract_InQSq);
 }
 <LOOPEXTRACTOUTQSQ>{FLT} {
-  cvc::g_LoopExtract_OutSq = atof(yytext);
+  cvc::g_LoopExtract_OutQSq = atof(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_LoopExtract_OutQSq);
 }
 <LOOPEXTRACTNSTOCHACCUMULATED>{FILENAME} {
@@ -727,7 +735,7 @@ static inline double fltlist_next_token(int * const list_end){
   sscanf(yytext, "%d",
     cvc::g_LoopExtract_SpinProjectGammaStructure_List[cvc::g_LoopExtract_SpinProjectGammaStructure_Number]);
   cvc::g_LoopExtract_SpinProjectGammaStructure_Number++;
-  if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", g_LoopExtract_SpinProjectGammaStructure_Number , yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", cvc::g_LoopExtract_SpinProjectGammaStructure_Number , yytext);
 }
 
 
