@@ -658,7 +658,6 @@ static inline double fltlist_next_token(int * const list_end){
   strcpy(cvc::g_LoopExtract_FilenameSuffix,yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename suffix set to %s\n",yytext);
 }
-
 <LOOPEXTRACTSAMPLES>{DIGIT}+ {
   cvc::g_LoopExtract_Nstoch = (unsigned int)atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_Nstoch set to %s\n",yytext);
@@ -711,7 +710,6 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is off\n");
   }
 }
-
 <LOOPEXTRACTLEGACYTRAJ>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_LegacyTraj = 1;
@@ -722,8 +720,6 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_LegacyTraj is off\n");
   }
 }
-
-
 <LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE>{CORRCONFIG} {
   if ( cvc::g_LoopExtract_SpinProjectGammaStructure_Number == MAX_LOOPEXTRACT_SPINPROJECTGAMMASTRUCTURE_NUMBER ) {
     fprintf(stderr, "[read_input_parser] Error, too many gamma structure to be projected \n");
@@ -737,7 +733,6 @@ static inline double fltlist_next_token(int * const list_end){
   cvc::g_LoopExtract_SpinProjectGammaStructure_Number++;
   if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", cvc::g_LoopExtract_SpinProjectGammaStructure_Number , yytext);
 }
-
 <LOOPEXTRACTGAMMABASIS>ukqcd {
   cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::UKQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
