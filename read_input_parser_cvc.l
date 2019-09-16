@@ -237,7 +237,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x SNKMOMX
 %x SNKMOMY
 %x SNKMOMZ
-%x LOOPEXTRACTGAMMABASIS
+%x LOOPEXTRACTSPINPROJECTGAMMABASIS
 %x LOOPEXTRACTFILTERLOOPTYPES
 %x LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE
 %x LOOPEXTRACTLEGACYTRAJ
@@ -427,7 +427,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^loopextractlegacytraj{SPC}*={SPC}*             BEGIN(LOOPEXTRACTLEGACYTRAJ);
 ^loopextractspinprojectspintrace{SPC}*={SPC}*   BEGIN(LOOPEXTRACTSPINTRACE);
 ^loopextractgammastructure{SPC}*={SPC}*         BEGIN(LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE);
-^loopextractspinprojectgammabasis{EQL}          BEGIN(LOOPEXTRACTGAMMABASIS);
+^loopextractspinprojectgammabasis{EQL}          BEGIN(LOOPEXTRACTSPINPROJECTGAMMABASIS);
 ^loopextractoutqsq{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTOUTQSQ);
 ^loopextractinqsq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
 ^loopextractfilterlooptypes{SPC}*={SPC}*        BEGIN(LOOPEXTRACTFILTERLOOPTYPES);

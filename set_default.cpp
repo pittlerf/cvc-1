@@ -68,13 +68,28 @@ void set_default_input_values(void) {
   g_resume    = _default_resume;
   g_subtract  = _default_subtract;
   g_source_location = _default_source_location;
-  int count=snprintf(spinprojectionfname_prefix,200, "%s",  _default_spinprojectionfname_prefix);
+  int count=snprintf(g_LoopExtract_InPath,200, "%s",  _default_LoopExtract_InPath);
   if ((count >=200) || (count<0)){
     if (g_proc_id == 0){
-      fprintf(stderr,"[[set_default_input_values]] To large _default_spinprojectionfname_prefix\n");
+      fprintf(stderr,"[[set_default_input_values]] To large _default_LoopExtract_InPath\n");
       exit(1);
     }
   }
+  count=snprintf(g_LoopExtract_FilenamePrefix,200,"%s",_default_LoopExtract_FilenamePrefix);
+  if ((count >=200) || (count<0)){
+    if (g_proc_id == 0){
+      fprintf(stderr,"[[set_default_input_values]] To large _default_LoopExtract_FilenamePrefix\n");
+      exit(1);
+    }
+  }
+  count=snprintf(g_LoopExtract_FilenameSuffix,200,"%s",_default_LoopExtract_FilenameSuffix);
+  if ((count >=200) || (count<0)){
+    if (g_proc_id == 0){
+      fprintf(stderr,"[[set_default_input_values]] To large _default_LoopExtract_FilenameSuffix\n");
+      exit(1);
+    }
+  }
+
   strcpy(filename_prefix,      _default_filename_prefix);
   strcpy(filename_prefix2,     _default_filename_prefix2);
   strcpy(filename_prefix3,     _default_filename_prefix3);
@@ -244,12 +259,28 @@ void set_default_input_values(void) {
   g_sequential_source_gamma_id_list[14] = _default_seq_source_gamma_id;
   g_sequential_source_gamma_id_list[15] = _default_seq_source_gamma_id;
 
-  g_sequential_source_gamma_id_number = _default_seq_source_gamma_id_number;
-  g_spinprojection_spintrace = _default_spinprojection_spintrace;
-  g_spinprojection_loopaccumulate = _default_spinprojection_loopaccumulate;
-  g_spinprojection_filtered_qsq = _default_spinprojection_filtered_qsq ;
-  g_spinprojection_gammas = _default_spinprojection_gammas  ;
-  g_spinprojection_gamma_basis = cvc::UKQCD ;
+  g_sequential_source_gamma_id_number = _default_seq_source_gamma_id_number; 
+  g_LoopExtract_InQSq = _default_LoopExtract_InQSq;
+  g_LoopExtract_OutQSq = _default_LoopExtract_InQSq;
+  g_LoopExtract_SpinProjectGammaStructure_Number = _default_LoopExtract_SpinProjectGammaStructure_Number;
+  g_LoopExtract_SpinProjectGammaStructure_List[0]= 4;
+  g_LoopExtract_Nstoch = _default_LoopExtract_Nstoch;
+  g_LoopExtract_NstochAccumulated = _default_LoopExtract_NstochAccumulated ;
+  g_LoopExtract_LegacyTraj = _default_LoopExtract_LegacyTraj;
+  g_LoopExtract_ASCII_Output = _default_LoopExtract_ASCII_Output;
+  g_LoopExtract_SpinTrace = _default_LoopExtract_SpinTrace;
+  g_LoopExtract_SpinProject = _default_LoopExtract_SpinProject;
+  g_LoopExtract_FilterLoopTypesNumber = _default_LoopExtract_FilterLoopTypesNumber;//This is 6
+
+  g_LoopExtract_FilterLoopTypes[0]=1;
+  g_LoopExtract_FilterLoopTypes[1]=2;
+  g_LoopExtract_FilterLoopTypes[2]=3;
+  g_LoopExtract_FilterLoopTypes[3]=4;
+  g_LoopExtract_FilterLoopTypes[4]=5;
+  g_LoopExtract_FilterLoopTypes[5]=6;
+
+  g_LoopExtract_NstochAccumulated = _default_LoopExtract_NstochAccumulated ;
+  g_LoopExtract_SpinProjectGammaBasis = cvc::UKQCD ;
 
   g_source_gamma_id_number = _default_source_gamma_id_number;
   g_source_gamma_id_list[ 0] = _default_source_gamma_id;
