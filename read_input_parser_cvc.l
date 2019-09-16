@@ -140,7 +140,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x BCY
 %x BCZ
 %x LOOPEXTRACTFILTERLOOPTYPES
-%x LOOPEXTRACTSPINPROJECTGAMMABASIS
+%x LOOPEXTRACTGAMMABASIS
 %x LOOPEXTRACTFILTERLOOPTYPES
 %x LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE
 %x LOOPEXTRACTLEGACYTRAJ
@@ -428,7 +428,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^loopextractlegacytraj{SPC}*={SPC}*             BEGIN(LOOPEXTRACTLEGACYTRAJ);
 ^loopextractspinprojectspintrace{SPC}*={SPC}*   BEGIN(LOOPEXTRACTSPINTRACE);
 ^loopextractgammastructure{SPC}*={SPC}*         BEGIN(LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE);
-^loopextractspinprojectgammabasis{EQL}          BEGIN(LOOPEXTRACTSPINPROJECTGAMMABASIS);
+^loopextractspinprojectgammabasis{EQL}          BEGIN(LOOPEXTRACTGAMMABASIS);
 ^loopextractoutqsq{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTOUTQSQ);
 ^loopextractinqsq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
 ^loopextractfilterlooptypes{SPC}*={SPC}*        BEGIN(LOOPEXTRACTFILTERLOOPTYPES);
@@ -738,12 +738,11 @@ static inline double fltlist_next_token(int * const list_end){
   if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", cvc::g_LoopExtract_SpinProjectGammaStructure_Number , yytext);
 }
 
-
-<LOOPEXTRACTSPINPROJECTGAMMABASIS>ukqcd {
+<LOOPEXTRACTGAMMABASIS>ukqcd {
   cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::UKQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
 }
-<LOOPEXTRACTSPINPROJECTGAMMABASIS>chiral_tmlqcd {
+<LOOPEXTRACTGAMMABASIS>chiral_tmlqcd {
   cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::CHIRAL_TMLQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] CHIRAL gammabasis is choosen\n");
 }
