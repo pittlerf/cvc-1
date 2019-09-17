@@ -175,19 +175,19 @@ int main(int argc, char **argv) {
    fprintf(stdout, "# [loop_extract] Following loops will be filtered\n");
   for (int i=0; i<g_LoopExtract_FilterLoopTypesNumber; ++i){
     switch( g_LoopExtract_FilterLoopTypes[i] ){
-     case 0: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive\n");
+     case LOOP_EXTRACT_LOOP_TYPE_NAIVE: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive\n");
              break;
-     case 1: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar\n");
+     case LOOP_EXTRACT_LOOP_TYPE_SCALAR: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar\n");
              break;
-     case 2: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
+     case LOOP_EXTRACT_LOOP_TYPE_DOP: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
              break;
-     case 3: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
+     case LOOP_EXTRACT_LOOP_TYPE_LOOPS: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
              break;
-     case 4: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
+     case LOOP_EXTRACT_LOOP_TYPE_LPSDW: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
              break;
-     case 5: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
+     case LOOP_EXTRACT_LOOP_TYPE_LOOPSCV: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
              break;
-     case 6: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
+     case LOOP_EXTRACT_LOOP_TYPE_LPSDWCV: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
              break;
     }
   }
