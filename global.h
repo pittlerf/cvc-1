@@ -207,7 +207,7 @@ EXTERN int g_LoopExtract_SpinTrace;
 EXTERN int g_LoopExtract_SpinProject;
 EXTERN cvc_GammaBasis g_LoopExtract_SpinProjectGammaBasis;
 EXTERN int g_LoopExtract_FilterLoopTypesNumber;
-EXTERN int g_LoopExtract_FilterLoopTypes[MAX_LOOPTYPE_NUMBER];
+EXTERN LoopExtractLoopType_t g_LoopExtract_FilterLoopTypes[MAX_LOOPTYPE_NUMBER];
 EXTERN int g_gaugeid, g_gaugeid2, g_gauge_step;
 
 EXTERN char filename_prefix[200], filename_prefix2[200], filename_prefix3[200], gaugefilename_prefix[200], g_outfile_prefix[200], g_path_prefix[200];

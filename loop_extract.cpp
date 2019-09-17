@@ -28,6 +28,7 @@
 #include "cvc_complex.h"
 #include "cvc_linalg.h"
 #include "global.h"
+#include "enums.hpp"
 #include "cvc_geometry.h"
 #include "cvc_utils.h"
 #include "mpi_init.h"
@@ -352,31 +353,31 @@ int main(int argc, char **argv) {
 
         switch( g_LoopExtract_FilterLoopTypes[iloop_type] ){
 
-          case 0: snprintf ( loop_type, 100, "%s", "Naive" );
+          case LOOP_EXTRACT_LOOP_TYPE_NAIVE   : snprintf ( loop_type, 100, "%s", "Naive" );
                inner_loop_length=1;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive loops\n");
                break;
-          case 1: snprintf ( loop_type, 100, "%s", "Scalar" );
+          case LOOP_EXTRACT_LOOP_TYPE_SCALAR  : snprintf ( loop_type, 100, "%s", "Scalar" );
                inner_loop_length=1;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar loops\n");
                break;
-          case 2: snprintf ( loop_type, 100, "%s", "dOp" );
+          case LOOP_EXTRACT_LOOP_TYPE_DOP     : snprintf ( loop_type, 100, "%s", "dOp" );
                inner_loop_length=1;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp loops\n");
                break;
-          case 3: snprintf ( loop_type, 100, "%s", "Loops" );
+          case LOOP_EXTRACT_LOOP_TYPE_LOOPS   : snprintf ( loop_type, 100, "%s", "Loops" );
                inner_loop_length=4;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops loops\n");
                break;
-          case 4: snprintf ( loop_type, 100, "%s", "LpsDw" );
+          case LOOP_EXTRACT_LOOP_TYPE_LPSDW   : snprintf ( loop_type, 100, "%s", "LpsDw" );
                inner_loop_length=4;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw loops\n");
                break;
-          case 5: snprintf ( loop_type, 100, "%s", "LoopsCv" );
+          case LOOP_EXTRACT_LOOP_TYPE_LOOPSCV : snprintf ( loop_type, 100, "%s", "LoopsCv" );
                inner_loop_length=4;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV loops\n");
                break;
-          case 6: snprintf ( loop_type, 100, "%s", "LpsDwCv" );
+          case LOOP_EXTRACT_LOOP_TYPE_LPSDWCV : snprintf ( loop_type, 100, "%s", "LpsDwCv" );
                inner_loop_length=4;
                if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv loops\n");
                break;

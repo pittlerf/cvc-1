@@ -272,12 +272,12 @@ void set_default_input_values(void) {
   g_LoopExtract_SpinProject = _default_LoopExtract_SpinProject;
   g_LoopExtract_FilterLoopTypesNumber = _default_LoopExtract_FilterLoopTypesNumber;//This is 6
 
-  g_LoopExtract_FilterLoopTypes[0]=1;
-  g_LoopExtract_FilterLoopTypes[1]=2;
-  g_LoopExtract_FilterLoopTypes[2]=3;
-  g_LoopExtract_FilterLoopTypes[3]=4;
-  g_LoopExtract_FilterLoopTypes[4]=5;
-  g_LoopExtract_FilterLoopTypes[5]=6;
+  g_LoopExtract_FilterLoopTypes[0]=LOOP_EXTRACT_LOOP_TYPE_SCALAR;
+  g_LoopExtract_FilterLoopTypes[1]=LOOP_EXTRACT_LOOP_TYPE_DOP;
+  g_LoopExtract_FilterLoopTypes[2]=LOOP_EXTRACT_LOOP_TYPE_LOOPS;
+  g_LoopExtract_FilterLoopTypes[3]=LOOP_EXTRACT_LOOP_TYPE_LPSDW;
+  g_LoopExtract_FilterLoopTypes[4]=LOOP_EXTRACT_LOOP_TYPE_LOOPSCV;
+  g_LoopExtract_FilterLoopTypes[5]=LOOP_EXTRACT_LOOP_TYPE_LPSDWCV;
 
   g_LoopExtract_NstochAccumulated = _default_LoopExtract_NstochAccumulated ;
   g_LoopExtract_SpinProjectGammaBasis = cvc::UKQCD ;

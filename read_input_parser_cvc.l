@@ -26,6 +26,7 @@ EQL {SPC}*={SPC}*
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "enums.hpp"
 #include "global.h"
 #include "read_input_parser.h"
 #include "default_input_values.h"
@@ -779,25 +780,25 @@ static inline double fltlist_next_token(int * const list_end){
       }
     printf("Token=%s\n",token);
     if( strcmp(token, "Naive") == 0 ){
-      cvc::g_LoopExtract_FilterLoopTypes[index]=0;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=cvc::LOOP_EXTRACT_LOOP_TYPE_NAIVE;
     }
     else if( strcmp(token, "Scalar") == 0 ){
-      cvc::g_LoopExtract_FilterLoopTypes[index]=1;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=cvc::LOOP_EXTRACT_LOOP_TYPE_SCALAR;
     }
     else if( strcmp(token, "dOp") == 0 ){
-      cvc::g_LoopExtract_FilterLoopTypes[index]=2;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=cvc::LOOP_EXTRACT_LOOP_TYPE_DOP;
     }
     else if( strcmp(token, "Loops") == 0){
-      cvc::g_LoopExtract_FilterLoopTypes[index]=3;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=cvc::LOOP_EXTRACT_LOOP_TYPE_LOOPS;
     }
     else if( strcmp(token, "LpsDw") == 0){
-      cvc::g_LoopExtract_FilterLoopTypes[index]=4;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=cvc::LOOP_EXTRACT_LOOP_TYPE_LPSDW;
     }
     else if( strcmp(token, "LoopsCv") == 0){
-      cvc::g_LoopExtract_FilterLoopTypes[index]=5;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=cvc::LOOP_EXTRACT_LOOP_TYPE_LOOPSCV;
     }
     else if( strcmp(token, "LpsDwCv") == 0){
-      cvc::g_LoopExtract_FilterLoopTypes[index]=6;
+      cvc::g_LoopExtract_FilterLoopTypes[index]=cvc::LOOP_EXTRACT_LOOP_TYPE_LPSDWCV;
     }
     else {
       snprintf(error_message, 200, "# [read_input_parser] Unknown loop type %s passed in the parsing of %s!\n", yytext, paramname);
