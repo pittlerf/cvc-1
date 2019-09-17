@@ -18,33 +18,33 @@ BCangleZ = 0
 
 # prefix of source and propagator fiels,
 # in case  of source / propagator io
-loopextractinpath = /p/scratch/chbn28/hbn28d/loop/cB211a.25.48
-loopextractfilenameprefix = MG_loop_lightquark_conf_conf
-loopextractfilenamesuffix = runtype_probD8_part1_stoch_NeV0
+LoopExtract_InPath = /p/scratch/chbn28/hbn28d/loop/cB211a.25.48
+LoopExtract_FilenamePrefix = MG_loop_lightquark_conf_conf
+LoopExtract_FilenameSuffix = runtype_probD8_part1_stoch_NeV0
 
 # The name of the loopfile contains nstoch
-loopextractnstochaccumulated = no
+LoopExtract_NstochAccumulated = no
 
 # We do not use spin projection
-loopextractspinproject = no
+LoopExtract_SpinProject = no
 
 # We do not take the trace in spin space
-loopextractspintrace = no
+LoopExtract_SpinProjectSpinTrace = no
 
 # The hdf5 tag in confnumber is correct (not 0004)
-loopextractlegacytraj = no
+LoopExtract_LegacyTraj = no
 
 # We want to filter momenta up to q^2=4
-loopextractoutqsq = 4
+LoopExtract_OutQSq = 4
 
 # The original loop contains momenta upto q^2=12
-loopextractinqsq = 12
+LoopExtract_InQSq = 12
 
 # We have the loops for 64 random sources
-loopextractsamples = 64
+Loop_Extract_Samples = 64
 
 # We want also ascii files to be produced
-loopextractverbositylevel = 1
+Loop_Extract_ASCII_Output = 1
 
 gaugefilename_prefix = conf
 

@@ -238,12 +238,12 @@ static inline double fltlist_next_token(int * const list_end){
 %x SNKMOMX
 %x SNKMOMY
 %x SNKMOMZ
-%x LOOPEXTRACTGAMMABASIS
+%x LOOPEXTRACTSPINPROJECTGAMMABASIS
 %x LOOPEXTRACTFILTERLOOPTYPES
 %x LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE
 %x LOOPEXTRACTLEGACYTRAJ
 %x LOOPEXTRACTSPINPROJECT
-%x LOOPEXTRACTSPINTRACE
+%x LOOPEXTRACTSPINPROJECTSPINTRACE
 %x LOOPEXTRACTASCIIOUTPUT
 %x LOOPEXTRACTNSTOCHACCUMULATED
 %x LOOPEXTRACTOUTQSQ
@@ -420,20 +420,20 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
 
-^loopextractinpath{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTINPATH);
-^loopextractfilenameprefix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMEPREFIX);
-^loopextractfilenamesuffix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMESUFFIX);
-^loopextractnstochaccumulated{SPC}*={SPC}*      BEGIN(LOOPEXTRACTNSTOCHACCUMULATED);
-^loopextractspinproject{SPC}*={SPC}*            BEGIN(LOOPEXTRACTSPINPROJECT);
-^loopextractlegacytraj{SPC}*={SPC}*             BEGIN(LOOPEXTRACTLEGACYTRAJ);
-^loopextractspintrace{SPC}*={SPC}*              BEGIN(LOOPEXTRACTSPINTRACE);
-^loopextractgammastructure{SPC}*={SPC}*         BEGIN(LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE);
-^loopextractgammabasis{EQL}                     BEGIN(LOOPEXTRACTGAMMABASIS);
-^loopextractoutqsq{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTOUTQSQ);
-^loopextractinqsq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
-^loopextractfilterlooptypes{SPC}*={SPC}*        BEGIN(LOOPEXTRACTFILTERLOOPTYPES);
-^loopextractsamples{SPC}*={SPC}*                BEGIN(LOOPEXTRACTSAMPLES);
-^loopextractverbositylevel{SPC}*={SPC}*         BEGIN(LOOPEXTRACTASCIIOUTPUT);
+^LoopExtract_InPath{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTINPATH);
+^LoopExtract_FilenamePrefix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMEPREFIX);
+^LoopExtract_FilenameSuffix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMESUFFIX);
+^LoopExtract_NstochAccumulated{SPC}*={SPC}*      BEGIN(LOOPEXTRACTNSTOCHACCUMULATED);
+^LoopExtract_SpinProject{SPC}*={SPC}*            BEGIN(LOOPEXTRACTSPINPROJECT);
+^LoopExtract_LegacyTraj{SPC}*={SPC}*             BEGIN(LOOPEXTRACTLEGACYTRAJ);
+^LoopExtract_SpinProjectSpinTrace{SPC}*={SPC}*   BEGIN(LOOPEXTRACTSPINPROJECTSPINTRACE);
+^LoopExtract_GammaStructure{SPC}*={SPC}*         BEGIN(LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE);
+^LoopExtract_SpinProjectGammaBasis{EQL}          BEGIN(LOOPEXTRACTSPINPROJECTGAMMABASIS);
+^LoopExtract_OutQSq{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTOUTQSQ);
+^LoopExtract_InQSq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
+^LoopExtract_FilterLoopTypes{SPC}*={SPC}*        BEGIN(LOOPEXTRACTFILTERLOOPTYPES);
+^LoopExtract_Samples{SPC}*={SPC}*                BEGIN(LOOPEXTRACTSAMPLES);
+^LoopExtract_ASCII_Output{SPC}*={SPC}*         BEGIN(LOOPEXTRACTASCIIOUTPUT);
 
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
 ^gpu_precision{SPC}*={SPC}*                BEGIN(GPUPREC);
@@ -708,7 +708,7 @@ static inline double fltlist_next_token(int * const list_end){
   }
 }
 
-<LOOPEXTRACTSPINTRACE>{FILENAME} {
+<LOOPEXTRACTSPINPROJECTSPINTRACE>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_SpinTrace = 1;
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtractSpinTrace is on\n");
@@ -755,12 +755,12 @@ static inline double fltlist_next_token(int * const list_end){
   if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", cvc::g_LoopExtract_SpinProjectGammaStructure_Number , yytext);
 }
 
-<LOOPEXTRACTGAMMABASIS>ukqcd {
+<LOOPEXTRACTSPINPROJECTGAMMABASIS>ukqcd {
   cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::UKQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
 }
 
-<LOOPEXTRACTGAMMABASIS>chiral_tmlqcd {
+<LOOPEXTRACTSPINPROJECTGAMMABASIS>chiral_tmlqcd {
   cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::CHIRAL_TMLQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] CHIRAL gammabasis is choosen\n");
 }
@@ -778,7 +778,6 @@ static inline double fltlist_next_token(int * const list_end){
       snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of saving loops (%d) parsing !\n",MAX_LOOPTYPE_NUMBER);
       yy_fatal_error(error_message);
       }
-    printf("Token=%s\n",token);
     if( strcmp(token, "Naive") == 0 ){
       cvc::g_LoopExtract_FilterLoopTypes[index]=cvc::LOOP_EXTRACT_LOOP_TYPE_NAIVE;
     }
