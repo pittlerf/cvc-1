@@ -156,12 +156,12 @@ int main(int argc, char **argv) {
   fprintf(stdout, "# [loop_extract] proc%.4d has io proc id %d\n", g_cart_id, io_proc );
   if (g_LoopExtract_OutQSq > g_LoopExtract_InQSq){
     if (g_proc_id == 0){
-     fprintf(stderr, "# [loop_extract] We do not have momenta  <=%f\n", g_LoopExtract_OutQSq);
+     fprintf(stderr, "# [loop_extract] We do not have momenta  <=%d\n", g_LoopExtract_OutQSq);
      EXIT(1);
     }
   }
   if (g_proc_id == 0){
-    fprintf(stdout, "# [loop_extract] Filtering value of Qsq %f\n", g_LoopExtract_OutQSq);
+    fprintf(stdout, "# [loop_extract] Filtering value of Qsq %d\n", g_LoopExtract_OutQSq);
   }
   if (g_LoopExtract_FilterLoopTypesNumber == 0){
    if (g_proc_id == 0){
@@ -216,7 +216,7 @@ int main(int argc, char **argv) {
      EXIT(1);
     }
   }
-  snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenamePrefix,g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
+  snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix,g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
   /***************************************************************************
@@ -280,7 +280,7 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * allocate memory for contractions
    ***************************************************************************/
-  double **** loop = init_4level_dtable ( g_nsample, T, g_sink_momentum_number, 32 );
+  double **** loop = init_4level_dtable ( g_LoopExtract_Nstoch, T, g_sink_momentum_number, 32 );
   if ( loop == NULL ) {
     fprintf(stderr, "[loop_extract] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
     EXIT(48);
@@ -289,7 +289,7 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * allocate memory for filtered_contractions
    ***************************************************************************/
-  double **** loop_filtered = init_4level_dtable ( g_nsample, T, filtered_sink_momentum_number, 32 );
+  double **** loop_filtered = init_4level_dtable ( g_LoopExtract_Nstoch, T, filtered_sink_momentum_number, 32 );
   if ( loop == NULL ) {
     fprintf(stderr, "[loop_extract] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
     EXIT(48);

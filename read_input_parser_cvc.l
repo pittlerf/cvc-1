@@ -237,7 +237,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x SNKMOMX
 %x SNKMOMY
 %x SNKMOMZ
-%x LOOPEXTRACTSPINPROJECTGAMMABASIS
+%x LOOPEXTRACTGAMMABASIS
 %x LOOPEXTRACTFILTERLOOPTYPES
 %x LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE
 %x LOOPEXTRACTLEGACYTRAJ
@@ -422,12 +422,12 @@ static inline double fltlist_next_token(int * const list_end){
 ^loopextractinpath{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTINPATH);
 ^loopextractfilenameprefix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMEPREFIX);
 ^loopextractfilenamesuffix{SPC}*={SPC}*         BEGIN(LOOPEXTRACTFILENAMESUFFIX);
-^loopextractntochaccumulated{SPC}*={SPC}*       BEGIN(LOOPEXTRACTNSTOCHACCUMULATED);
-^loopextractspinprojectspinproject{SPC}*={SPC}* BEGIN(LOOPEXTRACTSPINPROJECT);
+^loopextractnstochaccumulated{SPC}*={SPC}*      BEGIN(LOOPEXTRACTNSTOCHACCUMULATED);
+^loopextractspinproject{SPC}*={SPC}*            BEGIN(LOOPEXTRACTSPINPROJECT);
 ^loopextractlegacytraj{SPC}*={SPC}*             BEGIN(LOOPEXTRACTLEGACYTRAJ);
-^loopextractspinprojectspintrace{SPC}*={SPC}*   BEGIN(LOOPEXTRACTSPINTRACE);
+^loopextractspintrace{SPC}*={SPC}*              BEGIN(LOOPEXTRACTSPINTRACE);
 ^loopextractgammastructure{SPC}*={SPC}*         BEGIN(LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE);
-^loopextractspinprojectgammabasis{EQL}          BEGIN(LOOPEXTRACTSPINPROJECTGAMMABASIS);
+^loopextractgammabasis{EQL}                     BEGIN(LOOPEXTRACTGAMMABASIS);
 ^loopextractoutqsq{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTOUTQSQ);
 ^loopextractinqsq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
 ^loopextractfilterlooptypes{SPC}*={SPC}*        BEGIN(LOOPEXTRACTFILTERLOOPTYPES);
@@ -649,6 +649,7 @@ static inline double fltlist_next_token(int * const list_end){
   }
   if(cvc::myverbose!=0) printf("# [read_input_parser] input path set to %s\n",yytext);
 }
+
 <LOOPEXTRACTFILENAMEPREFIX>{FILENAME} {
   int count=snprintf(cvc::g_LoopExtract_FilenamePrefix,400,"%s",yytext);
   char error_message[200];
@@ -658,6 +659,7 @@ static inline double fltlist_next_token(int * const list_end){
   }
   if(cvc::myverbose!=0) printf("# [read_input_parser] filename prefix set to %s\n",yytext);
 }
+
 <LOOPEXTRACTFILENAMESUFFIX>{FILENAME} {
   int count=snprintf(cvc::g_LoopExtract_FilenameSuffix,400,"%s",yytext);
   char error_message[200];
@@ -665,20 +667,24 @@ static inline double fltlist_next_token(int * const list_end){
     snprintf(error_message, 200, "# [read_input_parser] Exceeded maximum number of charachters (%d) in loop extract filename suffix parsing !\n",count);
     yy_fatal_error(error_message);
   }
-  if(cvc::myverbose!=0) printf("# [read_input_parser] filename prefix set to %s\n",yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] filename suffix set to %s\n",yytext);
 }
+
 <LOOPEXTRACTSAMPLES>{DIGIT}+ {
   cvc::g_LoopExtract_Nstoch = (unsigned int)atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_Nstoch set to %s\n",yytext);
 }
-<LOOPEXTRACTINQSQ>{FLT} {
-  cvc::g_LoopExtract_InQSq = atof(yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] input momenta upto %f\n", cvc::g_LoopExtract_InQSq);
+
+<LOOPEXTRACTINQSQ>{DIGIT}+ {
+  cvc::g_LoopExtract_InQSq = atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] input momenta upto %d\n", cvc::g_LoopExtract_InQSq);
 }
-<LOOPEXTRACTOUTQSQ>{FLT} {
-  cvc::g_LoopExtract_OutQSq = atof(yytext);
-  if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %f\n", cvc::g_LoopExtract_OutQSq);
+
+<LOOPEXTRACTOUTQSQ>{DIGIT}+ {
+  cvc::g_LoopExtract_OutQSq = atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] filtering momenta upto %d\n", cvc::g_LoopExtract_OutQSq);
 }
+
 <LOOPEXTRACTNSTOCHACCUMULATED>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_NstochAccumulated = 1;
@@ -689,6 +695,7 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_NstochAccumulated is off\n");
   }
 }
+
 <LOOPEXTRACTASCIIOUTPUT>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_ASCII_Output = 1;
@@ -699,6 +706,7 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_ASCII_Output is off\n");
   }
 }
+
 <LOOPEXTRACTSPINTRACE>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_SpinTrace = 1;
@@ -709,6 +717,7 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtractSpinTrace is off\n");
   }
 }
+
 <LOOPEXTRACTSPINPROJECT>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_SpinProject = 1;
@@ -719,6 +728,7 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is off\n");
   }
 }
+
 <LOOPEXTRACTLEGACYTRAJ>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_LegacyTraj = 1;
@@ -729,6 +739,7 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_LegacyTraj is off\n");
   }
 }
+
 <LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE>{CORRCONFIG} {
   if ( cvc::g_LoopExtract_SpinProjectGammaStructure_Number == MAX_LOOPEXTRACT_SPINPROJECTGAMMASTRUCTURE_NUMBER ) {
     fprintf(stderr, "[read_input_parser] Error, too many gamma structure to be projected \n");
@@ -742,14 +753,17 @@ static inline double fltlist_next_token(int * const list_end){
   cvc::g_LoopExtract_SpinProjectGammaStructure_Number++;
   if(cvc::myverbose!=0) printf("# [read_input_parser] gammastructure to be projected no. %d set to %s\n", cvc::g_LoopExtract_SpinProjectGammaStructure_Number , yytext);
 }
+
 <LOOPEXTRACTGAMMABASIS>ukqcd {
   cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::UKQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] UKQCD gammabasis is choosen\n");
 }
+
 <LOOPEXTRACTGAMMABASIS>chiral_tmlqcd {
   cvc::g_LoopExtract_SpinProjectGammaBasis = cvc::CHIRAL_TMLQCD;
   if(cvc::myverbose!=0) printf("# [read_input_parser] CHIRAL gammabasis is choosen\n");
 }
+
 <LOOPEXTRACTFILTERLOOPTYPES>{STRLIST} {
   char paramname[100];
   char token[100];
