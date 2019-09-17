@@ -199,7 +199,7 @@ namespace cvc {
 #define _default_LoopExtract_SpinTrace 0
 #define _default_LoopExtract_SpinProject 0
 #define _default_LoopExtract_FilterLoopTypesNumber 6
-#define _default_LoopExtract_SpinProjectGammaStructure_Number 1
+#define _default_LoopExtract_SpinProjectGammaStructure_Number 0
 
 
 #define _default_LoopExtract_NstochAccumulated 0
