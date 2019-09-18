@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
   int filename_set = 0;
   int exitstatus;
   int io_proc = -1;
-  char filename[400];
+  char filename[1200];
   int Qsq = -1;
 
   struct timeval ta, tb;
@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
      EXIT(1);
     }
   }
-  snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix,g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
+  snprintf ( filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix,g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
   /***************************************************************************
@@ -405,7 +405,7 @@ int main(int argc, char **argv) {
 
           if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
-          snprintf ( filename, 400, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
+          snprintf ( filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
 
           exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
           if ( exitstatus != 0 ) {
