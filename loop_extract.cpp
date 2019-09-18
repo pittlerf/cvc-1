@@ -296,12 +296,20 @@ int main(int argc, char **argv) {
     EXIT(48);
   }
 
-
+  if (( g_LoopExtract_SpinProject == 1) && (g_LoopExtract_SpinProjectGammaStructure_Number == 0)){
+    fprintf(stderr, "[loop_extract] Spin projection is on, you must specify a list of gamma structures\n", __FILE__, __LINE__ );;
+    EXIT(1);
+  }
+  int total_gamma;
   int index_gamma;
+  if (g_LoopExtract_SpinProject == 0)
+    total_gamma=1;
+  else
+    total_gamma=g_LoopExtract_SpinProjectGammaStructure_Number;
   /****************************************************************************************
  * Loop over the different gamma structures to be projected 
  * ****************************************************************************************/
-  for (index_gamma=0; index_gamma<g_LoopExtract_SpinProjectGammaStructure_Number;++index_gamma){
+  for (index_gamma=0; index_gamma<total_gamma;++index_gamma){
 
     if (g_LoopExtract_SpinProjectGammaStructure_List[index_gamma] != 4){
       snprintf ( filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq, g_LoopExtract_SpinProjectGammaStructure_List[index_gamma]  );
@@ -326,7 +334,7 @@ int main(int argc, char **argv) {
     free(attribute_correlator);
     free(attribute_ensemble_info);
 
-    if (g_LoopExtract_ASCII_Output == 1) {
+    if ((io_proc == 2) && (g_LoopExtract_ASCII_Output == 1)) {
       for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
         fprintf ( stdout, " %3d  ( %3d, %3d, %3d)\n", imom, filtered_sink_momentum_list[imom][0], filtered_sink_momentum_list[imom][1], filtered_sink_momentum_list[imom][2] );
       }
@@ -336,7 +344,7 @@ int main(int argc, char **argv) {
      * loop on different loop types
      ***************************************************************************/
 
-    printf("# [loop_extract] Loop number %d\n", g_LoopExtract_FilterLoopTypesNumber);
+    if (io_proc == 2) fprintf(stdout,"# [loop_extract] Loop number %d\n", g_LoopExtract_FilterLoopTypesNumber);
     for ( int iloop_type=0; iloop_type < g_LoopExtract_FilterLoopTypesNumber ; ++iloop_type){
 
     /***************************************************************************
@@ -404,7 +412,6 @@ int main(int argc, char **argv) {
             fprintf ( stderr, "[loop_extract] Error from loop_read_from_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
             EXIT(1);
           }
-
           if ( io_proc > 0 ) {
           /*****************************************************************
            * Collecting data for writing
@@ -413,7 +420,7 @@ int main(int argc, char **argv) {
               if ( g_tr_id == iproc ) {
                 char output_filename[400];
                 FILE *ofs;
-                if (g_LoopExtract_ASCII_Output == 1){
+                if (io_proc== 2 && g_LoopExtract_ASCII_Output == 1){
                   snprintf ( output_filename, 400, "Nconf_%.4d.%s.%s_gamma%d", Nconf, loop_type, loop_name,g_LoopExtract_SpinProjectGammaStructure_List[index_gamma] );
                   ofs = fopen ( output_filename, "a" );
                   if ( ofs == NULL ) {
@@ -452,7 +459,7 @@ int main(int argc, char **argv) {
                         loop_filtered[isample][x0][imom][2*ic+1]=sp[2*ic+1];
                       }   
                     }
-                    if (g_LoopExtract_ASCII_Output == 1){
+                    if (io_proc== 2 && g_LoopExtract_ASCII_Output == 1){
                     /*****************************************************************
                      * write in ASCII format
                      *****************************************************************/
@@ -465,7 +472,7 @@ int main(int argc, char **argv) {
                   }  /* end of loop on momenta */
                 }  /* end of loop on time slices */
 
-                if (g_LoopExtract_ASCII_Output == 1){
+                if (io_proc== 2 && g_LoopExtract_ASCII_Output == 1){
 
                   fclose ( ofs );
 
