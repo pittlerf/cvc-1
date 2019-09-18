@@ -14,7 +14,7 @@ typedef enum latDim_t {
 extern const char latDim_names[];
 
 typedef enum LoopExtractLoopType_t {
-  LOOP_EXTRACT_LOOP_TYPE_NAIVE = 1,
+  LOOP_EXTRACT_LOOP_TYPE_NAIVE = 0,
   LOOP_EXTRACT_LOOP_TYPE_SCALAR,
   LOOP_EXTRACT_LOOP_TYPE_DOP,
   LOOP_EXTRACT_LOOP_TYPE_LOOPS,

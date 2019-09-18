@@ -117,6 +117,13 @@ int main(int argc, char **argv) {
    * initialize MPI parameters for cvc
    ***************************************************************************/
   mpi_init(argc, argv);
+#ifdef HAVE_MPI
+  if (g_nproc > 1){
+    fprintf(stderr,"# [loop_extract] The MPI part of the code is broken, please
+    use it with a single MPI thread\n");
+    EXIT(1);
+  }
+#endif
 
   /***************************************************************************
    * report git version
