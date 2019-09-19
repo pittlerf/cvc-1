@@ -41,10 +41,10 @@ LoopExtract_OutQSq = 4
 LoopExtract_InQSq = 12
 
 # We have the loops for 64 random sources
-Loop_Extract_Samples = 64
+LoopExtract_Samples = 64
 
 # We want also ascii files to be produced
-Loop_Extract_ASCII_Output = 1
+LoopExtract_ASCII_Output = 1
 
 gaugefilename_prefix = conf
 
