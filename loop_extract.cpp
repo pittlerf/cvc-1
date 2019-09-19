@@ -304,7 +304,7 @@ int main(int argc, char **argv) {
   }
 
   if (( g_LoopExtract_SpinProject == 1) && (g_LoopExtract_SpinProjectGammaStructure_Number == 0)){
-    fprintf(stderr, "[loop_extract] Spin projection is on, you must specify a list of gamma structures\n", __FILE__, __LINE__ );;
+    fprintf(stderr, "[loop_extract] Spin projection is on, you must specify a list of gamma structures %s %d\n", __FILE__, __LINE__ );;
     EXIT(1);
   }
   int total_gamma;
