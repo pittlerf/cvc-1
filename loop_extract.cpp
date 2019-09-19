@@ -429,11 +429,11 @@ int main(int argc, char **argv) {
           snprintf(direction_part, 100, "dir_%02d", loop_direction);
      
           if (inner_loop_length > 1)
-            snprintf(data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s/%s",
-                     conf_traj, accumulate, Nstoch, loop_type, direction_part, loop_name );
-          else
             snprintf(data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s",
-                     conf_traj, accumulate, Nstoch, loop_type, loop_name );
+                     conf_traj, accumulate, Nstoch, loop_type, direction_part );
+          else
+            snprintf(data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s",
+                     conf_traj, accumulate, Nstoch, loop_type );
 
           if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 

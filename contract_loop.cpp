@@ -51,6 +51,9 @@
 #include "scalar_products.h"
 #include "contract_loop_inline.h"
 
+#include <string>
+#include <iostream>
+
 #define MAX_SUBGROUP_NUMBER 20
 
 namespace cvc {
@@ -316,20 +319,21 @@ int contract_loop_write_to_h5_file (double *** const loop, void * file, char*tag
       strcpy ( grp_name_tmp, grp_name );
       if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_loop_write_to_h5_file] full grp_name = %s\n", grp_name );
       grp_ptr = strtok ( grp_name_tmp, grp_sep );
-  
+      
       while ( grp_ptr != NULL ) {
         hid_t grp;
         hid_t loc_id = ( grp_list_nmem == 0 ) ? file_id : grp_list[grp_list_nmem-1];
         if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_loop_write_to_h5_file] grp_ptr = %s\n", grp_ptr );
-        std::string fail_path;
-        if( h5::check_key_exists(loc_id, grp_ptr, fail_path, false) ){
+        int status = H5Lexists(loc_id, grp_ptr, H5P_DEFAULT);
+        if( status > 0 ){
           grp = H5Gopen2(loc_id, grp_ptr, gapl_id);
           if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] opened group %s %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
-        }
-        else {
-         grp = H5Gcreate2 (       loc_id,         grp_ptr,       lcpl_id,       gcpl_id,       gapl_id );
-         if ( grp < 0 ) {
-            fprintf ( stderr, "[contract_write_to_h5_file] Error from H5Gcreate2 for group %s, status was %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
+        } else {
+          grp = H5Gcreate2 (       loc_id,         grp_ptr,       lcpl_id,       gcpl_id,       gapl_id );
+          if ( grp < 0 ) {
+            fprintf (stderr, "[contract_write_to_h5_file] Error from H5Gcreate2 "
+                             "for group %s, status was %ld %s %d\n", 
+                     grp_ptr, grp, __FILE__, __LINE__ );
             return ( 6 );
          } else {
             if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] created group %s %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
