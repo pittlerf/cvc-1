@@ -1,0 +1,140 @@
+MomentumList:
+  id: ptwo
+  Psqmax: 2
+
+MomentumList:
+  id: pzero
+  Psqmax: 0
+
+DiracOperator:
+  id: u
+  solver_id: 0
+  solver_driver: tmlqcd
+
+DiracOperator:
+  id: d
+  solver_id: 1
+  solver_driver: tmlqcd
+
+DiracOperator:
+  id: sp3.0mul
+  solver_id: 2
+  solver_driver: tmlqcd
+
+DiracOperator:
+  id: sp4.0mul
+  solver_id: 3
+  solver_driver: tmlqcd
+
+DiracOperator:
+  id: sp5.0mul
+  solver_id: 4
+  solver_driver: tmlqcd  
+
+OetMesonTwoPointFunction:
+  id: pion_all_momenta
+  fwd_flav: u
+  bwd_flav: u
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: ptwo
+  Pf: ptwo
+  momentum_conservation: false
+  dirac_join: outer
+  smearing: [none]
+  smearing_join: inner
+
+OetMesonTwoPointFunction:
+  id: kaon_light_diagonal_momenta
+  fwd_flav: u
+  bwd_flav: sp3.0mul
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: ptwo
+  Pf: ptwo
+  momentum_conservation: true
+  dirac_join: outer
+  smearing: [none]
+  smearing_join: inner
+
+OetMesonTwoPointFunction:
+  id: kaon_intermediate_diagonal_momenta
+  fwd_flav: u
+  bwd_flav: sp4.0mul
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: ptwo
+  Pf: ptwo
+  momentum_conservation: true
+  dirac_join: outer
+  smearing: [none]
+  smearing_join: inner
+
+OetMesonTwoPointFunction:
+  id: kaon_heavy_diagonal_momenta
+  fwd_flav: u
+  bwd_flav: sp5.0mul
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: ptwo
+  Pf: ptwo
+  momentum_conservation: true
+  dirac_join: outer
+  smearing: [none]
+  smearing_join: inner
+
+OetMesonThreePointFunction:
+  id: pion_vector_and_scalar_ff
+  dt: [2,4]
+  fwd_flav: u 
+  bwd_flav: u
+  seq_flav: d
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  gc: [0,1,2,3,4,5]
+  Dc: [0]
+  Pi: ptwo
+  Pf: ptwo
+  dirac_join: inner
+  momentum_exchange: true
+  dagger_sequential: true
+
+OetMesonThreePointFunction:
+  id: averx
+  dt: [2,4]
+  fwd_flav: u 
+  bwd_flav: u
+  seq_flav: d
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  gc: [0,1,2,3,4]
+  Dc: [1]
+  Pi: ptwo
+  Pf: ptwo
+  dirac_join: inner
+  momentum_exchange: false
+  dagger_sequential: true
+
+OetMesonThreePointFunction:
+  id: averxsq
+  dt: [2,4]
+  fwd_flav: u 
+  bwd_flav: u
+  seq_flav: d
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  gc: [0,1,2,3,4]
+  Dc: [2]
+  Pi: ptwo
+  Pf: ptwo
+  dirac_join: inner
+  momentum_exchange: false
+  dagger_sequential: true
+

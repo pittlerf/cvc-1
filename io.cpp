@@ -48,7 +48,7 @@ extern "C"
 
 
 #include "cvc_complex.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_geometry.h"
 #include "dml.h"
 #include "gauge_io.h"

@@ -441,6 +441,9 @@ namespace cvc {
 
 /********************/
 
+// su3 matrix times complex
+// A and B must be different!
+
 /* A = B * c. */
 
 #define _cm_eq_cm_ti_co(A,B,c) {\

@@ -1,0 +1,138 @@
+MomentumList:
+  id: ptwo
+  Psqmax: 2
+
+MomentumList:
+  id: pzero
+  Psqmax: 0
+
+TimeSlicePropagator:
+  id: u
+  solver_id: 0
+  solver_driver: tmlqcd
+  g: [5]
+  P: ptwo
+
+TimeSlicePropagator:
+  id: sp0.0176
+  solver_id: 2
+  solver_driver: tmlqcd
+  g: [5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: sp0.0220
+  solver_id: 3
+  solver_driver: tmlqcd
+  g: [5]
+  P: pzero
+
+TimeSlicePropagator:
+  id: sp0.0264
+  solver_id: 4
+  solver_driver: tmlqcd
+  g: [5]
+  P: pzero
+  
+OetMesonTwoPointFunction:
+  id: pion_all_momenta
+  fwd_flav: u
+  bwd_flav: u
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: ptwo
+  Pf: ptwo
+  momentum_conservation: false
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: kaon_light_diagonal_momenta
+  fwd_flav: u
+  bwd_flav: sp0.0176
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: ptwo
+  Pf: ptwo
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: kaon_intermediate_diagonal_momenta
+  fwd_flav: u
+  bwd_flav: sp0.0220
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: ptwo
+  Pf: ptwo
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonTwoPointFunction:
+  id: kaon_heavy_diagonal_momenta
+  fwd_flav: u
+  bwd_flav: sp0.0264
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  Pi: ptwo
+  Pf: ptwo
+  momentum_conservation: true
+  dirac_join: outer
+
+OetMesonThreePointFunction:
+  id: pion_vector_and_scalar_ff
+  dt: [12,16,20,24,28,31,32]
+  fwd_flav: u 
+  bwd_flav: u
+  seq_flav: d
+  seq_solver_driver: tmlqcd
+  seq_solver_id: 1
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  gc: [0,1,2,3,4,5]
+  Dc: [0]
+  Pi: ptwo
+  Pf: ptwo
+  dirac_join: inner
+  momentum_exchange: true
+
+OetMesonThreePointFunction:
+  id: averx
+  dt: [12,16,20,24,28,31,32]
+  fwd_flav: u 
+  bwd_flav: u
+  seq_flav: d
+  seq_solver_driver: tmlqcd
+  seq_solver_id: 1
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  gc: [0,1,2,3,4]
+  Dc: [1]
+  Pi: ptwo
+  Pf: ptwo
+  dirac_join: inner
+  momentum_exchange: false
+
+OetMesonThreePointFunction:
+  id: averxsq
+  dt: [12,16,20,24,28,31,32]
+  fwd_flav: u 
+  bwd_flav: u
+  seq_flav: d
+  seq_solver_driver: tmlqcd
+  seq_solver_id: 1
+  gi: [5]
+  gf: [5]
+  gb: [5]
+  gc: [0,1,2,3,4]
+  Dc: [2]
+  Pi: ptwo
+  Pf: ptwo
+  dirac_join: inner
+  momentum_exchange: false
+

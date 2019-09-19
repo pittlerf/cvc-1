@@ -1,5 +1,5 @@
 #include "index_tools.hpp"
-#include "global.h"
+#include "cvc_global.h"
 #include "ParallelMT19937_64.hpp"
 #include "debug_printf.hpp"
 #include "SequenceOfUnique.hpp"

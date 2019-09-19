@@ -36,8 +36,11 @@ int write_checksum(char const * const filename, DML_Checksum *checksum);
 /* int write_binary_spinor_data(double * const s, LimeWriter * limewriter,
   const int prec, DML_Checksum * ans); */
 
+#ifdef HAVE_LIBLEMON
+int read_lime_spinor(double * const s, char * filename, const int position);
+#else
 int read_lime_spinor(double * const s, char const * const filename, const int position);
-
+#endif
 int read_cmi(double *v, char const * const filename);
 int write_binary_spinor_data_timeslice(double * const s, LimeWriter * limewriter,
   const int prec, int timeslice, DML_Checksum * ans);

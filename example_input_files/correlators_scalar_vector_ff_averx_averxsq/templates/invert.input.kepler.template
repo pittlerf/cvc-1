@@ -1,0 +1,103 @@
+L = 32
+T = 64
+
+nrzprocs = 2
+
+kappa = 0.1400645
+2kappamu = 0.000840387
+csw = 1.74
+
+bcanglet = 1.0
+
+debuglevel = 1
+
+ompnumthreads=2
+
+gaugeconfiginputfile = /hiskp4/gauges/nf211/cA211a.30.32/conf
+initialstorecounter = _NSTORE_
+
+BeginExternalInverter QUDA
+  MGCoarseMuFactor = 1.0, 1.0, 40.0
+  MGNumberOfLevels = 3
+  MGSetupSolver = cg
+  MGSetupSolverTolerance = 5e-7
+  MGSmootherType = cagcr, cagcr, cagcr
+  MGCoarseSolverType = gcr, gcr, cagcr
+  MgCoarseSolverTolerance = 0.45
+  MGBlockSizesX = 4,4
+  MGBlockSizesY = 4,4
+  MGBlockSizesZ = 4,2
+  MGBlockSizesT = 4,2
+  MGOverUnderRelaxationFactor = 1.05
+EndExternalInverter
+  
+# up id 0
+BeginOperator CLOVER
+  kappa = 0.1400645
+  2kappamu = 0.000840387
+  csw = 1.74
+  maxsolveriterations = 10000
+  solverprecision = 1.0e-16
+
+  solver = mg
+  useexternalinverter = quda
+  usesloppyprecision = single
+  useevenodd = yes
+EndOperator
+
+# down id 1
+BeginOperator CLOVER
+  kappa = 0.1400645
+  2kappamu = -0.000840387
+  csw = 1.74
+  maxsolveriterations = 10000
+  solverprecision = 1.0e-16
+  
+  solver = mg
+  useexternalinverter = quda
+  usesloppyprecision = single
+  useevenodd = yes
+EndOperator
+
+# strange+ 0.0176, id 2   
+BeginOperator CLOVER
+  kappa = 0.1400645
+  2kappamu = 0.00493027
+  csw = 1.74
+  maxsolveriterations = 10000
+  solverprecision = 1.0e-16
+
+  solver = mg
+  useexternalinverter = quda
+  usesloppyprecision = single
+  useevenodd = yes
+EndOperator
+
+# strange+ 0.0220, id 3
+BeginOperator CLOVER
+  kappa = 0.1400645
+  2kappamu = 0.006162838
+  csw = 1.74
+  maxsolveriterations = 10000
+  solverprecision = 1.0e-16
+
+  solver = mg
+  useexternalinverter = quda
+  usesloppyprecision = single
+  useevenodd = yes
+EndOperator
+
+# strange+ 0.0264, id 4
+BeginOperator CLOVER
+  kappa = 0.1400645
+  2kappamu = 0.007395406
+  csw = 1.74
+  maxsolveriterations = 10000
+  solverprecision = 1.0e-16
+
+  solver = mg
+  useexternalinverter = quda
+  usesloppyprecision = single
+  useevenodd = yes
+EndOperator
+

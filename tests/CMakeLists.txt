@@ -1,3 +1,5 @@
+add_executable(test_exceptions test_exceptions.cpp)
+
 add_executable(test_Core test_Core.cpp)
 target_link_libraries(test_Core cvc ${cvc_libraries})
 
@@ -12,6 +14,9 @@ target_link_libraries(benchmark_index_tools cvc ${cvc_libraries})
 
 add_executable(benchmark_cov_displ benchmark_cov_displ.cpp)
 target_link_libraries(benchmark_cov_displ cvc ${cvc_libraries})
+
+add_executable(benchmark_Momentum_Smearing benchmark_Momentum_Smearing.cpp)
+target_link_libraries(benchmark_Momentum_Smearing cvc ${cvc_libraries})
 
 add_executable(test_index_tools test_index_tools.cpp)
 target_link_libraries(test_index_tools cvc ${cvc_libraries})
@@ -49,7 +54,7 @@ target_link_libraries(test_HighFive ${cvc_libraries})
 add_executable(test_HighFive_MPI test_HighFive_MPI.cpp)
 target_link_libraries(test_HighFive_MPI cvc ${cvc_libraries})
 
-add_executable(test_create_derivatives test_create_derivatives.cpp)
+add_executable(test_create_derivative_chains test_create_derivative_chains.cpp)
 
 # copy over test file for test of h5utils
 configure_file(${CMAKE_SOURCE_DIR}/tests/test.h5

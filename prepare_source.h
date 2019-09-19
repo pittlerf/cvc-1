@@ -18,7 +18,8 @@ int init_clover_eo_spincolor_pointsource_propagator(double *s_even, double *s_od
 
 int fini_clover_eo_propagator(double *p_even, double *p_odd, double *r_even, double *r_odd , double*gauge_field, double*mzzinv, double *work0);
 
-int init_clover_eo_sequential_source(double *s_even, double *s_odd, double *p_even, double *p_odd, int tseq, double*gauge_field, double*mzzinv, int pseq[3], int gseq, double *work0);
+int init_clover_eo_sequential_source ( double * const s_even, double * const s_odd, double * const p_even, double * const p_odd, int const tseq, double * const gauge_field, double * const mzzinv, int const pseq[3], int const gseq, double * const work0);
+
 
 int check_vvdagger_locality (double** V, int numV, int gcoords[4], char*tag, double **sp);
 
@@ -26,7 +27,7 @@ int init_sequential_source ( double * const s, double * const p, int const tseq,
 
 int init_coherent_sequential_source(double *s, double **p, int tseq, int ncoh, int pseq[3], int gseq);
 
-int init_timeslice_source_oet(double **s, int tsrc, int*momentum, int init);
+int init_timeslice_source_oet ( double ** const s, int const tsrc, int * const momentum, int const spin_dilution, int const color_dilution, int const init);
   
   /**
    * @brief Generate oet timeslice source
@@ -54,6 +55,8 @@ int prepare_gamma_timeslice_oet(double * const s,
       int const t_src,
       ::cvc::complex const * const phases,
       const mom_t & momentum);
+
+int init_sequential_fht_source ( double * const s, double * const p, int const pseq[3], int const gseq);
 
 }  /* end of namespace cvc */
 

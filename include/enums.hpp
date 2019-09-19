@@ -41,6 +41,9 @@ typedef enum ExitCode_t {
   CVC_EXIT_UTIL_FUNCTION_FAILURE = 4,
   CVC_EXIT_MALLOC_FAILURE = 5,
   CVC_EXIT_MPI_FAILURE = 6,
+  CVC_EXIT_INVALID_INPUT = 7,
+  CVC_EXIT_SNPRINTF_OVERFLOW = 8,
+  CVC_EXIT_LIME_LEMON_IO_ERROR = 9,
   CVC_EXIT_NCODES
 } ExitCode_t;
 
@@ -49,6 +52,19 @@ typedef enum NoiseType_t {
   Z2_NOISE,
   N_NOISE_TYPES
 } NoiseType_t;
+
+typedef enum QuarkSmearingType_t {
+  QUARK_SMEAR_NONE = 0,
+  QUARK_SMEAR_JACOBI,
+  QUARK_SMEAR_MOM_JACOBI,
+  QUARK_SMEAR_NTYPES
+} QuarkSmearingType_t;
+
+typedef enum GaugeSmearingType_t {
+  GAUGE_SMEAR_NONE = 0,
+  GAUGE_SMEAR_APE,
+  GAUGE_SMEAR_NTYPES
+} GaugeSmearingType_t;
 
 typedef enum cvc_GammaBasis {
   UKQCD = 0,

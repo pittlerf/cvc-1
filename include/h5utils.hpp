@@ -1,6 +1,6 @@
 #pragma once
 
-#include "global.h"
+#include "cvc_global.h"
 #include "enums.hpp"
 #include "cvc_utils.h"
 #include "debug_printf.hpp"
@@ -37,7 +37,8 @@ namespace h5 {
 
   static inline std::string recursive_path_create(
       HighFive::File & file,
-      const std::list<std::string> & path_list)
+      const std::list<std::string> & path_list,
+      const bool is_dataset_path = true)
   {
     std::string path;
     for( auto const & subpath : path_list ){
@@ -45,7 +46,11 @@ namespace h5 {
       // up until the last element, these are groups
       // the final element is instead the name of the dataset
       // and we will not create a group with this name
-      if( !file.exist(path) && subpath != *(--path_list.end()) ){
+      auto end_elem = path_list.end();
+      if( is_dataset_path ){
+        end_elem = (--path_list.end());
+      }
+      if( !file.exist(path) && subpath != *(end_elem) ){
         debug_printf(0, verbosity::detailed_progress,
             "# [cvc::h5::recursive_path_create] Creating H5 path %s\n", path.c_str());
 
@@ -77,9 +82,9 @@ namespace h5 {
     if(io_proc > 0){
 #ifdef HAVE_MPI
       std::vector<double> buffer( local_data.size()*(T_global/T) );
-      int existatus;
+      int exitstatus;
       CHECK_EXITSTATUS_NOT(
-          existatus,
+          exitstatus,
           MPI_SUCCESS,
           MPI_Gather(local_data.data(), local_data.size(), MPI_DOUBLE, 
                      buffer.data(), local_data.size(), MPI_DOUBLE, 0, g_tr_comm),
@@ -93,11 +98,19 @@ namespace h5 {
       if(io_proc == 2){
         HighFive::File file(filename, HighFive::File::ReadWrite | HighFive::File::Create); 
     
-        std::string path = recursive_path_create(file, path_list);
-        // we just attempt to create the dataset. If it already exists, things will fail
-        // and HighFive will give us a useful exception
-        HighFive::DataSet dataset = file.createDataSet<double>(path, HighFive::DataSpace::From(buffer));
-        dataset.write(buffer);
+        // create the path hierarchy all the way up until the dataset name
+        std::string path = recursive_path_create(file, path_list, true);
+
+        // we check if the dataset path exists and if it does not, we create it
+        // and we attempt to write the dataset, if it already exsists it should
+        // just be overwritten, as long as the buffer has the same size
+        if( !file.exist(path_list_to_key(path_list)) ){
+          HighFive::DataSet dataset = file.createDataSet<double>(path, HighFive::DataSpace::From(buffer));
+          dataset.write(buffer);
+        } else {
+          HighFive::DataSet dataset = file.getDataSet(path);
+          dataset.write(buffer);
+        }
         file.flush();
       }
     }
@@ -123,7 +136,8 @@ namespace h5 {
         
         if(io_proc == 2){
           buffer.resize( elem_size * (T_global/T) );
-          path = recursive_path_create( *(file_ptr), elem.second.path_list);
+          // we create the path to the dataset up to the dataset name itself
+          path = recursive_path_create( *(file_ptr), elem.second.path_list, true);
           if( g_verbose >= verbosity::detailed_progress ){
             std::cout << "# [cvc::h5::write_correlators] Dataset path : " << path << std::endl;
           }
@@ -135,22 +149,28 @@ namespace h5 {
 
         std::vector<double> & local_data = elem.second.storage;
 #ifdef HAVE_MPI
-        int existatus;
+        int exitstatus;
         CHECK_EXITSTATUS_NOT(
-            existatus,
+            exitstatus,
             MPI_SUCCESS,
             MPI_Gather(local_data.data(), elem_size, MPI_DOUBLE, 
                        buffer.data(), elem_size, MPI_DOUBLE, 0, g_tr_comm),
-            "[cvc::h5::write_t_dataset] Failure in MPI_Gather\n",
+            "[cvc::h5::write_correlators] Failure in MPI_Gather\n",
             true,
             CVC_EXIT_MPI_FAILURE);
 #else
         buffer = data;
 #endif
-
         if(io_proc == 2){
-          HighFive::DataSet dataset = file_ptr->createDataSet<double>(path, HighFive::DataSpace::From(buffer));
-          dataset.write(buffer);
+          // if the dataset does not exist it, we create it
+          // otherwise we open it and attempt to write it
+          if( !file_ptr->exist(path) ){
+            HighFive::DataSet dataset = file_ptr->createDataSet<double>(path, HighFive::DataSpace::From(buffer));
+            dataset.write(buffer);
+          } else {
+            HighFive::DataSet dataset = file_ptr->getDataSet(path);
+            dataset.write(buffer);
+          }
         }
       } // loop over corrs
       if( io_proc == 2 ){
@@ -185,9 +205,9 @@ namespace h5 {
 
       // gather the loops from all accumulator processes on the I/O process
 #ifdef HAVE_MPI
-      int existatus;
+      int exitstatus;
       CHECK_EXITSTATUS_NOT(
-          existatus,
+          exitstatus,
           MPI_SUCCESS,
           MPI_Gather(local_loops.data(), n_elem*T/T_global, MPI_DOUBLE, 
                      buffer.data(), n_elem*T/T_global, MPI_DOUBLE, 0, g_tr_comm),
@@ -232,13 +252,20 @@ namespace h5 {
           if( g_verbose >= verbosity::detailed_progress ){
             std::cout << "# [cvc::h5::write_loops] Dataset path : " << path << std::endl;
           }
-          
           // currently we make a copy but there must be a better way for doing this
           // using HigFive, couldn't figure it out though...
           std::vector<double> temp(reorder_buffer.begin() + i_elem*2*T_global, 
-                                   reorder_buffer.begin() + (i_elem+1)*2*T_global); 
-          HighFive::DataSet dataset = loop_file.createDataSet<double>(path, HighFive::DataSpace::From(temp));
-          dataset.write(temp);
+                                   reorder_buffer.begin() + (i_elem+1)*2*T_global);
+        
+          // if the data set does not exist, we create it, otherwise we simply attempt to write
+          // it!
+          if( !loop_file.exist(path) ){
+            HighFive::DataSet dataset = loop_file.createDataSet<double>(path, HighFive::DataSpace::From(temp));
+            dataset.write(temp);
+          } else {
+            HighFive::DataSet dataset = loop_file.getDataSet(path);
+            dataset.write(temp);
+          }
         }
         loop_file.flush();
       } // if(io_proc == 2)

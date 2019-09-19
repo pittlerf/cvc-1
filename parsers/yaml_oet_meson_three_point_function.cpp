@@ -1,10 +1,10 @@
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_complex.h"
 
 #include "DependencyResolving.hpp"
 #include "DependencyGraph.hpp"
 #include "meta_types.hpp"
-#include "yaml_utils.hpp"
+#include "parsers/yaml_utils.hpp"
 #include "constants.hpp"
 #include "Logger.hpp"
 #include "types.h"
@@ -20,11 +20,12 @@
 namespace cvc {
 namespace yaml {
 
-void construct_oet_meson_three_point_function(
+void oet_meson_three_point_function(
     const YAML::Node &node,
     mom_lists_t & mom_lists,
     const int src_ts,
     std::map< std::string, ::cvc::stoch_prop_meta_t > & props_meta,
+    DepGraph & props_graph,
     std::map< std::string, std::vector<double> > & props_data,
     std::map< std::string, ::cvc::H5Correlator > & corrs_data,
     DepGraph & corrs_graph,
@@ -32,7 +33,9 @@ void construct_oet_meson_three_point_function(
     DepGraph & phases_graph,
     std::map< std::string, std::vector<double> > & seq_props_data,
     std::map< std::string, std::vector<double> > & cov_displ_props_data,
-    double * const gauge_field_with_phases)
+    std::map< std::string, dirac_op_meta_t > & dirac_ops_meta,
+    double * const gauge_field_with_phases,
+    const std::vector<double> & ranspinor)
 {
 #ifdef HAVE_MPI
   MPI_Barrier(g_cart_grid);
@@ -51,23 +54,23 @@ void construct_oet_meson_three_point_function(
   
   static const std::vector<std::string> required_nodes{
     "id", "dt", "fwd_flav", "bwd_flav", "seq_flav", "gi", "gf", "gb", "gc", "Pi", "Pf",
-    "momentum_exchange", "dirac_join", "Dc", "seq_solver_id", "seq_solver_driver"};
+    "momentum_exchange", "dirac_join", "Dc", "dagger_sequential"};
 
   static const std::vector<std::string> scalar_nodes{
     "id", "fwd_flav", "bwd_flav", "seq_flav", "dirac_join", "momentum_exchange",
-    "Pi", "Pf", "seq_solver_id", "seq_solver_driver" };
+    "Pi", "Pf", "dagger_sequential"};
 
   static const std::vector<std::string> sequence_nodes{
     "dt", "gi", "gf", "gb", "gc", "Dc" };
 
   check_missing_nodes(node, required_nodes,
-      "construct_oet_meson_three_point_function", "OetMesonThreePointFunction");
- 
+      "cvc::yaml::oet_meson_three_point_function", "OetMesonThreePointFunction");
+
   for( const std::string name : scalar_nodes ){
     validate_nodetype(node[name],
                       std::vector<YAML::NodeType::value>{YAML::NodeType::Scalar}, 
                       name);
-    if( name == "momentum_exchange" ){
+    if( name == "momentum_exchange" || name == "dagger_sequential" ){
       validate_bool(node[name].as<std::string>(), name);
     } else if ( name == "dirac_join" ){
       validate_join(node[name].as<std::string>(), name);
@@ -82,6 +85,16 @@ void construct_oet_meson_three_point_function(
     validate_mom_lists_key(mom_lists, node[name].as<std::string>(), name,
                            node["id"].as<std::string>());
   }
+  for( const std::string name : { "fwd_flav", "bwd_flav", "seq_flav" } ){
+    validate_dirac_op_key(dirac_ops_meta, node[name].as<std::string>(), name,
+                          node["id"].as<std::string>());
+  }
+
+  const bool dagger_seq = node["dagger_sequential"].as<bool>();
+
+  const std::string fwd_flav = node["fwd_flav"].as<std::string>();
+  const std::string bwd_flav = node["bwd_flav"].as<std::string>();
+  const std::string seq_flav = node["seq_flav"].as<std::string>();
 
   // loop over the source-sink-separation as well as the momentum combinations at this level
   // further below over all gamma and cov_displative combinations
@@ -89,17 +102,29 @@ void construct_oet_meson_three_point_function(
   for( size_t i_dt = 0; i_dt < node["dt"].size(); ++i_dt ){
     const int dt = node["dt"][i_dt].as<int>();
     {
-      logger << "# [construct_oet_meson_three_point_function] Source-sink-separation: " <<
+      logger << "# [yaml::oet_meson_three_point_function] Source-sink-separation: " <<
         dt << std::endl;
     }
     const int seq_src_ts = (src_ts + dt + T_global) % T_global;
 
     for( const auto & pi : mom_lists[ node["Pi"].as<std::string>() ] ){
+      mom_t psrc{ pi.x, pi.y, pi.z };
+      // when the forward propagator rather than the sequentual propagator is
+      // daggered in the contraction, we need to supply the source momentum
+      // with a minus sign
+      if( !dagger_seq ){
+        psrc = mom_t{ -pi.x, -pi.y, -pi.z };
+      }
+
       for( const auto & pf : mom_lists[ node["Pf"].as<std::string>() ] ){
         const mom_t mom_xchange{ -(pi.x+pf.x), -(pi.y+pf.y), -(pi.z+pf.z) };
-        // we have to be careful, the sequential propagator is daggered as a whole and so
-        // the momentum that is actually injected must be supplied with a minus sign
-        const mom_t pseq{ -pf.x, -pf.y, -pf.z };
+        // we have to be careful, if the sequential propagator is daggered as a whole,
+        // the momentum that is actually injected at the sink must be supplied with a minus sign
+        mom_t pseq{ pf.x, pf.y, pf.z };
+        if( dagger_seq ){
+          pseq = mom_t{ -pf.x, -pf.y, -pf.z };
+        }
+
         if( node["momentum_exchange"].as<std::string>() == "false" ){
           if( mom_xchange.x != 0 || mom_xchange.y != 0 || mom_xchange.z != 0 ){
             continue;
@@ -107,6 +132,14 @@ void construct_oet_meson_three_point_function(
         }
 
         char phase_string[100];
+        snprintf(phase_string, 100, "px%dpy%dpz%d", psrc.x, psrc.y, psrc.z);
+        const std::string psrc_key(phase_string);
+        Vertex psrc_vertex = boost::add_vertex(psrc_key, phases_graph);
+        phases_graph[psrc_vertex].resolve.reset( new MomentumPhaseResolve(
+              psrc_key,
+              phases_data,
+              psrc) );
+
         snprintf(phase_string, 100, "px%dpy%dpz%d", mom_xchange.x, mom_xchange.y, mom_xchange.z);
         const std::string mom_xchange_key(phase_string);
         Vertex mom_xchange_vertex = boost::add_vertex(mom_xchange_key, phases_graph);
@@ -127,7 +160,7 @@ void construct_oet_meson_three_point_function(
           std::vector<int> pivec{ pi.x, pi.y, pi.z };
           std::vector<int> pfvec{ pf.x, pf.y, pf.z };
           std::vector<int> pcvec{ mom_xchange.x, mom_xchange.y, mom_xchange.z };
-          logger << "# [construct_oet_meson_three_point_function] Momentum: (" << pivec[0];
+          logger << "# [yaml::oet_meson_three_point_function] Momentum: (" << pivec[0];
           for( size_t i_pi = 1; i_pi < pivec.size(); ++i_pi ){
             if( i_pi < 3 ) logger << ",";
             logger << pivec[i_pi];
@@ -159,10 +192,131 @@ void construct_oet_meson_three_point_function(
           }
           for( size_t i_gf = 0; i_gf < gf.size(); ++i_gf ){
             for( size_t i_gb = 0; i_gb < gb.size(); ++i_gb ){
+              // take care of the forward and backward propagators
+              stoch_prop_meta_t fwd_prop_meta(psrc,
+                                              gi[i_gi].as<int>(),
+                                              src_ts,
+                                              fwd_flav);
+              const std::string fwd_prop_key = fwd_prop_meta.key();
+              
+              if( props_meta.count(fwd_prop_key) == 0 ){
+                ts_stoch_src_meta_t fwd_prop_src_meta(psrc, gi[i_gi].as<int>(), src_ts);
+                props_meta[fwd_prop_key] = fwd_prop_meta;
+                Vertex fwd_prop_vertex = boost::add_vertex(fwd_prop_key, props_graph);
+                props_graph[fwd_prop_vertex].resolve.reset(
+                    new PropResolve(
+                      fwd_prop_key,
+                      dirac_ops_meta[fwd_flav].solver_id,
+                      props_data,
+                      new CreateGammaTimeSliceSource(
+                        src_ts,
+                        gi[i_gi].as<int>(),
+                        psrc,
+                        fwd_prop_src_meta.key(),
+                        phases_data,
+                        psrc_key,
+                        ranspinor)
+                      )
+                    );
+
+                // all simple propagators of a given flavour (id) will be collected in one group
+                // that way, the MG setup, if any, can be used optimally
+                Vertex fwd_flav_vertex = boost::add_vertex(fwd_flav, props_graph);
+                ::cvc::add_unique_edge(fwd_prop_vertex, fwd_flav_vertex, props_graph); 
+              }
+
+
+              // the backward propagator for the sequential propagator is
+              // always a zero momentum one
+              stoch_prop_meta_t bwd_prop_meta(zero_mom,
+                                              gb[i_gb].as<int>(),
+                                              src_ts,
+                                              bwd_flav);
+              const std::string bwd_prop_key = bwd_prop_meta.key();
+
+              if( props_meta.count(bwd_prop_key) == 0 ){
+                ts_stoch_src_meta_t bwd_prop_src_meta(zero_mom, gb[i_gb].as<int>(), src_ts);
+                props_meta[bwd_prop_key] = bwd_prop_meta;
+                Vertex bwd_prop_vertex = boost::add_vertex(bwd_prop_key, props_graph);
+                props_graph[bwd_prop_vertex].resolve.reset(
+                    new PropResolve(
+                      bwd_prop_key,
+                      dirac_ops_meta[bwd_flav].solver_id,
+                      props_data,
+                      new CreateGammaTimeSliceSource(
+                        src_ts,
+                        gb[i_gb].as<int>(),
+                        zero_mom,
+                        bwd_prop_src_meta.key(),
+                        phases_data,
+                        "px0py0pz0",
+                        ranspinor)
+                      )
+                    );
+
+                Vertex bwd_flav_vertex = boost::add_vertex(bwd_flav, props_graph);
+                ::cvc::add_unique_edge(bwd_prop_vertex, bwd_flav_vertex, props_graph);
+              }
+
               for( size_t i_gc = 0; i_gc < gc.size(); ++i_gc ){
+                // we have to be careful here too: in the case dagger_seq is true,
+                // the Dirac structure at the sink is implicitly daggered
+                // -> there may be additional signs or phase changes
+                // which are not taken into account!
+                // what is taken into account, however, is the sign change
+                // on the sequential (final) momentum if dagger_seq is true
+                // -> see definition of pseq above
+                ::cvc::seq_stoch_prop_meta_t seq_prop(pseq,
+                                                      gf[i_gf].as<int>(),
+                                                      seq_src_ts,
+                                                      src_ts,
+                                                      seq_flav,
+                                                      zero_mom, // this is the momentum carried by the backward
+                                                                // propagator
+                                                      gb[i_gb].as<int>(),
+                                                      bwd_flav
+                                                      );
+
+                const std::string seq_prop_key = seq_prop.key();
+
+                char seq_src_string[200];
+                snprintf(seq_src_string, 200, "g%d_px%dpy%dpz%d::ts%d::%s",
+                    gf[i_gf].as<int>(), pseq.x, pseq.y, pseq.z,
+                    seq_src_ts,
+                    bwd_prop_key.c_str());
+                const std::string seq_src_key(seq_src_string);
+
+                Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, corrs_graph);
+                corrs_graph[seq_prop_vertex].resolve.reset( new PropResolve(
+                      seq_prop_key,
+                      dirac_ops_meta[seq_flav].solver_id,
+                      seq_props_data,
+                      new CreateSequentialGammaTimeSliceSource(
+                        src_ts,
+                        seq_src_ts,
+                        gf[i_gf].as<int>(),
+                        pseq,
+                        seq_src_key,
+                        bwd_prop_key,
+                        props_data,
+                        pseq_key,
+                        phases_data) ) );
+
+                char corrtype[100];
+                if( dagger_seq ){
+                  snprintf(corrtype, 100, "s%s%s+-g-%s-g",
+                           bwd_flav.c_str(),
+                           seq_flav.c_str(),
+                           fwd_flav.c_str());
+                } else {
+                  snprintf(corrtype, 100, "s%s%s-g-%s+-g",
+                           bwd_flav.c_str(),
+                           seq_flav.c_str(),
+                           fwd_flav.c_str());
+                }
                 for( size_t i_Dc = 0; i_Dc < Dc.size(); ++i_Dc ){
                   {
-                    logger << "# [construct_oet_meson_three_point_function] Dirac: (" << 
+                    logger << "# [yaml::oet_meson_three_point_function] Dirac: (" << 
                       gf[i_gf].as<int>() << "," <<
                       gc[i_gc].as<int>() <<
                       "," << gi[i_gi].as<int>() << ")  " <<
@@ -174,72 +328,7 @@ void construct_oet_meson_three_point_function(
                   std::vector< std::vector<deriv_t> > cov_displ_chains;
                   cov_displ_chains = create_derivative_chains(0, Dc[i_Dc].as<int>(), cov_displ_chains);
                  
-                  // TODO: the two logic paths here share a ton of code an can certainly be
-                  // combined into a single function 
                   if( cov_displ_chains.size() == 0 ){
-                    std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
-                                                                    gi[i_gi].as<int>(),
-                                                                    src_ts,
-                                                                    node["fwd_flav"].as<std::string>()));
-
-                    // the backward propagator for the sequential propagator is
-                    // always a zero momentum one
-                    std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
-                                                                    gb[i_gb].as<int>(),
-                                                                    src_ts,
-                                                                    node["bwd_flav"].as<std::string>()));
-
-                    validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
-                    validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
-
-                    // we have to be careful here too as the Dirac structure will be implicitly daggered
-                    // when the sequential propagator is contracted with the forward propagator
-                    // -> there may be additional signs or phase changes
-                    ::cvc::seq_stoch_prop_meta_t seq_prop(pseq,
-                                                          gf[i_gf].as<int>(),
-                                                          seq_src_ts,
-                                                          src_ts,
-                                                          node["seq_flav"].as<std::string>(),
-                                                          zero_mom, // this is the momentum carried by the backward
-                                                                    // propagator
-                                                          gb[i_gb].as<int>(),
-                                                          node["bwd_flav"].as<std::string>()
-                                                          );
-
-                    const std::string seq_prop_key = seq_prop.key();
-
-                    // we have to be careful, the sequential propagator is daggered as a whole and so
-                    // the momentum that is actually injected must be supplied with a minus sign
-                    // -> pseq = -pf
-                    char seq_src_string[200];
-                    snprintf(seq_src_string, 200, "g%d_px%dpy%dpz%d::ts%d::%s",
-                        gf[i_gf].as<int>(), pseq.x, pseq.y, pseq.z,
-                        seq_src_ts,
-                        bwd_prop_key.c_str());
-                    const std::string seq_src_key(seq_src_string);
-
-                    Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, corrs_graph);
-                    corrs_graph[seq_prop_vertex].resolve.reset( new PropResolve(
-                          seq_prop_key,
-                          node["seq_solver_id"].as<int>(),
-                          seq_props_data,
-                          new CreateSequentialGammaTimeSliceSource(
-                            src_ts,
-                            seq_src_ts,
-                            gf[i_gf].as<int>(),
-                            pseq,
-                            seq_src_key,
-                            bwd_prop_key,
-                            props_data,
-                            pseq_key,
-                            phases_data) ) );
-
-                    char corrtype[100];
-                    snprintf(corrtype, 100, "s%s%s+-g-%s-g",
-                             node["bwd_flav"].as<std::string>().c_str(),
-                             node["seq_flav"].as<std::string>().c_str(),
-                             node["fwd_flav"].as<std::string>().c_str());
-
                     char subpath[100];
                     std::list<std::string> path_list;
                     path_list.push_back(corrtype);
@@ -265,85 +354,35 @@ void construct_oet_meson_three_point_function(
                     // are in separate maps
                     // note that when the sequential and forward propagators are contracted
                     // the gamma5 from employing gamma5-hermiticity is explicitly included
-                    // in the contraction routine contract_twopoint_gamma5_gamma_snk_only_snk_momentum 
-                    corrs_graph[corrvertex].resolve.reset( new 
-                        CorrResolve(fwd_prop_key,
-                                    seq_prop_key,
-                                    mom_xchange, 
-                                    gc[i_gc].as<int>(),
-                                    path_list,
-                                    props_data,
-                                    seq_props_data,
-                                    corrs_data,
-                                    phases_data,
-                                    ::cvc::complex{1.0, 0.0} ) );
-                  
-                  } else { // if( cov_displ_chains.size() > 0 )
+                    // in the contraction routine contract_twopoint_gamma5_gamma_snk_only_snk_momentum
+                    if( dagger_seq ){
+                      corrs_graph[corrvertex].resolve.reset( new 
+                          CorrResolve(fwd_prop_key,
+                                      seq_prop_key,
+                                      mom_xchange, 
+                                      gc[i_gc].as<int>(),
+                                      path_list,
+                                      props_data,
+                                      seq_props_data,
+                                      corrs_data,
+                                      phases_data,
+                                      ::cvc::complex{1.0, 0.0} ) );
+                    } else {
+                      corrs_graph[corrvertex].resolve.reset( new 
+                          CorrResolve(seq_prop_key,
+                                      fwd_prop_key,
+                                      mom_xchange, 
+                                      gc[i_gc].as<int>(),
+                                      path_list,
+                                      seq_props_data,
+                                      props_data,
+                                      corrs_data,
+                                      phases_data,
+                                      ::cvc::complex{1.0, 0.0} ) );
+                    }
+                  } else { // --> cov_displ_chains.size() > 0
                   
                     for( auto const & cov_displ_chain : cov_displ_chains ){
-                      std::string fwd_prop_key(stoch_prop_meta_t::key(pi,
-                                                                      gi[i_gi].as<int>(),
-                                                                      src_ts,
-                                                                      node["fwd_flav"].as<std::string>()));
-
-                      // the backward propagator for the sequential propagator is
-                      // always a zero momentum one
-                      std::string bwd_prop_key(stoch_prop_meta_t::key(zero_mom,
-                                                                      gb[i_gb].as<int>(),
-                                                                      src_ts,
-                                                                      node["bwd_flav"].as<std::string>()));
-
-                      validate_prop_key(props_meta, fwd_prop_key, "fwd_flav", node["id"].as<std::string>());
-                      validate_prop_key(props_meta, bwd_prop_key, "bwd_flav", node["id"].as<std::string>());
-
-                      // we have to be careful here too as the Dirac structure will be implicitly daggered
-                      // when the sequential propagator is contracted with the forward propagator
-                      // -> there may be additional signs or phase changes
-                      ::cvc::seq_stoch_prop_meta_t seq_prop(pseq,
-                                                            gf[i_gf].as<int>(),
-                                                            seq_src_ts,
-                                                            src_ts,
-                                                            node["seq_flav"].as<std::string>(),
-                                                            zero_mom, // this is the momentum carried by
-                                                                      // the backward propagator
-                                                            gb[i_gb].as<int>(),
-                                                            node["bwd_flav"].as<std::string>()
-                                                            );
-
-                      const std::string seq_prop_key = seq_prop.key();
-
-                      // we have to be careful, the sequential propagator is daggered as a whole and so
-                      // the momentum that is actually injected must be supplied with a minus sign
-                      // -> pseq = -pf
-                      char seq_src_string[200];
-                      snprintf(seq_src_string, 200, "g%d_px%dpy%dpz%d::ts%d::%s",
-                          gf[i_gf].as<int>(), pseq.x, pseq.y, pseq.z,
-                          seq_src_ts,
-                          bwd_prop_key.c_str());
-                      const std::string seq_src_key(seq_src_string);
-
-                      Vertex seq_prop_vertex = boost::add_vertex(seq_prop_key, corrs_graph);
-                      corrs_graph[seq_prop_vertex].resolve.reset( new PropResolve(
-                            seq_prop_key,
-                            node["seq_solver_id"].as<int>(),
-                            seq_props_data,
-                            new CreateSequentialGammaTimeSliceSource(
-                              src_ts,
-                              seq_src_ts,
-                              gf[i_gf].as<int>(),
-                              pseq,
-                              seq_src_key,
-                              bwd_prop_key,
-                              props_data,
-                              pseq_key,
-                              phases_data) ) );
-
-                      char corrtype[100];
-                      snprintf(corrtype, 100, "s%s%s+-g-%s-g",
-                               node["bwd_flav"].as<std::string>().c_str(),
-                               node["seq_flav"].as<std::string>().c_str(),
-                               node["fwd_flav"].as<std::string>().c_str());
-
                       char subpath[100];
                       std::list<std::string> path_list;
                       path_list.push_back(corrtype);
@@ -357,8 +396,25 @@ void construct_oet_meson_three_point_function(
                       path_list.push_back(subpath);
                       snprintf(subpath, 100, "gc%d", gc[i_gc].as<int>());
                       path_list.push_back(subpath);
-                      for( auto const & cov_displ : cov_displ_chain ){
-                        snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ.dim, cov_displ.dir);
+                      // in the creation of the key for multiple covariant displacements,
+                      // we reverse the iteration order over the elements in the derivative
+                      // chain as the first element of the chain is applied first,
+                      // followed by the second and then by the third
+                      // Thus, in order to obtain operator notation (with the first application
+                      // appearing *right-most* in the key), we need to push_back the elements
+                      // from the last to the first.
+                      for( auto cov_displ_i = cov_displ_chain.rbegin(); cov_displ_i != cov_displ_chain.rend(); ++cov_displ_i ){
+                        // all displacements are applied to the "forward" propagator
+                        // if we dagger the sequential propagator, all is good and the labels below
+                        // are appropriate
+                        // however, if in the contraction we dagger the forward propagator instead,
+                        // the direction label in the correlator must be exchanged AND an implicit
+                        // phase must be included in case of non-zero momentum
+                        if( dagger_seq ){
+                          snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ_i->dim, cov_displ_i->dir);
+                        } else {
+                          snprintf(subpath, 100, "Ddim%d_dir%d", cov_displ_i->dim, (cov_displ_i->dir+1) % 2);
+                        }
                         path_list.push_back(subpath);
                       }
                       snprintf(subpath, 100, "gi%d", gi[i_gi].as<int>());
@@ -372,15 +428,25 @@ void construct_oet_meson_three_point_function(
                       // add the various covariantly displaced vertices
                       std::vector<Vertex> cov_displ_vertices;
 
-                      // the covariant displacement of highest order will end up in
-                      // this key, built below
+                      // generate a key for the covariantly displaced quark propagator
+                      // in operator ordering (see snprintf below, displacements are added
+                      // to the key from the left)
                       std::string cov_displ_prop_key = fwd_prop_key;
                       for( size_t i_cov_displ = 0; i_cov_displ < cov_displ_chain.size(); ++i_cov_displ ){
                         const deriv_t & cov_displ = cov_displ_chain[i_cov_displ];
 
-                        char cov_displ_prop_string[200];
-                        snprintf(cov_displ_prop_string, 200,
-                            "Ddim%d_dir%d::%s", cov_displ.dim, cov_displ.dir, cov_displ_prop_key.c_str());
+                        char cov_displ_prop_string[300];
+                        int nchar = snprintf(cov_displ_prop_string, 300,
+                                             "Ddim%d_dir%d::%s", cov_displ.dim, cov_displ.dir,
+                                             cov_displ_prop_key.c_str());
+                        if( nchar >= 300 ){
+                          char msg[200];
+                          snprintf(msg, 200,
+                                   "[yaml::oet_meson_three_point_function] Exceeded maximum number of characters (299)"
+                                   "in the writing of 'cov_displ_prop_string'. You should increase the number"
+                                   "of characters that can be written here! Sorry about the poor implementation!\n");
+                          EXIT_WITH_MSG(CVC_EXIT_SNPRINTF_OVERFLOW, msg);
+                        }
 
                         std::string new_cov_displ_prop_key(cov_displ_prop_string);
                         Vertex cov_displ_vertex = boost::add_vertex(new_cov_displ_prop_key, corrs_graph);
@@ -427,23 +493,38 @@ void construct_oet_meson_three_point_function(
                         // from here, the graph will be correctly connected and the processing order will
                         // be correct
                       }
-
-                      // for the three point function, the forward and daggered propagator
-                      // are in separate maps
-                      // note that when the sequential and forward propagators are contracted
-                      // the gamma5 from employing gamma5-hermiticity is explicitly included
-                      // in the contraction routine contract_twopoint_gamma5_gamma_snk_only_snk_momentum 
-                      corrs_graph[corrvertex].resolve.reset( new 
-                          CorrResolve(cov_displ_prop_key,
-                                      seq_prop_key,
-                                      mom_xchange, 
-                                      gc[i_gc].as<int>(),
-                                      path_list,
-                                      cov_displ_props_data,
-                                      seq_props_data,
-                                      corrs_data,
-                                      phases_data,
-                                      ::cvc::complex{1.0, 0.0} ) );
+ 
+                      // now just complete the task by creating the actual correlator vertex
+                      if( dagger_seq ){
+                        corrs_graph[corrvertex].resolve.reset( new 
+                            CorrResolve(cov_displ_prop_key,
+                                        seq_prop_key,
+                                        mom_xchange, 
+                                        gc[i_gc].as<int>(),
+                                        path_list,
+                                        cov_displ_props_data,
+                                        seq_props_data,
+                                        corrs_data,
+                                        phases_data,
+                                        ::cvc::complex{1.0, 0.0} ) );
+                      } else {
+                        // CAVEAT: in this case, the covariantly displaced propagator
+                        // is daggered in the contraction
+                        // while this has been taken into account in the correlator
+                        // labelling, in case of non-zero momentum, there is
+                        // an implicit phase missing
+                        corrs_graph[corrvertex].resolve.reset( new 
+                            CorrResolve(seq_prop_key,
+                                        cov_displ_prop_key,
+                                        mom_xchange, 
+                                        gc[i_gc].as<int>(),
+                                        path_list,
+                                        seq_props_data,
+                                        cov_displ_props_data,
+                                        corrs_data,
+                                        phases_data,
+                                        ::cvc::complex{1.0, 0.0} ) );
+                      }
                     } // end of for( cov_displ_chain in cov_displ_chains )
                   } // end of if( cov_displ_chains.size() > 0 ) 
                 } // Dc

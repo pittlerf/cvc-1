@@ -2,7 +2,7 @@
 #define _ILINALG_H
 
 #include "cvc_linalg.h"
-#include "global.h"
+#include "cvc_global.h"
 
 #include "linalg/fp_linalg_inline.h"
 #include "linalg/sp_linalg_inline.h"

@@ -1,7 +1,7 @@
 #ifndef INDEX_TOOLS_HPP
 #define INDEX_TOOLS_HPP
 
-#include "global.h"
+#include "cvc_global.h"
 #include "enums.hpp"
 
 #include <array>

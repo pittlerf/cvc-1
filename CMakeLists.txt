@@ -60,24 +60,27 @@ if( MPI_C_FOUND OR MPI_HOME )
 endif()
 
 set( TMLQCD_SRC CACHE PATH "path to tmLQCD source directory" )
-if( TMLQCD_SRC )
-  include_directories( ${TMLQCD_SRC}/include )
-endif()
-
 set( TMLQCD_BUILD CACHE PATH "path to tmLQCD build directory (must be build directory for source in TMLQCD_SRC!)" )
 if( TMLQCD_BUILD )
   link_directories(${TMLQCD_BUILD}/lib)
-  include_directories(${TMLQCD_BUILD})
+  include_directories(${TMLQCD_BUILD}/include)
   list(APPEND cvc_libraries 
     "-lwrapper" "-lhmc" "-lmonomial"
     "-loperator" "-lmeas" "-linit" 
     "-lhmc" "-lxchange" "-lrational"
     "-lsolver" "-lio" "-llinalg" "-lm")
   add_definitions(-DHAVE_TMLQCD_LIBWRAPPER)
-  message( STATUS "tmLQCD wrapper library enabled" ) 
+  message( STATUS "tmLQCD wrapper library enabled" )
+  if( NOT TMLQCD_SRC )
+    message( FATAL_ERROR "tmLQCD source directory must also be defined! (TMLQCD_SRC)" )
+  else()
+    include_directories( ${TMLQCD_SRC}/include )
+  endif()
 else()
   message( STATUS "tmLQCD wrapper library disabled" )
 endif()
+
+
 
 set( LIME_HOME CACHE PATH "path to the c-lime library installation" )
 if( LIME_HOME )
@@ -381,6 +384,7 @@ add_library(cvc
   contract/contract_twopoint_all_gammas_ext_momentum_list.cpp
   contract_loop.cpp
   fourier_transform/make_phase_field.cpp
+  smearing_techniques.cpp
 )
 add_library(cvc_bare
   ${CMAKE_CURRENT_BINARY_DIR}/gitversion.cpp
@@ -441,3 +445,12 @@ target_link_libraries(cpff_invert_contract_no_spin_dilution
 add_subdirectory(external/googletest)
 add_subdirectory(tests)
 add_subdirectory(parsers)
+
+# integration test(s)
+
+enable_testing()
+
+add_test(NAME "integration_correlators_4c8"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/correlators_4c8/run_integration_test.sh" "${CMAKE_CURRENT_BINARY_DIR}" "${LIME_HOME}"
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/integration_tests/correlators_4c8")
+

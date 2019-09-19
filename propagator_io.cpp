@@ -11,17 +11,16 @@
 
 #define _FILE_OFFSET_BITS 64
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
-#include <sys/time.h> 
-#include <sys/types.h>
-#include <math.h>
-#ifdef HAVE_MPI
-#  include <mpi.h>
-#  include <unistd.h>
-#endif
+#include "cvc_complex.h"
+#include "cvc_global.h"
+#include "cvc_geometry.h"
+#include "dml.h"
+#include "cvc_linalg.h"
+#include "io_utils.h"
+#include "cvc_utils.h"
+#include "Q_phi.h"
+#include "propagator_io.h"
+#include "enums.hpp"
 
 #ifdef __cplusplus
 extern "C"
@@ -35,15 +34,17 @@ extern "C"
 }
 #endif
 
-#include "cvc_complex.h"
-#include "global.h"
-#include "cvc_geometry.h"
-#include "dml.h"
-#include "cvc_linalg.h"
-#include "io_utils.h"
-#include "cvc_utils.h"
-#include "Q_phi.h"
-#include "propagator_io.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <sys/time.h> 
+#include <sys/types.h>
+#include <math.h>
+#ifdef HAVE_MPI
+#  include <mpi.h>
+#  include <unistd.h>
+#endif
 
 namespace cvc {
 
@@ -70,7 +71,7 @@ int write_binary_spinor_data(double * const s, LemonWriter * writer, const int p
   int scidacMapping[] = {0, 3, 2, 1};
   unsigned long bufoffset = 0;
   char *filebuffer = NULL;
-  uint64_t bytes;
+  MPI_Offset bytes;
   DML_SiteRank rank;
   double tick = 0, tock = 0;
   char measure[64];
@@ -301,6 +302,10 @@ int write_binary_spinor_data(double * const s, LimeWriter * limewriter,
   MPI_Barrier(g_cart_grid);
 #endif
 
+  if(g_cart_id == 0){
+    limeWriterCloseRecord(limewriter);
+  }
+
   return(0);
 }
 #endif /* HAVE_LIBLEMON */
@@ -312,7 +317,7 @@ int read_binary_spinor_data(double * const s, LemonReader * reader,
   int t, x, y , z, i = 0, status = 0;
   int latticeSize[] = {T_global, LX_global, LY_global, LZ_global};
   int scidacMapping[] = {0, 3, 2, 1};
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   double *p = NULL;
   char *filebuffer = NULL, *current = NULL;
   double tick = 0, tock = 0;
@@ -702,12 +707,13 @@ int write_lime_spinor(double * const s, char const * const filename,
 		      const int append, const int prec) {
 
   FILE * ofs = NULL;
-  LimeWriter * limewriter = NULL;
-  LimeRecordHeader * limeheader = NULL;
+  LimeWriter * writer = NULL;
+  LimeRecordHeader * header = NULL;
   int status = 0;
   int ME_flag=0, MB_flag=0;
   n_uint64_t bytes;
   DML_Checksum checksum;
+  char * message;
 
   if(g_cart_id==0) {
     if(append) {
@@ -725,8 +731,8 @@ int write_lime_spinor(double * const s, char const * const filename,
       exit(500);
     }
   
-    limewriter = limeCreateWriter( ofs );
-    if(limewriter == (LimeWriter*)NULL) {
+    writer = limeCreateWriter( ofs );
+    if(writer == (LimeWriter*)NULL) {
       fprintf(stderr, "[write_lime_spinor] LIME error in file %s for writing!\n Aborting...\n", filename);
 #ifdef HAVE_MPI
       MPI_Abort(MPI_COMM_WORLD, 1);
@@ -734,11 +740,25 @@ int write_lime_spinor(double * const s, char const * const filename,
 #endif
       exit(500);
     }
+    // format message
+    message = (char*)malloc(2048);
+    sprintf(message, 
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<cvcFormat>\n<precision>%d</precision>\n"
+              "<lx>%d</lx>\n<ly>%d</ly>\n<lz>%d</lz>\n<lt>%d</lt>\n</cvcFormat>\ndate %s",
+            prec, LX*g_nproc_x, LY*g_nproc_y, LZ*g_nproc_z, T_global, ctime(&g_the_time));
+    bytes = strlen(message);
+    MB_flag=1, ME_flag=1;
+    header = limeCreateHeader(MB_flag, ME_flag, "cvc_contraction-format", bytes);
+    status = limeWriteRecordHeader(header, writer);
+    limeDestroyHeader(header);
+    limeWriteRecordData( message, &bytes, writer);
+    limeWriterCloseRecord(writer);
+    free(message);
 
     bytes = (LX*g_nproc_x)*LY*LZ*T_global*(n_uint64_t)24*sizeof(double)*prec/64;
-    MB_flag=0; ME_flag=1;
-    limeheader = limeCreateHeader(MB_flag, ME_flag, "scidac-binary-data", bytes);
-    status = limeWriteRecordHeader( limeheader, limewriter);
+    MB_flag=1; ME_flag=0;
+    header = limeCreateHeader(MB_flag, ME_flag, "scidac-binary-data", bytes);
+    status = limeWriteRecordHeader( header, writer);
     if(status < 0 ) {
       fprintf(stderr, "[write_lime_spinor] LIME write header (scidac-binary-data) error %d\n", status);
 #ifdef HAVE_MPI
@@ -747,20 +767,46 @@ int write_lime_spinor(double * const s, char const * const filename,
 #endif
       exit(500);
     }
-    limeDestroyHeader( limeheader );
+    limeDestroyHeader( header );
   }
   
-  status = write_binary_spinor_data(s, limewriter, prec, &checksum);
+  CHECK_EXITSTATUS_NONZERO(
+      status,
+      write_binary_spinor_data(s, writer, prec, &checksum),
+      "# [write_lime_spinor]: status non-zero in call of write_binary_spinor_data!",
+      1,
+      CVC_EXIT_LIME_LEMON_IO_ERROR);
+
   if(g_cart_id==0) {
     printf("# [write_lime_spinor] Final check sum is (%#lx  %#lx)\n", checksum.suma, checksum.sumb);
     if(ferror(ofs)) {
       fprintf(stderr, "[write_lime_spinor] Warning! Error while writing to file %s \n", filename);
     }
-    limeDestroyWriter( limewriter );
+    limeDestroyWriter( writer );
     fflush(ofs);
     fclose(ofs);
   }
-  write_checksum(filename, &checksum);
+ 
+  if( g_cart_id == 0 ) { 
+    message = (char*)malloc(512);
+    sprintf(message, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                     "<scidacChecksum>\n"
+                     "  <version>1.0</version>\n"
+                     "  <suma>%08x</suma>\n"
+                     "  <sumb>%08x</sumb>\n"
+                     "</scidacChecksum>", checksum.suma, checksum.sumb);
+    bytes = strlen(message);
+    MB_flag=0, ME_flag=1;
+    header = limeCreateHeader(MB_flag, ME_flag, "scidac-checksum", bytes);
+    status = limeWriteRecordHeader(header, writer);
+    limeDestroyHeader(header);
+    limeWriteRecordData( message, &bytes, writer);
+    limeWriterCloseRecord(writer);
+    free(message);
+  }
+
+  limeDestroyWriter(writer);
+  fclose(ofs);
   return(0);
 }
 #endif  // of if HAVE_LIBLEMON 
@@ -890,7 +936,7 @@ int read_lime_spinor(double * const s, char * filename, const int position) {
 int read_lime_spinor(double * const s, char const * const filename, const int position) {
   FILE * ifs;
   int status=0, getpos=-1;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   char * header_type;
   LimeReader * limereader;
   n_uint64_t prec = 32;
@@ -1021,7 +1067,7 @@ int write_binary_spinor_data_timeslice(double * const s, LimeWriter * limewriter
   int x, y, z, i=0, status=0;
   double tmp[24];
   float  tmp2[24];
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   DML_SiteRank rank;
   int words_bigendian = big_endian();
 
@@ -1085,7 +1131,7 @@ int write_lime_spinor_timeslice(double * const s, char const * const filename,
   LimeRecordHeader * limeheader = NULL;
   int status = 0;
   int ME_flag=0, MB_flag=0;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
 
   if(timeslice==0) {
     write_source_type(0, filename);
@@ -1411,7 +1457,7 @@ int read_binary_spinor_data_single(float* const s, LimeReader * limereader,
 int read_lime_spinor_single(float * const s, char const * const filename, const int position) {
   FILE * ifs;
   int status=0, getpos=-1;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   char * header_type;
   LimeReader * limereader;
   n_uint64_t prec = 32;
@@ -1493,7 +1539,7 @@ int read_lime_spinor_timeslice(double * const s, int timeslice, char const * con
 #else
   FILE * ifs;
   int status=0, getpos=-1;
-  n_uint64_t bytes;
+  MPI_Offset bytes;
   char * header_type;
   LimeReader * limereader;
   n_uint64_t prec = 32;
@@ -1557,7 +1603,7 @@ int read_binary_spinor_data_timeslice(double * const s, int timeslice, LimeReade
   return(1);
 #else
   int status=0;
-  n_uint64_t bytes, ix;
+  MPI_Offset bytes, ix;
   double tmp[24];
   DML_SiteRank rank;
   float tmp2[24];

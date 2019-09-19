@@ -27,7 +27,7 @@
 
 #include "cvc_linalg.h"
 #include "iblas.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_geometry.h"
 #include "cvc_utils.h"
 #include "mpi_init.h"

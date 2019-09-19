@@ -1,8 +1,9 @@
-#include "global.h"
+#include "cvc_global.h"
 #include "Logger.hpp"
 #include "meta_types.hpp"
 #include "yaml_parsers.hpp"
 #include "constants.hpp"
+#include "exceptions.hpp"
 
 #include <yaml-cpp/yaml.h>
 #include <iostream>
@@ -12,8 +13,8 @@
 namespace cvc {
 namespace yaml {
 
-void enter_node(const YAML::Node &node, 
-                const unsigned int depth,
+void enter_node(YAML::Node const &node, 
+                unsigned int const depth,
                 OutputCollection & odefs,
                 MetaCollection & metas,
                 DataCollection & data)
@@ -22,6 +23,8 @@ void enter_node(const YAML::Node &node,
   MPI_Barrier(g_cart_grid);
 #endif
   ::cvc::Logger logger(0, verbosity::input_relay, std::cout);
+
+  logger << "Depth: " << depth << std::endl;
 
   YAML::NodeType::value type = node.Type();
   std::string indent( 2*(size_t)depth, ' ');
@@ -47,13 +50,15 @@ void enter_node(const YAML::Node &node,
       for(YAML::const_iterator it = node.begin(); it != node.end(); ++it){
         {
           if(depth != 0){ logger << std::endl << indent; }
-          logger << it->first << ": ";
+          logger << "\n" << it->first << ": ";
         }
         
         if( it->first.as<std::string>() == "MomentumList" ){
-          construct_momentum_list(it->second, metas.mom_lists );
+          momentum_list(it->second, metas.mom_lists );
+        } else if ( it->first.as<std::string>() == "DiracOperator" ){
+          dirac_operator(it->second, metas.dirac_ops_meta );
         } else if ( it->first.as<std::string>() == "TimeSlicePropagator" ){
-          construct_time_slice_propagator(
+          time_slice_propagator(
               it->second,
               metas.src_ts,
               metas.mom_lists, 
@@ -63,24 +68,30 @@ void enter_node(const YAML::Node &node,
               data.props_data,
               metas.phases_graph,
               data.phases_data,
-              *(metas.ranspinor));
+              *(metas.ranspinor)
+              );
         } else if ( it->first.as<std::string>() == "OetMesonTwoPointFunction" ){
-          construct_oet_meson_two_point_function(
+          oet_meson_two_point_function(
               it->second,
               metas.mom_lists,
               metas.src_ts,
               metas.props_meta,
+              metas.props_graph,
               data.props_data,
               odefs.corrs_data,
               metas.corrs_graph,
               data.phases_data,
-              metas.phases_graph);
+              metas.phases_graph,
+              metas.dirac_ops_meta,
+              *(metas.ranspinor)
+              );
         } else if ( it->first.as<std::string>() == "OetMesonThreePointFunction" ){
-          construct_oet_meson_three_point_function(
+          oet_meson_three_point_function(
               it->second,
               metas.mom_lists,
               metas.src_ts,
               metas.props_meta,
+              metas.props_graph,
               data.props_data,
               odefs.corrs_data,
               metas.corrs_graph,
@@ -88,14 +99,24 @@ void enter_node(const YAML::Node &node,
               metas.phases_graph,
               data.seq_props_data,
               data.cov_displ_props_data,
-              metas.gauge_field_with_phases
+              metas.dirac_ops_meta,
+              metas.gauge_field_with_phases,
+              *(metas.ranspinor)
               );
+        } else if ( it->first.as<std::string>() == "QuarkSmearing" ){
+          quark_smearing(
+              it->second,
+              metas.quark_smearing_meta);
+        } else if ( it->first.as<std::string>() == "GaugeSmearing" ){
+          gauge_smearing(
+              it->second,
+              metas.gauge_smearing_meta);
         } else {
           char msg[200];
           snprintf(msg, 200,
-                   "%s is not a valid Object name\n",
+                   "[yaml_enter_node]: %s is not a valid Object name",
                    it->first.as<std::string>().c_str());
-          throw( std::invalid_argument(msg) );
+          throw( ::cvc::invalid_argument(msg, "cvc::yaml::enter_node") );
         }
       }
     case YAML::NodeType::Null:

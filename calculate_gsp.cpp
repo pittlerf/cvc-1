@@ -31,7 +31,7 @@
 #include "types.h"
 #include "cvc_complex.h"
 #include "ilinalg.h"
-#include "global.h"
+#include "cvc_global.h"
 #include "cvc_geometry.h"
 #include "cvc_utils.h"
 #include "set_default.h"

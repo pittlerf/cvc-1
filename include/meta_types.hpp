@@ -3,14 +3,58 @@
 #include "cvc_complex.h"
 #include "types.h"
 #include "DependencyGraph.hpp"
+#include "exceptions.hpp"
 
+#include <string>
 #include <map>
 #include <vector>
 #include <string>
 #include <cstring>
-#include <stdexcept>
 
 namespace cvc {
+
+typedef struct quark_smearing_meta_t
+{
+  // default constructor to set things to zero and the invalid
+  // smearing type
+  quark_smearing_meta_t()
+  {
+    type = QUARK_SMEAR_NTYPES;
+    n_iter = 0;
+    kappa = 0;
+    mom_scale_factor = 0;
+  }
+
+  QuarkSmearingType_t type;
+
+  // Jacobi parameters
+  unsigned int n_iter;
+  double kappa;
+  
+  // momentum scale factor for momentum smearing
+  double mom_scale_factor;
+
+  // gauge smearing id to be used to construct smeared sources and sinks
+  // see: parsers/yaml_gauge_smearing.cpp
+  std::string gauge_smearing_id;
+} quark_smearing_meta_t;
+
+typedef struct gauge_smearing_meta_t
+{
+  gauge_smearing_meta_t()
+  {
+    type = GAUGE_SMEAR_NTYPES;
+    n_iter = 0;
+    alpha = 0;
+  } 
+
+  GaugeSmearingType_t type;
+  unsigned int n_iter;
+
+  // smearing strength for APE smearing
+  unsigned int alpha;
+} gauge_smearing_meta_t;
+
 
 typedef struct ts_stoch_src_meta_t
 {
@@ -46,7 +90,8 @@ typedef struct ts_stoch_src_meta_t
 static inline std::string check_mom_prop(const std::string prop_in)
 {
   if( !(prop_in == "fwd" || prop_in == "bwd" || prop_in == "neither") ){
-    throw std::invalid_argument("propagator with momentum has to be either 'fwd', 'bwd' or 'neither'\n");
+    throw ::cvc::invalid_argument("propagator with momentum has to be either 'fwd', 'bwd' or 'neither'\n", 
+                                  "check_mom_prop");
   }
   return prop_in;
 }
@@ -144,18 +189,12 @@ typedef struct seq_stoch_prop_meta_t
   stoch_prop_meta_t src_prop;
 } seq_stoch_prop_meta_t;
 
-//typedef struct shifted_prop_meta_t
-//{
-//  std::vector<shift_t> shifts;
-//  std::string prop_key;
-//} shifted_prop_meta_t;
-
 /**
  * @brief Meta-description of a meson two-point function
  *
  * Describes the connected part of the two-point function
  *
- * \sum_{x_i, x_f}  e^{-i p_i x_i} e^{i p_f x_f}
+ * \sum_{x_i, x_f}  e^{i p_i x_i} e^{i p_f x_f}
  * \bar{chi}_{f_1}(x_f) gf chi_{f_2}(x_f) \bar{chi}_{f_2}(x_i) gi f_1(x_i)
  *
  * in the twisted basis. This is computed as
@@ -214,7 +253,7 @@ typedef struct oet_meson_twopt_meta_t {
  *
  * Describes the connected part of a three-point function
  *
- * \sum_{x_i, x_f, x_c}  e^{-i p_i x_i} e^{i p_f x_f} e^{i p_c x_c}
+ * \sum_{x_i, x_f, x_c}  e^{i p_i x_i} e^{i p_f x_f} e^{i p_c x_c}
  * \bar{chi}_{f_1}(x_f) gf chi_{f_2}(x_f) \bar{chi}_{f_2}(x_c) gc chi_{f_2}(x_c)
  *     \bar{chi}_{f_2}(x_i) gi f_1(x_i)
  *
@@ -275,6 +314,26 @@ typedef struct oet_meson_threept_meta_t : oet_meson_twopt_meta_t
   std::string sprop_flav;
 } oet_meson_threept_meta_t; 
 
+typedef struct dirac_op_meta_t {
+  dirac_op_meta_t() :
+    solver_driver("invalid"),
+    solver_id(-1),
+    id("empty")
+  {}
+
+  dirac_op_meta_t(const std::string solver_driver_in,
+                  const std::string id_in,
+                  const int solver_id_in){
+    solver_driver = solver_driver_in;
+    id = id_in;
+    solver_id = solver_id_in;
+  } 
+
+  std::string solver_driver;
+  std::string id;
+  int solver_id;
+} dirac_op_meta_t;
+
 typedef struct MetaCollection {
   mom_lists_t mom_lists;
 
@@ -283,13 +342,16 @@ typedef struct MetaCollection {
 
   int src_ts;
   std::map<std::string, stoch_prop_meta_t> props_meta;
-  std::map<std::string, seq_stoch_prop_meta_t> seq_props_data;
+  std::map<std::string, seq_stoch_prop_meta_t> seq_props_meta;
   std::map<std::string, ts_stoch_src_meta_t> srcs_meta;
+  std::map<std::string, dirac_op_meta_t> dirac_ops_meta;
+
+  std::map<std::string, quark_smearing_meta_t> quark_smearing_meta;
+  std::map<std::string, gauge_smearing_meta_t> gauge_smearing_meta;
   
   DepGraph phases_graph;
   DepGraph props_graph;
   DepGraph corrs_graph;
-
 
 } MetaCollection;
 
@@ -305,29 +367,4 @@ typedef struct OutputCollection {
   std::map< std::string, H5Correlator > corrs_data;
 } OutputCollection;
 
-//typedef struct threept_shifts_oet_meta_t : oet_meson_threept_meta_t
-//{
-//  threept_shifts_oet_meta_t(
-//      const std::string fprop_flav_in,
-//      const std::string bprop_flav_in,
-//      const std::string sprop_flav_in,
-//      const std::string src_mom_prop_in,
-//      const int gi_in,
-//      const int gf_in,
-//      const int gc_in,
-//      const int gb_in,
-//      const std::vector<shift_t> left_shifts_in,
-//      const std::vector<shift_t> right_shifts_in,
-//      const ::cvc::complex normalisation_in
-//      ) :
-//    oet_meson_threept_meta_t(fprop_flav_in, bprop_flav_in, sprop_flav_in,
-//                       src_mom_prop_in, gi_in, gf_in, gc_in, gb_in, normalisation_in)
-//  {
-//    left_shifts = left_shifts_in;
-//    right_shifts = right_shifts_in; 
-//  }
-//  std::vector<shift_t> left_shifts;
-//  std::vector<shift_t> right_shifts;
-//} threept_shifts_oet_meta_t;
-
-} // naemspace(cvc)
+} // namespace(cvc)

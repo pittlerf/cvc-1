@@ -15,7 +15,7 @@
 # include<unistd.h>
 #endif
 #include<math.h>
-#include"global.h"
+#include"cvc_global.h"
 #include"cvc_complex.h"
 #include"cvc_linalg.h"
 

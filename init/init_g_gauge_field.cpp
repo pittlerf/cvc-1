@@ -1,4 +1,4 @@
-#include "global.h"
+#include "cvc_global.h"
 #include <cstdio>
 
 #ifdef HAVE_TMLQCD_LIBWRAPPER
