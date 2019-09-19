@@ -335,6 +335,7 @@ namespace h5 {
       return true;
     } else {
       if( H5Lexists(loc_id, key, H5P_DEFAULT) <= 0 ){
+        fail_path = std::string(key);
         return false;
       } else {
         fail_path = "";
