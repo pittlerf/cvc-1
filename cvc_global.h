@@ -123,6 +123,7 @@
 #define MAX_M_M_2PT_NUM 16
 #define MAX_MXB_MXB_2PT_NUM 16
 #define MAX_SOURCE_LOCATION_NUMBER 128
+#define MAX_LOOPEXTRACT_SPINPROJECTGAMMASTRUCTURE_NUMBER 16
 
 #define MAX_MOMENTUM_NUMBER 2000
 #define MAX_SEQUENTIAL_SOURCE_TIMESLICE_NUMBER 128
@@ -188,16 +189,28 @@ EXTERN int g_ts_nb_z_up, g_ts_nb_z_dn;
 EXTERN int g_nproc_t, g_nproc_x, g_nproc_y, g_nproc_z;
 
 EXTERN int g_sourceid, g_sourceid2, g_sourceid_step, Nsave;
-EXTERN int g_spinprojection_spintrace;
-EXTERN int g_spinprojection_loopaccumulate;
-EXTERN int g_spinprojection_gammas;
-EXTERN cvc_GammaBasis g_spinprojection_gamma_basis;
-EXTERN int g_spinprojection_loop_number;
-EXTERN int g_spinprojection_loop_type[MAX_LOOPTYPE_NUMBER];
-EXTERN double g_spinprojection_filtered_qsq;
+
+EXTERN char g_LoopExtract_InPath[400];
+EXTERN char g_LoopExtract_FilenamePrefix[400];
+EXTERN char g_LoopExtract_FilenameSuffix[400];
+
+EXTERN int g_LoopExtract_InQSq;
+EXTERN int g_LoopExtract_OutQSq;
+
+EXTERN int g_LoopExtract_SpinProjectGammaStructure_Number;
+EXTERN int g_LoopExtract_SpinProjectGammaStructure_List[MAX_LOOPEXTRACT_SPINPROJECTGAMMASTRUCTURE_NUMBER];
+EXTERN int g_LoopExtract_Nstoch;
+EXTERN int g_LoopExtract_NstochAccumulated;
+EXTERN int g_LoopExtract_LegacyTraj;
+EXTERN int g_LoopExtract_ASCII_Output;
+EXTERN int g_LoopExtract_SpinTrace;
+EXTERN int g_LoopExtract_SpinProject;
+EXTERN cvc_GammaBasis g_LoopExtract_SpinProjectGammaBasis;
+EXTERN int g_LoopExtract_FilterLoopTypesNumber;
+EXTERN LoopExtractLoopType_t g_LoopExtract_FilterLoopTypes[MAX_LOOPTYPE_NUMBER];
 EXTERN int g_gaugeid, g_gaugeid2, g_gauge_step;
 
-EXTERN char spinprojectionfname_prefix[200], filename_prefix[200], filename_prefix2[200], filename_prefix3[200], gaugefilename_prefix[200], g_outfile_prefix[200], g_path_prefix[200];
+EXTERN char filename_prefix[200], filename_prefix2[200], filename_prefix3[200], gaugefilename_prefix[200], g_outfile_prefix[200], g_path_prefix[200];
 EXTERN char g_sequential_filename_prefix[200], g_sequential_filename_prefix2[200];
 EXTERN int format, rotate;
 EXTERN double BCangle[4];

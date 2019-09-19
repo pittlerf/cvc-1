@@ -13,6 +13,18 @@ typedef enum latDim_t {
 
 extern const char latDim_names[];
 
+typedef enum LoopExtractLoopType_t {
+  LOOP_EXTRACT_LOOP_TYPE_NAIVE = 0,
+  LOOP_EXTRACT_LOOP_TYPE_SCALAR,
+  LOOP_EXTRACT_LOOP_TYPE_DOP,
+  LOOP_EXTRACT_LOOP_TYPE_LOOPS,
+  LOOP_EXTRACT_LOOP_TYPE_LPSDW,
+  LOOP_EXTRACT_LOOP_TYPE_LOOPSCV,
+  LOOP_EXTRACT_LOOP_TYPE_LPSDWCV,
+  LOOP_EXTRACT_LOOP_TYPE_NLOOPTYPES
+} LoopExtractLoopType_t;
+
+
 typedef enum shift_dir_t {
   DIR_FWD = 0,
   DIR_BWD,

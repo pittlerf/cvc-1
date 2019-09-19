@@ -25,7 +25,7 @@ namespace cvc {
 #define _default_BCangleX (0.)
 #define _default_BCangleY (0.)
 #define _default_BCangleZ (0.)
-#define _default_spinprojectionfname_prefix ""
+#define _default_LoopExtract_InPath ""
 #define _default_filename_prefix "prop."
 #define _default_filename_prefix2 "prop."
 #define _default_filename_prefix3 "prop."
@@ -192,11 +192,22 @@ namespace cvc {
 
 #define _default_source_gamma_id -1
 #define _default_source_gamma_id_number 0
+#define _default_LoopExtract_FilenamePrefix "MG_loop_lightquark_conf_conf"
+#define _default_LoopExtract_FilenameSuffix "runtype_probD8_part1_stoch_NeV0"
+#define _default_LoopExtract_OutQSq 4.
+#define _default_LoopExtract_InQSq 12
+#define _default_LoopExtract_SpinTrace 0
+#define _default_LoopExtract_SpinProject 0
+#define _default_LoopExtract_FilterLoopTypesNumber 6
+#define _default_LoopExtract_SpinProjectGammaStructure_Number 0
 
-#define _default_spinprojection_filtered_qsq 4.
-#define _default_spinprojection_gammas 4
-#define _default_spinprojection_spintrace 1
-#define _default_spinprojection_loopaccumulate 0
+
+#define _default_LoopExtract_NstochAccumulated 0
+#define _default_LoopExtract_Nstoch 64
+#define _default_LoopExtract_ASCII_Output 0
+#define _default_LoopExtract_LegacyTraj 0
+
+
 
 #define _default_csw 0
 
