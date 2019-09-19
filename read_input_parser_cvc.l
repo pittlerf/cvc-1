@@ -306,6 +306,8 @@ static inline double fltlist_next_token(int * const list_end){
 ^BCangleX{SPC}*={SPC}*                     BEGIN(BCX);
 ^BCangleY{SPC}*={SPC}*                     BEGIN(BCY);
 ^BCangleZ{SPC}*={SPC}*                     BEGIN(BCZ);
+^filename_prefix{SPC}*={SPC}*              BEGIN(PREFIX);
+^filename_prefix2{SPC}*={SPC}*             BEGIN(PREFIX2);
 ^filename_prefix3{SPC}*={SPC}*             BEGIN(PREFIX3);
 ^sequential_filename_prefix{SPC}*={SPC}*   BEGIN(SEQPREFIX);
 ^sequential_filename_prefix2{SPC}*={SPC}*  BEGIN(SEQPREFIX2);
@@ -565,6 +567,14 @@ static inline double fltlist_next_token(int * const list_end){
 <GAUGESTEP>{DIGIT}+ {
   cvc::g_gauge_step = atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] gauge step size set to %s\n", yytext);
+}
+<PREFIX>{FILENAME} {
+  strcpy(cvc::filename_prefix,yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. filename prefix set to %s\n",yytext);
+}
+<PREFIX2>{FILENAME} {
+  strcpy(cvc::filename_prefix2,yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] prop. 2 filename prefix set to %s\n",yytext);
 }
 <PREFIX3>{FILENAME} {
   strcpy(cvc::filename_prefix3,yytext);
