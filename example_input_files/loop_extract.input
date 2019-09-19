@@ -60,4 +60,4 @@ outfile_prefix =./
 # taken from tmLQCD if wrapper is used
 num_threads = 1
 verbosity_level = 5
-loopextractfilterlooptypes = Scalar, dOp, Loops, LoopsCv, LpsDw, LpsDwCv
+LoopExtract_FilterLoopTypes = Scalar, dOp, Loops, LoopsCv, LpsDw, LpsDwCv
