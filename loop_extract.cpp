@@ -76,7 +76,6 @@ int main(int argc, char **argv) {
   int exitstatus;
   int io_proc = -1;
   char filename[1200];
-  int Qsq = -1;
 
   struct timeval ta, tb;
   long unsigned int seconds, useconds;
@@ -89,14 +88,11 @@ int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
 #endif
 
-  while ((c = getopt(argc, argv, "h?f:Q:")) != -1) {
+  while ((c = getopt(argc, argv, "h?f:")) != -1) {
     switch (c) {
     case 'f':
       strcpy(filename, optarg);
       filename_set=1;
-      break;
-    case 'Q':
-      Qsq = atoi ( optarg );
       break;
     case 'h':
     case '?':
@@ -178,24 +174,36 @@ int main(int argc, char **argv) {
     EXIT(1);
    }
   }
-  if (g_proc_id == 0)
+
+  if (g_proc_id == 0){
    fprintf(stdout, "# [loop_extract] Following loops will be filtered\n");
-  for (int i=0; i<g_LoopExtract_FilterLoopTypesNumber; ++i){
-    switch( g_LoopExtract_FilterLoopTypes[i] ){
-     case LOOP_EXTRACT_LOOP_TYPE_NAIVE: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive\n");
-             break;
-     case LOOP_EXTRACT_LOOP_TYPE_SCALAR: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar\n");
-             break;
-     case LOOP_EXTRACT_LOOP_TYPE_DOP: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
-             break;
-     case LOOP_EXTRACT_LOOP_TYPE_LOOPS: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
-             break;
-     case LOOP_EXTRACT_LOOP_TYPE_LPSDW: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
-             break;
-     case LOOP_EXTRACT_LOOP_TYPE_LOOPSCV: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
-             break;
-     case LOOP_EXTRACT_LOOP_TYPE_LPSDWCV: if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
-             break;
+    for (int i=0; i<g_LoopExtract_FilterLoopTypesNumber; ++i){
+      switch( g_LoopExtract_FilterLoopTypes[i] ){
+        case LOOP_EXTRACT_LOOP_TYPE_NAIVE:
+          if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive\n");
+          break;
+        case LOOP_EXTRACT_LOOP_TYPE_SCALAR:
+          if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar\n");
+          break;
+        case LOOP_EXTRACT_LOOP_TYPE_DOP:
+          if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp\n");
+          break;
+        case LOOP_EXTRACT_LOOP_TYPE_LOOPS:
+          if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops\n");
+          break;
+        case LOOP_EXTRACT_LOOP_TYPE_LPSDW:
+          if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw\n");
+          break;
+        case LOOP_EXTRACT_LOOP_TYPE_LOOPSCV:
+          if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV\n");
+          break;
+        case LOOP_EXTRACT_LOOP_TYPE_LPSDWCV:
+          if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv\n");
+          break;
+        default:
+          EXIT_WITH_MSG(122, "Invalid loop type passed!\n");
+          break;
+      }
     }
   }
   /***************************************************************************
@@ -214,17 +222,20 @@ int main(int argc, char **argv) {
   char accumulate;
   if (g_LoopExtract_NstochAccumulated == 1){
     accumulate='N';
-  }
-  else if (g_LoopExtract_NstochAccumulated == 0){
+  } else if (g_LoopExtract_NstochAccumulated == 0){
     accumulate='n';
-  }
-  else {
+  } else {
     if (g_proc_id == 0){
-     fprintf(stderr, "# [loop_extract] invalid option for LoopExtract NstochAccumulated\n");
-     EXIT(1);
+      fprintf(stderr, "# [loop_extract] invalid option for LoopExtract NstochAccumulated\n");
+      EXIT(1);
     }
   }
-  snprintf ( filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix,g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
+
+  snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
+          g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix,
+          Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch,
+          Nsave, g_LoopExtract_InQSq );
+
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
   /***************************************************************************
@@ -236,11 +247,9 @@ int main(int argc, char **argv) {
   for( int x3 = -LZ_global/2+1; x3 < LZ_global/2; x3++ ) {
     int const qq = x1*x1 + x2*x2 + x3*x3;
     if ( qq <= g_LoopExtract_InQSq ) {
-      /*
       g_sink_momentum_list[g_sink_momentum_number][0] = x1;
       g_sink_momentum_list[g_sink_momentum_number][1] = x2;
       g_sink_momentum_list[g_sink_momentum_number][2] = x3;
-      */
       g_sink_momentum_number++;
     }
   }}}
@@ -253,9 +262,9 @@ int main(int argc, char **argv) {
 
   exitstatus = loop_get_momentum_list_from_h5_file ( g_sink_momentum_list, filename, g_sink_momentum_number, io_proc );
   if ( exitstatus != 0 ) {
-    fprintf ( stderr, "[] Error from loop_get_momentum_list_from_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
+    fprintf ( stderr, "[loop_extract] Error from loop_get_momentum_list_from_h5_file"
+                      ", status was %d, %s %d\n", exitstatus, __FILE__, __LINE__ );
     EXIT(1);
-
   }
 
   int filtered_sink_momentum_list[MAX_MOMENTUM_NUMBER][3];
@@ -263,8 +272,11 @@ int main(int argc, char **argv) {
   int index=0;
   for (int i=0;i<g_sink_momentum_number; ++i)
   {
-    int momentum = g_sink_momentum_list[i][0]*g_sink_momentum_list[i][0]+g_sink_momentum_list[i][1]*g_sink_momentum_list[i][1]+g_sink_momentum_list[i][2]*g_sink_momentum_list[i][2];
-    if (momentum<= g_LoopExtract_OutQSq){
+    int momentum_sq = g_sink_momentum_list[i][0]*g_sink_momentum_list[i][0] + 
+                      g_sink_momentum_list[i][1]*g_sink_momentum_list[i][1] + 
+                      g_sink_momentum_list[i][2]*g_sink_momentum_list[i][2];
+
+    if (momentum_sq <= g_LoopExtract_OutQSq ){
       filtered_sink_momentum_list[index][0]=g_sink_momentum_list[i][0];
       filtered_sink_momentum_list[index][1]=g_sink_momentum_list[i][1];
       filtered_sink_momentum_list[index][2]=g_sink_momentum_list[i][2];
@@ -272,7 +284,7 @@ int main(int argc, char **argv) {
       index++;
     }
   }
-  int filtered_sink_momentum_number= index;
+  int filtered_sink_momentum_number = index;
 
   char *attribute_correlator;
   get_attribute_from_h5_file (&attribute_correlator, filename, "Correlator-info", io_proc ) ;
@@ -307,6 +319,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "[loop_extract] Spin projection is on, you must specify a list of gamma structures %s %d\n", __FILE__, __LINE__ );;
     EXIT(1);
   }
+
   int total_gamma;
   int index_gamma;
   if (g_LoopExtract_SpinProject == 0)
@@ -329,9 +342,8 @@ int main(int argc, char **argv) {
 
     exitstatus = loop_write_momentum_list_to_h5_file ( filtered_sink_momentum_list, filename, filtered_sink_momentum_number, io_proc );
     if ( exitstatus != 0 ) {
-      fprintf ( stderr, "[] Error from loop_write_momentum_list_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
+      fprintf ( stderr, "[loop_extact] Error from loop_write_momentum_list_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
       EXIT(1);
-
     }
     set_attribute_in_h5_file (attribute_correlator, filename, "Correlator-info", io_proc ) ;
     set_attribute_in_h5_file (attribute_ensemble_info, filename, "Ensemble-info", io_proc ) ;
@@ -343,7 +355,9 @@ int main(int argc, char **argv) {
 
     if ((io_proc == 2) && (g_LoopExtract_ASCII_Output == 1)) {
       for ( int imom = 0; imom < filtered_sink_momentum_number; imom++ ) {
-        fprintf ( stdout, " %3d  ( %3d, %3d, %3d)\n", imom, filtered_sink_momentum_list[imom][0], filtered_sink_momentum_list[imom][1], filtered_sink_momentum_list[imom][2] );
+        fprintf(stdout, " %3d  ( %3d, %3d, %3d)\n", 
+                imom, filtered_sink_momentum_list[imom][0],
+                filtered_sink_momentum_list[imom][1], filtered_sink_momentum_list[imom][2] );
       }
     } 
 
@@ -367,35 +381,44 @@ int main(int argc, char **argv) {
         int inner_loop_length;
 
         switch( g_LoopExtract_FilterLoopTypes[iloop_type] ){
-
-          case LOOP_EXTRACT_LOOP_TYPE_NAIVE   : snprintf ( loop_type, 100, "%s", "Naive" );
-               inner_loop_length=1;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive loops\n");
-               break;
-          case LOOP_EXTRACT_LOOP_TYPE_SCALAR  : snprintf ( loop_type, 100, "%s", "Scalar" );
-               inner_loop_length=1;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar loops\n");
-               break;
-          case LOOP_EXTRACT_LOOP_TYPE_DOP     : snprintf ( loop_type, 100, "%s", "dOp" );
-               inner_loop_length=1;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp loops\n");
-               break;
-          case LOOP_EXTRACT_LOOP_TYPE_LOOPS   : snprintf ( loop_type, 100, "%s", "Loops" );
-               inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops loops\n");
-               break;
-          case LOOP_EXTRACT_LOOP_TYPE_LPSDW   : snprintf ( loop_type, 100, "%s", "LpsDw" );
-               inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw loops\n");
-               break;
-          case LOOP_EXTRACT_LOOP_TYPE_LOOPSCV : snprintf ( loop_type, 100, "%s", "LoopsCv" );
-               inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV loops\n");
-               break;
-          case LOOP_EXTRACT_LOOP_TYPE_LPSDWCV : snprintf ( loop_type, 100, "%s", "LpsDwCv" );
-               inner_loop_length=4;
-               if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv loops\n");
-               break;
+          case LOOP_EXTRACT_LOOP_TYPE_NAIVE:
+            snprintf ( loop_type, 100, "%s", "Naive" );
+            inner_loop_length=1;
+            if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Naive loops\n");
+            break;
+          case LOOP_EXTRACT_LOOP_TYPE_SCALAR:
+            snprintf ( loop_type, 100, "%s", "Scalar" );
+            inner_loop_length=1;
+            if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Scalar loops\n");
+            break;
+          case LOOP_EXTRACT_LOOP_TYPE_DOP:
+            snprintf ( loop_type, 100, "%s", "dOp" );
+            inner_loop_length=1;
+            if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] dOp loops\n");
+            break;
+          case LOOP_EXTRACT_LOOP_TYPE_LOOPS: 
+            snprintf ( loop_type, 100, "%s", "Loops" );
+            inner_loop_length=4;
+            if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] Loops loops\n");
+            break;
+          case LOOP_EXTRACT_LOOP_TYPE_LPSDW:
+            snprintf ( loop_type, 100, "%s", "LpsDw" );
+            inner_loop_length=4;
+            if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDw loops\n");
+            break;
+          case LOOP_EXTRACT_LOOP_TYPE_LOOPSCV:
+            snprintf ( loop_type, 100, "%s", "LoopsCv" );
+            inner_loop_length=4;
+            if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LoopsCV loops\n");
+            break;
+          case LOOP_EXTRACT_LOOP_TYPE_LPSDWCV:
+            snprintf ( loop_type, 100, "%s", "LpsDwCv" );
+            inner_loop_length=4;
+            if (g_proc_id == 0) fprintf(stdout, "# [loop_extract] LpsDwCv loops\n");
+            break;
+          default:
+            EXIT_WITH_MSG(123, "[loop_extract]: Invalid loop type encountered!\n");
+            break;
         }
 
         snprintf ( loop_name, 100, "%s", "loop" );
@@ -406,9 +429,11 @@ int main(int argc, char **argv) {
           snprintf(direction_part, 100, "dir_%02d", loop_direction);
      
           if (inner_loop_length > 1)
-            snprintf ( data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s/%s", conf_traj, accumulate, Nstoch, loop_type, direction_part, loop_name );
+            snprintf(data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s/%s",
+                     conf_traj, accumulate, Nstoch, loop_type, direction_part, loop_name );
           else
-            snprintf ( data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s", conf_traj, accumulate, Nstoch, loop_type, loop_name );
+            snprintf(data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s",
+                     conf_traj, accumulate, Nstoch, loop_type, loop_name );
 
           if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
@@ -424,6 +449,7 @@ int main(int argc, char **argv) {
            * Collecting data for writing
            *****************************************************************/
             for ( int iproc = 0; iproc < g_nproc_t; iproc++ ) {
+
               if ( g_tr_id == iproc ) {
                 char output_filename[400];
                 FILE *ofs;
@@ -480,24 +506,19 @@ int main(int argc, char **argv) {
                 }  /* end of loop on time slices */
 
                 if (io_proc== 2 && g_LoopExtract_ASCII_Output == 1){
-
                   fclose ( ofs );
-
                 }
-
               }  /* end of if g_tr_id == iproc */
+
 #ifdef HAVE_MPI
               MPI_Barrier ( g_tr_comm );
 #endif
             }  /* end of loop on procs in time direction */
-          }  /* end of if io_proc > 0 and verbosity high level enough */
-#if 0
-#endif  /* of if 0 */
+          }  /* end of if io_proc > 0 */
 
         /*****************************************************************
          * Write data in h5 format with the correct tag
          *****************************************************************/
-
 
           if (inner_loop_length > 1)
             snprintf ( data_tag, 400, "/conf_%.4d/%cstoch_%.4d/%s/%s", Nconf, accumulate, Nstoch, loop_type, direction_part );
@@ -525,7 +546,6 @@ int main(int argc, char **argv) {
             fprintf ( stderr, "[loop_extract] Error from loop_write_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
             EXIT(1);
           }
-
 
         }  /* end of loop for the different loop directions */
 
