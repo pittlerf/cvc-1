@@ -325,7 +325,8 @@ int contract_loop_write_to_h5_file (double *** const loop, void * file, char*tag
         hid_t loc_id = ( grp_list_nmem == 0 ) ? file_id : grp_list[grp_list_nmem-1];
         if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_loop_write_to_h5_file] grp_ptr = %s\n", grp_ptr );
         int status = H5Lexists(loc_id, grp_ptr, H5P_DEFAULT);
-        if( status > 0 ){
+        std::string fail_path;
+        if( h5::check_key_exists(loc_id, grp_ptr, fail_path, false) ){
           grp = H5Gopen2(loc_id, grp_ptr, gapl_id);
           if ( g_verbose > 1 ) fprintf ( stdout, "# [contract_write_to_h5_file] opened group %s %ld %s %d\n", grp_ptr, grp, __FILE__, __LINE__ );
         } else {
