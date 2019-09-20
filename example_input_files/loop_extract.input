@@ -2,13 +2,14 @@
 # * input parameters for cvc-code
 # *******************************************************
 
+# the only lattice parameters that really need to be set
+# are the global time extent and the configuration ID
 T =  96
-LX = 48
-LY = 48
-LZ = 48
+Nconf = 0000
+
+# these are completely ignored in practice, but provide nice output
 mu = 0.0025
 kappa = 0.1394267
-Nconf = 0000
 csw = 1.690000
 format = 0
 BCangleT = 1.
@@ -16,48 +17,61 @@ BCangleX = 0
 BCangleY = 0
 BCangleZ = 0
 
-# prefix of source and propagator fiels,
-# in case  of source / propagator io
+# number of OpenMP threads to use. For this task it's recommended to
+# run with just a single thread and launch as many tasks on the node as there
+# are cores
+num_threads = 1
+
+# high verbosity levels provide additional information on the HDF5 groups that
+# are created in the output file
+verbosity_level = 5
+
+# The filename for the input loops is concatenated out of
+# LoopExtract_InPath + / + LoopExtract_FilenamePrefix + (printf %04d Nconf) + LoopExtract_FilenameSuffix
+# Full directory path to input HDF5 files containing loops
 LoopExtract_InPath = /p/scratch/chbn28/hbn28d/loop/cB211a.25.48
+# prefix of the HDF5 filename before the configuration number
 LoopExtract_FilenamePrefix = MG_loop_lightquark_conf_conf
+# suffix of the HDF5 filename after the configuration number
 LoopExtract_FilenameSuffix = runtype_probD8_part1_stoch_NeV0
 
-# The name of the loopfile contains nstoch
+# The loop data can be accumulated over stochastic sources, in which case
+# the relevant part of the HDF5 group name is "Nstoch_xxxx"
+# Conversely, if the data has been generated without accumulation,
+# the group name contains "nstoch_xxxx"
 LoopExtract_NstochAccumulated = no
 
-# We do not use spin projection
+# Whether or not to perform spin projection during loop extrction
 LoopExtract_SpinProject = no
 
-# We do not take the trace in spin space
+# Whether or not to take the trace after spin projection
 LoopExtract_SpinProjectSpinTrace = no
 
-# The hdf5 tag in confnumber is correct (not 0004)
+# Some of our loop data was generated with an incorrect configuration number embedded in HDF5
+# group names, such that all configs were labelled with "conf_0004"
+# We call this "LegacyTraj" and set the parameter below to "yes"
+# In all other cases, we set it to "no"
 LoopExtract_LegacyTraj = no
 
-# We want to filter momenta up to q^2=4
-LoopExtract_OutQSq = 4
-
-# The original loop contains momenta upto q^2=12
+# What's the maximal Q^2 lattice momentum squared contained in the HDF5 file?
 LoopExtract_InQSq = 12
 
-# We have the loops for 64 random sources
+# What's the maximum Q^2 lattice momentum that we want to extract from the loop data
+LoopExtract_OutQSq = 4
+
+# How many stochastic samples were used to estimate the loops
 LoopExtract_Samples = 64
 
-# We want also ascii files to be produced
-LoopExtract_ASCII_Output = 1
+# Types of loops which are to be extracted in this run
+# See CalcLoops and/or hadron's cyprus_readutils.R for more details
+# on the loop types
+LoopExtract_FilterLoopTypes = Naive, Scalar, dOp, Loops, LoopsCv, LpsDw, LpsDwCv
+
+# Whether or not we want to generated text output for the extracted loops
+# Note: "no" is much faster
+LoopExtract_ASCII_Output = yes
 
 gaugefilename_prefix = conf
 
-
 outfile_prefix =./
 
-# taken from tmLQCD if wrapper is used
-#NrTProcs = 1
-#NrXProcs = 1
-#NrYProcs = 1
-#NrZProcs = 1
-
-# taken from tmLQCD if wrapper is used
-num_threads = 1
-verbosity_level = 5
-LoopExtract_FilterLoopTypes = Scalar, dOp, Loops, LoopsCv, LpsDw, LpsDwCv

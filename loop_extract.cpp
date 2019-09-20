@@ -242,9 +242,14 @@ int main(int argc, char **argv) {
    * count momenta and build momentum list
    ***************************************************************************/
   g_sink_momentum_number = 0;
-  for( int x1 = -LX_global/2+1; x1 < LX_global/2; x1++ ) {
-  for( int x2 = -LY_global/2+1; x2 < LY_global/2; x2++ ) {
-  for( int x3 = -LZ_global/2+1; x3 < LZ_global/2; x3++ ) {
+
+  // we don't want to have to set the spatial size to its actual value because then
+  // initialising the geometry takes needlessly long
+  // Instead, we take the sqrt of InQSq, add one and then convert back to int
+  const int max_mom_unit = (int)(sqrt( (double)g_LoopExtract_InQSq ) + 1); 
+  for( int x1 = -max_mom_unit; x1 <= max_mom_unit; x1++ ) {
+  for( int x2 = -max_mom_unit; x2 <= max_mom_unit; x2++ ) {
+  for( int x3 = -max_mom_unit; x3 <= max_mom_unit; x3++ ) {
     int const qq = x1*x1 + x2*x2 + x3*x3;
     if ( qq <= g_LoopExtract_InQSq ) {
       g_sink_momentum_list[g_sink_momentum_number][0] = x1;
