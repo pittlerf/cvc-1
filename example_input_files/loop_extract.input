@@ -1,6 +1,4 @@
-# *******************************************************
-# * input parameters for cvc-code
-# *******************************************************
+# example input file for loop_extract
 
 # the only lattice parameters that really need to be set
 # are the global time extent and the configuration ID
