@@ -726,7 +726,7 @@ int loop_read_from_h5_file (double *** const loop, void * file, char*tag, int co
         file_id = H5Fopen (         filename,         flags,        fapl_id );
 
         if ( file_id < 0 ) {
-          fprintf ( stderr, "[loop_read_from_h5_file] Error from H5Fopen %s %d\n", __FILE__, __LINE__ );
+          fprintf ( stderr, "[loop_read_from_h5_file] Error from H5Fopen, file %s, (%s line %d)\n", filename, __FILE__, __LINE__ );
           return ( 2 );
         }
       }
@@ -740,7 +740,7 @@ int loop_read_from_h5_file (double *** const loop, void * file, char*tag, int co
 
       hid_t dataset_id = H5Dopen2 ( file_id, tag, dapl_id );
       if ( dataset_id < 0 ) {
-        fprintf ( stderr, "[loop_read_from_h5_file] Error from H5Dopen2 %s %d\n", __FILE__, __LINE__ );
+        fprintf ( stderr, "[loop_read_from_h5_file] Error from H5Dopen2 file: %s, dataset: %s, (%s line %d)\n", filename, tag, __FILE__, __LINE__ );
         return ( 3 );
       }
 
@@ -757,7 +757,7 @@ int loop_read_from_h5_file (double *** const loop, void * file, char*tag, int co
        ***************************************************************************/
       status = H5Dread ( dataset_id, mem_type_id, mem_space_id, file_space_id, xfer_plist_id, (void*)zbuffer );
       if ( status < 0 ) {
-        fprintf ( stderr, "[loop_read_from_h5_file] Error from H5Dread %s %d\n", __FILE__, __LINE__ );
+        fprintf ( stderr, "[loop_read_from_h5_file] Error from H5Dread, file %s, dataset %s, (%s line %d)\n", filename, tag, __FILE__, __LINE__ );
         return ( 4 );
       }
 
