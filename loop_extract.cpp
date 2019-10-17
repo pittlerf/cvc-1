@@ -337,13 +337,13 @@ int main(int argc, char **argv) {
   for (index_gamma=0; index_gamma<total_gamma;++index_gamma){
 
     if (g_LoopExtract_SpinProjectGammaStructure_List[index_gamma] != 4){
-      snprintf(filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5",
-              g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix,
+      snprintf(filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5",
+              g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix,
               g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq,
               g_LoopExtract_SpinProjectGammaStructure_List[index_gamma]  );
     } else {
-      snprintf(filename, 400, "filtered_%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
-               g_LoopExtract_FilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix,
+      snprintf(filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
+               g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix,
                g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq);
     }
 
