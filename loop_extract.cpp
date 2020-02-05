@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
   snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
           g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix,
           Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch,
-          Nsave, g_LoopExtract_InQSq );
+          g_LoopExtract_NsaveStoch, g_LoopExtract_InQSq );
 
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
@@ -339,12 +339,12 @@ int main(int argc, char **argv) {
     if (g_LoopExtract_SpinProjectGammaStructure_List[index_gamma] != 4){
       snprintf(filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5",
               g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix,
-              g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq,
+              g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch , (int)g_LoopExtract_OutQSq,
               g_LoopExtract_SpinProjectGammaStructure_List[index_gamma]  );
     } else {
       snprintf(filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
                g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix,
-               g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq);
+               g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, (int)g_LoopExtract_OutQSq);
     }
 
     if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
@@ -448,7 +448,7 @@ int main(int argc, char **argv) {
 
           snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
                    g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf,
-                   g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, Nsave, g_LoopExtract_InQSq );
+                   g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, g_LoopExtract_InQSq );
 
           exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
           if ( exitstatus != 0 ) {
@@ -541,10 +541,10 @@ int main(int argc, char **argv) {
           if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
           if (g_LoopExtract_SpinProjectGammaStructure_List[index_gamma] != 4){
-            snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq, g_LoopExtract_SpinProjectGammaStructure_List[index_gamma]);
+            snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d_gamma%d.h5", g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, (int)g_LoopExtract_OutQSq, g_LoopExtract_SpinProjectGammaStructure_List[index_gamma]);
           }
           else{
-            snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix, g_LoopExtract_Nstoch, Nsave, (int)g_LoopExtract_OutQSq);
+            snprintf ( filename, 400, "%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5", g_LoopExtract_OutputFilenamePrefix, Nconf, g_LoopExtract_OutputFilenameSuffix, g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, (int)g_LoopExtract_OutQSq);
           }
           if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
