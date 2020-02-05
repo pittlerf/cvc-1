@@ -254,6 +254,8 @@ static inline double fltlist_next_token(int * const list_end){
 %x LOOPEXTRACTFILENAMESUFFIX
 %x LOOPEXTRACTFILENAMEPREFIX
 %x LOOPEXTRACTINPATH
+%x LOOPEXTRACT_FIRSTSTOCHINDEX
+%x LOOPEXTRACT_NSAVESTOCH
 %x SEQSRCMOM
 %x SEQSRCMOMX
 %x SEQSRCMOMY
@@ -439,6 +441,8 @@ static inline double fltlist_next_token(int * const list_end){
 ^LoopExtract_InQSq{SPC}*={SPC}*                  BEGIN(LOOPEXTRACTINQSQ);
 ^LoopExtract_FilterLoopTypes{SPC}*={SPC}*        BEGIN(LOOPEXTRACTFILTERLOOPTYPES);
 ^LoopExtract_Samples{SPC}*={SPC}*                BEGIN(LOOPEXTRACTSAMPLES);
+^LoopExtracT_StartStochIndex{SPC}*={SPC}*        BEGIN(LOOPEXTRACT_FIRSTSTOCHINDEX);
+^LoopExtract_NsaveStoch{SPC}*={SPC}*             BEGIN(LOOPEXTRACT_NSAVESTOCH);
 ^LoopExtract_ASCII_Output{SPC}*={SPC}*         BEGIN(LOOPEXTRACTASCIIOUTPUT);
 
 ^cpu_precision{SPC}*={SPC}*                BEGIN(CPUPREC);
@@ -707,6 +711,16 @@ static inline double fltlist_next_token(int * const list_end){
 <LOOPEXTRACTSAMPLES>{DIGIT}+ {
   cvc::g_LoopExtract_Nstoch = (unsigned int)atoi(yytext);
   if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_Nstoch set to %s\n",yytext);
+}
+
+<LOOPEXTRACT_FIRSTSTOCHINDEX>{DIGIT}+ {
+  cvc::g_LoopExtract_FirstStochIndex = (unsigned int)atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_FirstNstochIndex set to %s\n",yytext);
+}
+
+<LOOPEXTRACT_NSAVESTOCH>{DIGIT}+ {
+  cvc::g_LoopExtract_NsaveStoch = (unsigned int)atoi(yytext);
+  if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_NsaveStoch set to %s\n",yytext);
 }
 
 <LOOPEXTRACTINQSQ>{DIGIT}+ {

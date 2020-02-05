@@ -279,6 +279,8 @@ void set_default_input_values(void) {
   g_LoopExtract_OutQSq = _default_LoopExtract_InQSq;
   g_LoopExtract_SpinProjectGammaStructure_Number = _default_LoopExtract_SpinProjectGammaStructure_Number;
   g_LoopExtract_SpinProjectGammaStructure_List[0]= 4;
+  g_LoopExtract_NsaveStoch= _default_LoopExtract_NsaveStoch;
+  g_LoopExtract_FirstStochIndex= _default_LoopExtract_FirstStochIndex;
   g_LoopExtract_Nstoch = _default_LoopExtract_Nstoch;
   g_LoopExtract_NstochAccumulated = _default_LoopExtract_NstochAccumulated ;
   g_LoopExtract_LegacyTraj = _default_LoopExtract_LegacyTraj;

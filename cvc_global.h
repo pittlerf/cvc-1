@@ -198,6 +198,8 @@ EXTERN char g_LoopExtract_OutputFilenameSuffix[400];
 
 EXTERN int g_LoopExtract_InQSq;
 EXTERN int g_LoopExtract_OutQSq;
+EXTERN int g_LoopExtract_NsaveStoch;
+EXTERN int g_LoopExtract_FirstStochIndex;
 
 EXTERN int g_LoopExtract_SpinProjectGammaStructure_Number;
 EXTERN int g_LoopExtract_SpinProjectGammaStructure_List[MAX_LOOPEXTRACT_SPINPROJECTGAMMASTRUCTURE_NUMBER];

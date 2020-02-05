@@ -380,10 +380,10 @@ int main(int argc, char **argv) {
     /***************************************************************************
      * loop on stochastic oet samples
      ***************************************************************************/
-      for ( int isample = g_sourceid; isample < g_LoopExtract_Nstoch; isample += g_sourceid_step )
+      for ( int isample = 0; isample < g_LoopExtract_Nstoch; isample += g_LoopExtract_NsaveStoch )
       {
 
-        int const Nstoch = isample * Nsave + 1;
+        int const Nstoch = isample * g_LoopExtract_NsaveStoch + g_LoopExtract_FirstStochIndex;
         char loop_type[100];
         char loop_name[100];
 
