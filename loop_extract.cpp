@@ -305,7 +305,7 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * allocate memory for contractions
    ***************************************************************************/
-  double **** loop = init_4level_dtable ( g_LoopExtract_Nstoch, T, g_sink_momentum_number, 32 );
+  double **** loop = init_4level_dtable ( g_LoopExtract_Nstoch/g_LoopExtract_NsaveStoch, T, g_sink_momentum_number, 32 );
   if ( loop == NULL ) {
     fprintf(stderr, "[loop_extract] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
     EXIT(48);
@@ -314,8 +314,8 @@ int main(int argc, char **argv) {
   /***************************************************************************
    * allocate memory for filtered_contractions
    ***************************************************************************/
-  double **** loop_filtered = init_4level_dtable ( g_LoopExtract_Nstoch, T, filtered_sink_momentum_number, 32 );
-  if ( loop == NULL ) {
+  double **** loop_filtered = init_4level_dtable ( g_LoopExtract_Nstoch/g_LoopExtract_NsaveStoch, T, filtered_sink_momentum_number, 32 );
+  if ( loop_filtered == NULL ) {
     fprintf(stderr, "[loop_extract] Error from init_4level_dtable %s %d\n", __FILE__, __LINE__ );;
     EXIT(48);
   }
@@ -380,12 +380,13 @@ int main(int argc, char **argv) {
     /***************************************************************************
      * loop on stochastic oet samples
      ***************************************************************************/
-      for ( int isample = 0; isample < g_LoopExtract_Nstoch; isample += g_LoopExtract_NsaveStoch )
+      for ( int isample = 0; isample < g_LoopExtract_Nstoch/g_LoopExtract_NsaveStoch; isample += 1 )
       {
 
         int const Nstoch = isample * g_LoopExtract_NsaveStoch + g_LoopExtract_FirstStochIndex;
         char loop_type[100];
         char loop_name[100];
+        
 
         int inner_loop_length;
 
