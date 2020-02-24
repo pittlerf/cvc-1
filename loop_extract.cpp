@@ -231,10 +231,15 @@ int main(int argc, char **argv) {
     }
   }
 
-  snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
+  if (g_LoopExtract_FilenameBuild == 1){
+    snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
           g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix,
           Nconf, g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch,
           g_LoopExtract_NsaveStoch, g_LoopExtract_InQSq );
+  }
+  else{
+    snprintf(filename, 1200, "%s/%s.%04d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf);
+  }
 
   if ( io_proc == 2 && g_verbose > 2 ) fprintf ( stdout, "# [loop_extract] loop filename = %s\n", filename );
 
@@ -272,6 +277,7 @@ int main(int argc, char **argv) {
     EXIT(1);
   }
 
+
   int filtered_sink_momentum_list[MAX_MOMENTUM_NUMBER][3];
   int filtered_sink_momentum_index[MAX_MOMENTUM_NUMBER];
   int index=0;
@@ -292,7 +298,7 @@ int main(int argc, char **argv) {
   int filtered_sink_momentum_number = index;
 
   char *attribute_correlator;
-  get_attribute_from_h5_file (&attribute_correlator, filename, "Correlator-info", io_proc ) ;
+//  get_attribute_from_h5_file (&attribute_correlator, filename, "Correlator-info", io_proc ) ;
 
   char *attribute_ensemble_info;
   get_attribute_from_h5_file (&attribute_ensemble_info, filename, "Ensemble-info", io_proc ) ;
@@ -354,12 +360,12 @@ int main(int argc, char **argv) {
       fprintf ( stderr, "[loop_extact] Error from loop_write_momentum_list_to_h5_file, status was %d %s %d\n", exitstatus, __FILE__, __LINE__ );
       EXIT(1);
     }
-    set_attribute_in_h5_file (attribute_correlator, filename, "Correlator-info", io_proc ) ;
+//    set_attribute_in_h5_file (attribute_correlator, filename, "Correlator-info", io_proc ) ;
     set_attribute_in_h5_file (attribute_ensemble_info, filename, "Ensemble-info", io_proc ) ;
     set_attribute_in_h5_file (attribute_nmoms, filename, "Nmoms", io_proc ) ;
     set_attribute_in_h5_file (attribute_qsq, filename, "Qsq", io_proc ) ;
 
-    free(attribute_correlator);
+//    free(attribute_correlator);
     free(attribute_ensemble_info);
 
     if ((io_proc == 2) && (g_LoopExtract_ASCII_Output == 1)) {
@@ -447,9 +453,14 @@ int main(int argc, char **argv) {
 
           if ( io_proc == 2 && g_verbose > 2 ) fprintf( stdout, "# [loop_extract] data_tag = %s\n", data_tag);
 
-          snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
+          if (g_LoopExtract_FilenameBuild ==1){
+            snprintf(filename, 1200, "%s/%s.%.4d_%s_Ns%.4d_step%.4d_Qsq%d.h5",
                    g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf,
                    g_LoopExtract_FilenameSuffix, g_LoopExtract_Nstoch, g_LoopExtract_NsaveStoch, g_LoopExtract_InQSq );
+          }
+          else{
+            snprintf(filename, 1200, "%s/%s.%04d.h5", g_LoopExtract_InPath, g_LoopExtract_FilenamePrefix, Nconf);
+          }
 
           exitstatus = loop_read_from_h5_file ( loop[isample], filename, data_tag, g_sink_momentum_number, 16, io_proc );
           if ( exitstatus != 0 ) {

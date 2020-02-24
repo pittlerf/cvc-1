@@ -241,6 +241,7 @@ static inline double fltlist_next_token(int * const list_end){
 %x LOOPEXTRACTSPINPROJECTGAMMABASIS
 %x LOOPEXTRACTFILTERLOOPTYPES
 %x LOOPEXTRACTSPINPROJECTGAMMASTRUCTURE
+%x LOOPEXTRACTFILENAMEBUILD
 %x LOOPEXTRACTLEGACYTRAJ
 %x LOOPEXTRACTSPINPROJECT
 %x LOOPEXTRACTSPINPROJECTSPINTRACE
@@ -426,6 +427,7 @@ static inline double fltlist_next_token(int * const list_end){
 ^seq2_source_momentum_z{SPC}*={SPC}*       BEGIN(SEQ2SRCMOMZ);
 ^seq2_source_momentum{SPC}*={SPC}*         BEGIN(SEQ2SRCMOM);
 
+^LoopExtract_FilenameBuild{SPC}*={SPC}*          BEGIN(LOOPEXTRACTFILENAMEBUILD);
 ^LoopExtract_InPath{SPC}*={SPC}*                 BEGIN(LOOPEXTRACTINPATH);
 ^LoopExtract_OutputFilenamePrefix{SPC}*={SPC}*   BEGIN(LOOPEXTRACTOUTPUTFILENAMEPREFIX);
 ^LoopExtract_OutputFilenameSuffix{SPC}*={SPC}*   BEGIN(LOOPEXTRACTOUTPUTFILENAMESUFFIX);
@@ -776,7 +778,16 @@ static inline double fltlist_next_token(int * const list_end){
     if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_SpinProject is off\n");
   }
 }
-
+<LOOPEXTRACTFILENAMEBUILD>{FILENAME} {
+ if (strcmp(yytext,"yes")==0){
+    cvc::g_LoopExtract_FilenameBuild = 1;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_FilenameBuild is on  we build the filenames using the number of samples etc.\n");
+  }
+  else if (strcmp(yytext,"no")==0){
+    cvc::g_LoopExtract_FilenameBuild = 0;
+    if(cvc::myverbose!=0) printf("# [read_input_parser] cvc::g_LoopExtract_FilenameBuild is off only the conf number is used to build the filename\n");
+  }
+}
 <LOOPEXTRACTLEGACYTRAJ>{FILENAME} {
   if (strcmp(yytext,"yes")==0){
     cvc::g_LoopExtract_LegacyTraj = 1;

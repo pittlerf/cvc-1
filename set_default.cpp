@@ -284,6 +284,7 @@ void set_default_input_values(void) {
   g_LoopExtract_Nstoch = _default_LoopExtract_Nstoch;
   g_LoopExtract_NstochAccumulated = _default_LoopExtract_NstochAccumulated ;
   g_LoopExtract_LegacyTraj = _default_LoopExtract_LegacyTraj;
+  g_LoopExtract_FilenameBuild = _default_LoopExtract_FilenameBuild; 
   g_LoopExtract_ASCII_Output = _default_LoopExtract_ASCII_Output;
   g_LoopExtract_SpinTrace = _default_LoopExtract_SpinTrace;
   g_LoopExtract_SpinProject = _default_LoopExtract_SpinProject;

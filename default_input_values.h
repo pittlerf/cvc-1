@@ -212,6 +212,7 @@ namespace cvc {
 #define _default_LoopExtract_FirstStochIndex 1
 #define _default_LoopExtract_ASCII_Output 0
 #define _default_LoopExtract_LegacyTraj 0
+#define _default_LoopExtract_FilenameBuild 1
 
 
 
