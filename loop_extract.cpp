@@ -507,16 +507,16 @@ int main(int argc, char **argv) {
 
                       loop_filtered[isample][x0][imom][0] = sp[0]+sp[10]+sp[20]+sp[30];
                       loop_filtered[isample][x0][imom][1] = sp[1]+sp[11]+sp[21]+sp[31];
-                      loop_filtered[isample][x0][imom][0] = loop_filtered[isample][x0][imom][0]/g_LoopExtract_NsaveStoch ;
-                      loop_filtered[isample][x0][imom][1] = loop_filtered[isample][x0][imom][1]/g_LoopExtract_NsaveStoch ;
+                      loop_filtered[isample][x0][imom][0] = loop_filtered[isample][x0][imom][0]/(double)g_LoopExtract_NsaveStoch ;
+                      loop_filtered[isample][x0][imom][1] = loop_filtered[isample][x0][imom][1]/(double)g_LoopExtract_NsaveStoch ;
 
                     }
                     else{
                       for( int ic = 0; ic < 16; ic++ ) {
                         loop_filtered[isample][x0][imom][2*ic+0]=sp[2*ic+0];
                         loop_filtered[isample][x0][imom][2*ic+1]=sp[2*ic+1];
-                        loop_filtered[isample][x0][imom][2*ic+0]=loop_filtered[isample][x0][imom][2*ic+0]/g_LoopExtract_NsaveStoch;
-                        loop_filtered[isample][x0][imom][2*ic+1]=loop_filtered[isample][x0][imom][2*ic+1]/g_LoopExtract_NsaveStoch;
+                        loop_filtered[isample][x0][imom][2*ic+0]=loop_filtered[isample][x0][imom][2*ic+0]/(double)g_LoopExtract_NsaveStoch;
+                        loop_filtered[isample][x0][imom][2*ic+1]=loop_filtered[isample][x0][imom][2*ic+1]/(double)g_LoopExtract_NsaveStoch;
                       }   
                     }
                     if (io_proc== 2 && g_LoopExtract_ASCII_Output == 1){
@@ -526,7 +526,7 @@ int main(int argc, char **argv) {
                       for( int ic = 0; ic < 16; ic++ ) {
                         fprintf ( ofs, " %3d %4d   %3d% 3d% 3d   %d %d  %25.16e %25.16e\n", Nstoch, y0, 
                          g_sink_momentum_list[filtered_sink_momentum_index[imom]][0], g_sink_momentum_list[filtered_sink_momentum_index[imom]][1], g_sink_momentum_list[filtered_sink_momentum_index[imom]][2],
-                         ic/4, ic%4, sp[2*ic], sp[2*ic+1] );
+                         ic/4, ic%4, sp[2*ic]/(double)g_LoopExtract_NsaveStoch, sp[2*ic+1]/(double)g_LoopExtract_NsaveStoch );
                       }  /* end of loop on components */
                     }  /* end of g_LoopExtract_ASCII_Output */
                   }  /* end of loop on momenta */
