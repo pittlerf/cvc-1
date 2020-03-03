@@ -507,12 +507,16 @@ int main(int argc, char **argv) {
 
                       loop_filtered[isample][x0][imom][0] = sp[0]+sp[10]+sp[20]+sp[30];
                       loop_filtered[isample][x0][imom][1] = sp[1]+sp[11]+sp[21]+sp[31];
+                      loop_filtered[isample][x0][imom][0] = loop_filtered[isample][x0][imom][0]/g_LoopExtract_NsaveStoch ;
+                      loop_filtered[isample][x0][imom][1] = loop_filtered[isample][x0][imom][1]/g_LoopExtract_NsaveStoch ;
 
                     }
                     else{
                       for( int ic = 0; ic < 16; ic++ ) {
                         loop_filtered[isample][x0][imom][2*ic+0]=sp[2*ic+0];
                         loop_filtered[isample][x0][imom][2*ic+1]=sp[2*ic+1];
+                        loop_filtered[isample][x0][imom][2*ic+0]=loop_filtered[isample][x0][imom][2*ic+0]/g_LoopExtract_NsaveStoch;
+                        loop_filtered[isample][x0][imom][2*ic+1]=loop_filtered[isample][x0][imom][2*ic+1]/g_LoopExtract_NsaveStoch;
                       }   
                     }
                     if (io_proc== 2 && g_LoopExtract_ASCII_Output == 1){
